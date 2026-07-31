@@ -12,12 +12,69 @@ npm run dev                  # http://localhost:3001
 
 The frontend runs on **3001** because the backend already owns 3000.
 
-| Script              | What it does                     |
-| ------------------- | -------------------------------- |
-| `npm run dev`       | Dev server on port 3001          |
-| `npm run build`     | Production build + type check    |
-| `npm run typecheck` | `tsc --noEmit`                   |
-| `npm run lint`      | ESLint                           |
+| Script                    | What it does                              |
+| ------------------------- | ----------------------------------------- |
+| `npm run dev`             | Dev server on port 3001                   |
+| `npm run build`           | Production build + type check             |
+| `npm test`                | End-to-end suites against a mock backend  |
+| `npm run typecheck`       | `tsc --noEmit`                            |
+| `npm run lint`            | ESLint                                    |
+| `npm run verify:contract` | Check a live backend against our assumptions |
+
+## Testing
+
+Two things are being checked, and they are not the same thing.
+
+`npm test` (needs `npm run build` first) boots `tests/mock-api.mjs` and the
+production build against it, then runs 136 checks across six suites: token
+refresh under concurrency, catalog CRUD, product/variant/price flows, inventory,
+the admin filtering and bulk-pricing screens, and the customer journey from
+browsing through cart, checkout and order pages. It verifies **this frontend's
+behaviour** — routing, permission gating, form shapes, RTL/LTR, 404s.
+
+Server Actions are not replayed over HTTP: their ids are build hashes and bound
+arguments are encoded into the form, so driving them would test Next's plumbing
+more than this code. The suites drive mutations through the mock's REST API and
+assert on what the pages then render.
+
+It does **not** verify the backend. The mock encodes our reading of
+`API_CONTRACT.md`, so a misreading would be mirrored in both and the tests would
+still pass. That is what `npm run verify:contract` is for.
+
+> When asserting on markup, match rendered tags — never bare substrings. The RSC
+> payload embeds the entire dictionary, so `html.includes("Delete")` is true on
+> every page whether or not a delete button rendered.
+
+## Verifying against the real backend
+
+This frontend was written from `API_CONTRACT.md`, not from a running server.
+Where the contract is silent the code had to assume something, and those
+assumptions are what `scripts/verify-contract.mjs` checks:
+
+```bash
+npm run verify:contract                    # read-only probes
+VERIFY_WRITES=1 npm run verify:contract    # also create and delete sample data
+```
+
+It logs in with the seed account, probes each endpoint the frontend depends on,
+and prints `MATCH` / `MISMATCH` / `UNKNOWN` per assumption, exiting non-zero if
+anything mismatched. The write probes create records prefixed `zz-verify-` and
+delete them again on the way out — **point it at a development database**.
+
+The open questions it answers, all of which the contract leaves unstated:
+
+| Assumption in the code | Why it matters |
+| --- | --- |
+| A new product starts as `DRAFT` | The admin list caveat and the post-create redirect depend on it |
+| `POST /products` returns the record with an `id` | The create flow redirects to `created.id` |
+| `super_admin` gets a populated `permissions` array | If empty, the special case in `lib/auth/permissions.ts` is load-bearing |
+| `InventoryLevel` carries `variantId` / `warehouseId` | The contract names only the two quantity fields |
+| `InventoryMovement` field names | The contract names the movement *types*, not the shape |
+| The variants list embeds `prices` | The UI degrades cleanly either way, but it changes what a page shows |
+
+Run it before trusting the `TODO`-marked types in `lib/api/types.ts` — those
+cover entities (`Order`, `Payment`, `Shipment`, `OrderItem`) the contract never
+spells out field-by-field.
 
 ## How it is put together
 
@@ -54,6 +111,13 @@ in that file before scaling out.
 | `lib/api/client.ts`     | `apiFetch` — server-only, throws `ApiError` / `NetworkError`   |
 | `lib/api/catalog.ts`    | Catalog reads (categories, attributes, brands)                 |
 | `lib/api/products.ts`   | Product, variant and price reads                               |
+| `lib/api/inventory.ts`  | Stock levels, movement log, warehouses                         |
+| `lib/api/orders.ts`     | Cart, orders, shipments                                        |
+| `lib/api/media.ts`      | Media listing (upload lives in `lib/admin/media.ts`)           |
+| `lib/api/imports.ts`    | CSV import batches                                             |
+| `lib/shop/cart.ts`      | Customer cart, checkout and order cancellation                 |
+| `lib/orders/`           | Order status transition map                                    |
+| `tests/`                | Mock backend and end-to-end suites                             |
 | `lib/auth/`             | Cookies, JWT expiry, refresh, session, permissions, actions    |
 | `lib/admin/`            | Catalog mutations as Server Actions, plus their zod schemas    |
 | `lib/forms/`            | Form state, field helpers, API-error → dictionary-key mapping  |
@@ -126,9 +190,107 @@ label), the `*_UNIT` types render number inputs with the unit in the label.
 > know the id. The list screen says so, and creating a product redirects
 > straight to its detail page. Worth raising with the backend team.
 
+### Inventory
+
+Stock lives on the variant, so it is reached through the product:
+`/admin/products/[id]/variants/[variantId]` shows levels per warehouse, the
+movement log, and the two mutation forms. The product page shows a compact
+on-hand/available summary per variant and links through.
+
+Receiving and adjusting are separate on purpose, matching the API: a receipt
+only adds and its reason is optional, while an adjustment accepts negatives and
+*requires* a reason, because it is a manual correction that has to be
+justifiable in the audit trail. The API refuses an adjustment that would take
+stock below what open orders have reserved (409).
+
+`warehouseId` is never sent. The contract says cart and orders always fall back
+to the first active warehouse and there is no picker in the UI, so leaving it
+off keeps admin actions consistent with how orders actually behave. Levels shown
+on the product page are summed across warehouses for the same reason.
+
+> The inventory endpoint is per-variant with no bulk form, so a product page
+> issues one call per variant (in parallel, and skipped entirely for roles
+> without `inventory.read`). Fine for a handful of variants; worth a bulk
+> endpoint if products grow dozens of them.
+
+### Media
+
+Uploads follow the contract's three-step flow: `presign` (Server Action) → `PUT`
+straight from the browser to MinIO/S3 → `confirm` (Server Action). The file never
+touches this server. The middle step cannot be a Server Action, which is why
+`components/admin/media-manager.tsx` is a client component.
+
+Type and size are validated in the browser *and* re-validated in the Server
+Action — actions are reachable by direct POST, so the browser check is a
+convenience, not a guarantee. Images render through plain `<img>`: the storage
+host is not known at build time, so `next/image`'s `remotePatterns` cannot cover
+it.
+
+### Orders, payments and shipments
+
+`lib/orders/transitions.ts` encodes the documented status flow so the UI only
+offers legal next statuses. It is a **convenience, not the rule** — the API owns
+the state machine and rejects anything else with a 409 whose message is shown
+verbatim. If the backend allows an edge that map is missing, add it; nothing
+breaks, the option just is not offered.
+
+Creating a shipment moves the order to `SHIPPED` on its own, and marking one
+delivered moves it to `DELIVERED` — so those transitions are driven from the
+shipment forms rather than the status dropdown.
+
+Order creation and payment both send an `Idempotency-Key`, so a double-click or a
+retry after a dropped connection cannot create a duplicate.
+
+> **Contract gap:** there is no endpoint to list an order's payments.
+> `POST /orders/:id/pay` returns a payment record and
+> `POST /payments/:paymentId/refund` needs an id, but nothing connects them. The
+> refund form therefore only appears when the order response happens to embed
+> `payments`. Worth raising alongside the missing admin product listing.
+
+### Storefront
+
+`/[lang]/shop` filters entirely through the URL via a plain GET form, so results
+are shareable and the page works without client-side JavaScript. Pagination is
+cursor-based, and the "load more" link carries the active filters alongside the
+cursor.
+
+Attribute filters appear once a category is chosen, because attributes are
+linked per category — the form loads that category's `isFilterable` attributes
+from `GET /category-attributes` and renders one control per attribute, shaped by
+its type. Each becomes an `attr_<key>` param, which is what the products
+endpoint expects; `SELECT`/`COLOR_SELECT` submit the option's `value`, never its
+label.
+
+Checkout sends no line items — the API builds the order from the server-side
+cart. A cart whose `total` is `null` (some line has no retail price) blocks
+checkout in the UI, because the API rejects it anyway.
+
+### No `loading.tsx` — on purpose
+
+Adding `loading.tsx` was tried and reverted. It wraps a segment in Suspense, so
+the shell flushes before the page's data resolves — and once the response has
+started streaming its **status is already committed as 200**. Every detail route
+that calls `notFound()` then returned 200 with the not-found UI inside it, which
+is wrong for SEO, monitoring and caching.
+
+Skeletons are still worth having; they just cannot come from a `loading.tsx`
+that also covers a 404-able child. Two ways forward, whenever this is picked up:
+
+- Put the listing pages in a route group (`shop/(browse)/page.tsx`) so their
+  `loading.tsx` does not cover `[slug]`.
+- Or keep the 404-determining fetch above a `<Suspense>` inside the page and
+  stream only what follows it.
+
+`components/ui/skeleton.tsx` is left in place for either route.
+
 ## Not built yet
 
-Inventory, cart, orders, payments, shipments, media upload and CSV import. Types
-for all of those are already in `lib/api/types.ts`; entities the contract does
-not spell out field-by-field are marked with `TODO` — confirm them against a
-real response before relying on them.
+Everything in the contract is now covered. What remains is verification: run
+`npm run verify:contract` against the real backend, and treat the `TODO`-marked
+types in `lib/api/types.ts` as unconfirmed until you have seen a real response —
+particularly `OrderItem`, which the contract never spells out field-by-field.
+
+The verify script covers auth, catalog, products, variants, prices and
+inventory. It does **not** yet cover orders, payments, shipments, media or
+imports, since those need a much longer setup chain (stock, prices, a cart) to
+reach.

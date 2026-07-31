@@ -1,0 +1,117 @@
+/**
+ * Runs the end-to-end suites against a mock backend.
+ *
+ * Boots `tests/mock-api.mjs` on 3100 and the production build on 3102 pointed
+ * at it, runs each suite, then tears both down.
+ *
+ *   npm run build && npm test
+ *
+ * These suites verify **this frontend's behaviour** — routing, permission
+ * gating, form shapes, i18n, the token-refresh logic. They do not verify the
+ * real backend: the mock encodes our reading of API_CONTRACT.md, so a
+ * misreading would be mirrored in both. Use `npm run verify:contract` against a
+ * live server for that.
+ */
+import { spawn } from "node:child_process";
+import { fileURLToPath } from "node:url";
+import { dirname, join } from "node:path";
+
+const here = dirname(fileURLToPath(import.meta.url));
+
+const MOCK_PORT = 3100;
+const APP_PORT = 3102;
+
+const SUITES = [
+  "auth-flow.test.mjs",
+  "catalog.test.mjs",
+  "products.test.mjs",
+  "inventory.test.mjs",
+  "admin-extras.test.mjs",
+  "shop.test.mjs",
+];
+
+const children = [];
+
+/**
+ * Spawned without `shell`: on Windows `process.execPath` contains spaces, and
+ * shell mode would split it at the first one.
+ */
+function start(command, args, options = {}) {
+  const child = spawn(command, args, {
+    stdio: ["ignore", "ignore", "inherit"],
+    ...options,
+  });
+  children.push(child);
+  return child;
+}
+
+/**
+ * Next's CLI entrypoint, run through node directly. Going via `npx` would mean
+ * spawning a `.cmd` shim on Windows, which modern Node refuses without a shell.
+ */
+const NEXT_BIN = join(here, "..", "node_modules", "next", "dist", "bin", "next");
+
+async function waitFor(url, label, timeoutMs = 60_000) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    try {
+      await fetch(url);
+      return;
+    } catch {
+      await new Promise((resolve) => setTimeout(resolve, 300));
+    }
+  }
+  throw new Error(`${label} did not come up within ${timeoutMs}ms`);
+}
+
+function run(suite) {
+  return new Promise((resolve) => {
+    const child = spawn(process.execPath, [join(here, suite)], {
+      stdio: "inherit",
+      env: { ...process.env, APP_URL: `http://localhost:${APP_PORT}` },
+    });
+    child.on("exit", (code) => resolve(code ?? 1));
+  });
+}
+
+function shutdown() {
+  for (const child of children) {
+    if (!child.killed) child.kill();
+  }
+}
+
+process.on("SIGINT", () => {
+  shutdown();
+  process.exit(130);
+});
+
+let failed = 0;
+
+try {
+  start(process.execPath, [join(here, "mock-api.mjs")]);
+  await waitFor(`http://localhost:${MOCK_PORT}/__log`, "mock API");
+
+  start(process.execPath, [NEXT_BIN, "start", "-p", String(APP_PORT)], {
+    cwd: join(here, ".."),
+    env: { ...process.env, API_BASE_URL: `http://localhost:${MOCK_PORT}` },
+  });
+  await waitFor(`http://localhost:${APP_PORT}/ar`, "Next server");
+
+  for (const suite of SUITES) {
+    console.log(`\n[36m── ${suite}[0m`);
+    if ((await run(suite)) !== 0) failed += 1;
+  }
+} catch (error) {
+  console.error(`\n[31m${error.message}[0m`);
+  console.error("Did you run `npm run build` first?");
+  failed += 1;
+} finally {
+  shutdown();
+}
+
+console.log(
+  failed === 0
+    ? "\n[32mall suites passed[0m"
+    : `\n[31m${failed} suite(s) failed[0m`,
+);
+process.exit(failed === 0 ? 0 : 1);

@@ -1,0 +1,217 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+
+import { AttributeFilterFields } from "@/components/shop/attribute-filter-fields";
+import { Button } from "@/components/ui/button";
+import {
+  listAttributes,
+  listBrands,
+  listCategories,
+  listCategoryAttributes,
+} from "@/lib/api/catalog";
+import { listProducts } from "@/lib/api/products";
+import type { Attribute, CategoryAttribute } from "@/lib/api/types";
+import { formatAmount } from "@/lib/format";
+import {
+  ATTR_QUERY_PREFIX,
+  filterableAttributes,
+  readAttributeParams,
+  type FilterableAttribute,
+} from "@/lib/shop/attribute-filters";
+import { isLocale } from "@/lib/i18n/config";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+
+/** Reads one search param as a string, ignoring repeated values. */
+function one(value: string | string[] | undefined) {
+  return typeof value === "string" && value !== "" ? value : undefined;
+}
+
+export default async function ShopPage({
+  params,
+  searchParams,
+}: PageProps<"/[lang]/shop">) {
+  const { lang } = await params;
+  if (!isLocale(lang)) notFound();
+
+  const dict = getDictionary(lang);
+  const query = await searchParams;
+
+  const attributes = readAttributeParams(query);
+  const filters = {
+    q: one(query.q),
+    categoryId: one(query.categoryId),
+    brandId: one(query.brandId),
+    minPrice: one(query.minPrice) ? Number(one(query.minPrice)) : undefined,
+    maxPrice: one(query.maxPrice) ? Number(one(query.maxPrice)) : undefined,
+    attributes,
+    cursor: one(query.cursor),
+    limit: 24,
+  };
+
+  const [page, categories, brands] = await Promise.all([
+    listProducts(filters),
+    listCategories(),
+    listBrands(),
+  ]);
+
+  // Attribute filters only exist relative to a category, so they appear once
+  // one is chosen. The contract points at `/category-attributes` for exactly
+  // this. Failing to load them narrows the form rather than breaking the page.
+  let attributeFilters: FilterableAttribute[] = [];
+  if (filters.categoryId) {
+    const [links, definitions] = await Promise.all([
+      listCategoryAttributes(filters.categoryId),
+      listAttributes(),
+    ]).catch((): [CategoryAttribute[], Attribute[]] => [[], []]);
+
+    attributeFilters = filterableAttributes(links, definitions, attributes);
+  }
+
+  // Carry the active filters into the "load more" link alongside the cursor.
+  const nextParams = new URLSearchParams();
+  for (const [key, value] of Object.entries(filters)) {
+    if (key === "cursor" || key === "limit" || key === "attributes") continue;
+    if (value === undefined) continue;
+    nextParams.set(key, String(value));
+  }
+  for (const [key, value] of Object.entries(attributes)) {
+    nextParams.set(`${ATTR_QUERY_PREFIX}${key}`, value);
+  }
+  if (page.nextCursor) nextParams.set("cursor", page.nextCursor);
+
+  return (
+    <div className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-4 py-8">
+      <h1 className="text-2xl font-semibold">{dict.shop.title}</h1>
+
+      {/* A GET form: filters live in the URL, so results are shareable and the
+          page keeps working without client-side JavaScript. */}
+      <form method="get" className="border-border grid gap-3 rounded-xl border p-4 sm:grid-cols-2 lg:grid-cols-3">
+        <label className="flex flex-col gap-1.5 text-sm">
+          {dict.shop.search}
+          <input
+            name="q"
+            defaultValue={filters.q}
+            placeholder={dict.shop.searchPlaceholder}
+            className="border-border bg-background h-10 rounded-lg border px-3 text-sm outline-none focus:ring-2 focus:ring-accent/40"
+          />
+        </label>
+
+        <label className="flex flex-col gap-1.5 text-sm">
+          {dict.admin.products.category}
+          <select
+            name="categoryId"
+            defaultValue={filters.categoryId ?? ""}
+            className="border-border bg-background h-10 rounded-lg border px-3 text-sm outline-none focus:ring-2 focus:ring-accent/40"
+          >
+            <option value="">{dict.shop.allCategories}</option>
+            {categories.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.path || category.name}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="flex flex-col gap-1.5 text-sm">
+          {dict.admin.products.brand}
+          <select
+            name="brandId"
+            defaultValue={filters.brandId ?? ""}
+            className="border-border bg-background h-10 rounded-lg border px-3 text-sm outline-none focus:ring-2 focus:ring-accent/40"
+          >
+            <option value="">{dict.shop.allBrands}</option>
+            {brands.map((brand) => (
+              <option key={brand.id} value={brand.id}>
+                {brand.name}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="flex flex-col gap-1.5 text-sm">
+          {dict.shop.minPrice}
+          <input
+            name="minPrice"
+            type="number"
+            min={0}
+            defaultValue={filters.minPrice}
+            className="border-border bg-background h-10 rounded-lg border px-3 text-sm outline-none focus:ring-2 focus:ring-accent/40"
+          />
+        </label>
+
+        <label className="flex flex-col gap-1.5 text-sm">
+          {dict.shop.maxPrice}
+          <input
+            name="maxPrice"
+            type="number"
+            min={0}
+            defaultValue={filters.maxPrice}
+            className="border-border bg-background h-10 rounded-lg border px-3 text-sm outline-none focus:ring-2 focus:ring-accent/40"
+          />
+        </label>
+
+        {/* Attribute filters sit in the same GET form, so they arrive as
+            `attr_<key>` params exactly as the products endpoint expects. */}
+        {filters.categoryId ? (
+          <>
+            <p className="text-muted col-span-full text-xs font-medium">
+              {dict.shop.attributeFilters}
+            </p>
+            <AttributeFilterFields filters={attributeFilters} locale={lang} />
+          </>
+        ) : (
+          <p className="text-muted col-span-full text-xs">
+            {dict.shop.pickCategoryFirst}
+          </p>
+        )}
+
+        <div className="col-span-full flex items-end gap-2">
+          <Button type="submit" className="h-10">
+            {dict.shop.apply}
+          </Button>
+          <Link href={`/${lang}/shop`}>
+            <Button type="button" variant="ghost" className="h-10">
+              {dict.shop.clear}
+            </Button>
+          </Link>
+        </div>
+      </form>
+
+      {page.items.length === 0 ? (
+        <p className="text-muted text-sm">{dict.shop.noResults}</p>
+      ) : (
+        <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {page.items.map((product) => (
+            <li key={product.id}>
+              <Link
+                href={`/${lang}/shop/${product.slug}`}
+                className="border-border hover:bg-surface flex h-full flex-col gap-2 rounded-xl border p-4 transition"
+              >
+                <span className="font-medium">{product.name}</span>
+                <span className="text-muted mt-auto text-sm">
+                  {product.displayPrice ? (
+                    product.displayPrice.min === product.displayPrice.max ? (
+                      formatAmount(product.displayPrice.min, lang)
+                    ) : (
+                      <>
+                        {dict.shop.from} {formatAmount(product.displayPrice.min, lang)}
+                      </>
+                    )
+                  ) : (
+                    dict.shop.unavailable
+                  )}
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {page.nextCursor ? (
+        <Link href={`/${lang}/shop?${nextParams.toString()}`} className="self-center">
+          <Button variant="ghost">{dict.shop.loadMore}</Button>
+        </Link>
+      ) : null}
+    </div>
+  );
+}
