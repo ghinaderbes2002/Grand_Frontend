@@ -94,6 +94,18 @@ function authed(req) {
   }
 }
 
+/**
+ * Permissions exactly as API_CONTRACT.md states them, so the suites exercise
+ * what the real API would allow rather than only what the UI chooses to show.
+ *
+ * `super_admin` is treated as holding everything — the contract never says what
+ * that role's `permissions` array contains, which is itself an open question.
+ */
+function allowed(permission) {
+  if (USER.roleKey === "super_admin") return true;
+  return USER.permissions.includes(permission);
+}
+
 /** Rebuilds `path` for a category and everything under it. */
 function rebuildPaths() {
   const byId = new Map(db.categories.map((c) => [c.id, c]));
@@ -133,6 +145,14 @@ const server = createServer(async (req, res) => {
   const needsAuth = () => {
     if (authed(req)) return false;
     err(res, 401, "Unauthorized", "Unauthorized");
+    return true;
+  };
+
+  /** Returns true (and has already answered 401/403) when the caller may not proceed. */
+  const needs = (permission) => {
+    if (needsAuth()) return true;
+    if (allowed(permission)) return false;
+    err(res, 403, `Missing permission: ${permission}`, "Forbidden");
     return true;
   };
 
@@ -182,7 +202,7 @@ const server = createServer(async (req, res) => {
     return send(res, 200, build(null));
   }
   if (path === "/categories" && method === "POST") {
-    if (needsAuth()) return;
+    if (needs("categories.create")) return;
     const slug = body.slug || slugify(body.name);
     if (body.parentId && !db.categories.some((c) => c.id === body.parentId)) {
       return err(res, 404, "Parent category not found", "Not Found");
@@ -221,7 +241,7 @@ const server = createServer(async (req, res) => {
       });
     }
     if (method === "PATCH") {
-      if (needsAuth()) return;
+      if (needs("categories.update")) return;
       if (body.parentId) {
         if (!db.categories.some((c) => c.id === body.parentId)) {
           return err(res, 404, "Parent category not found", "Not Found");
@@ -238,7 +258,7 @@ const server = createServer(async (req, res) => {
       return send(res, 200, category);
     }
     if (method === "DELETE") {
-      if (needsAuth()) return;
+      if (needs("categories.delete")) return;
       if (db.categories.some((c) => c.parentId === category.id)) {
         return err(res, 409, "Category has children", "Conflict");
       }
@@ -250,7 +270,7 @@ const server = createServer(async (req, res) => {
   // --- attributes ---------------------------------------------------------
   if (path === "/attributes" && method === "GET") return send(res, 200, db.attributes);
   if (path === "/attributes" && method === "POST") {
-    if (needsAuth()) return;
+    if (needs("attributes.create")) return;
     if (db.attributes.some((a) => a.key === body.key)) {
       return err(res, 409, "Attribute key already exists", "Conflict");
     }
@@ -269,7 +289,7 @@ const server = createServer(async (req, res) => {
 
   const optionMatch = path.match(/^\/attributes\/([^/]+)\/options(?:\/([^/]+))?$/);
   if (optionMatch) {
-    if (needsAuth()) return;
+    if (needs("attributes.update")) return;
     const attribute = db.attributes.find((a) => a.id === optionMatch[1]);
     if (!attribute) return err(res, 404, "Attribute not found", "Not Found");
 
@@ -299,7 +319,7 @@ const server = createServer(async (req, res) => {
 
     if (method === "GET") return send(res, 200, attribute);
     if (method === "PATCH") {
-      if (needsAuth()) return;
+      if (needs("attributes.update")) return;
       if ("key" in body || "type" in body) {
         return err(res, 400, ["key should not exist", "type should not exist"], "Bad Request");
       }
@@ -307,7 +327,7 @@ const server = createServer(async (req, res) => {
       return send(res, 200, attribute);
     }
     if (method === "DELETE") {
-      if (needsAuth()) return;
+      if (needs("attributes.delete")) return;
       if (db.categoryAttributes.some((l) => l.attributeId === attribute.id)) {
         return err(res, 409, "Attribute is linked to a category", "Conflict");
       }
@@ -322,7 +342,7 @@ const server = createServer(async (req, res) => {
     return send(res, 200, db.categoryAttributes.filter((l) => l.categoryId === categoryId));
   }
   if (path === "/category-attributes" && method === "POST") {
-    if (needsAuth()) return;
+    if (needs("attributes.update")) return;
     const exists = db.categoryAttributes.some(
       (l) => l.categoryId === body.categoryId && l.attributeId === body.attributeId,
     );
@@ -340,7 +360,7 @@ const server = createServer(async (req, res) => {
   }
   const unlinkMatch = path.match(/^\/category-attributes\/([^/]+)\/([^/]+)$/);
   if (unlinkMatch && method === "DELETE") {
-    if (needsAuth()) return;
+    if (needs("attributes.update")) return;
     db.categoryAttributes = db.categoryAttributes.filter(
       (l) => !(l.categoryId === unlinkMatch[1] && l.attributeId === unlinkMatch[2]),
     );
@@ -350,7 +370,7 @@ const server = createServer(async (req, res) => {
   // --- brands --------------------------------------------------------------
   if (path === "/brands" && method === "GET") return send(res, 200, db.brands);
   if (path === "/brands" && method === "POST") {
-    if (needsAuth()) return;
+    if (needs("products.create")) return;
     const slug = body.slug || slugify(body.name);
     if (db.brands.some((b) => b.slug === slug)) {
       return err(res, 409, "Slug already exists", "Conflict");
@@ -370,12 +390,12 @@ const server = createServer(async (req, res) => {
     if (!brand) return err(res, 404, "Brand not found", "Not Found");
     if (method === "GET") return send(res, 200, brand);
     if (method === "PATCH") {
-      if (needsAuth()) return;
+      if (needs("products.update")) return;
       Object.assign(brand, body);
       return send(res, 200, brand);
     }
     if (method === "DELETE") {
-      if (needsAuth()) return;
+      if (needs("products.delete")) return;
       db.brands = db.brands.filter((b) => b.id !== brand.id);
       return send(res, 204);
     }
@@ -464,10 +484,20 @@ const server = createServer(async (req, res) => {
 
   /** `total` is null when any line has no retail price, per the contract. */
   const cartView = () => {
-    const items = db.cart.items.map((item) => ({
-      ...item,
-      variant: db.variants.find((v) => v.id === item.variantId) ?? null,
-    }));
+    const items = db.cart.items.map((item) => {
+      const variant = db.variants.find((v) => v.id === item.variantId) ?? null;
+      const product = variant
+        ? db.products.find((p) => p.id === variant.productId)
+        : null;
+      return {
+        ...item,
+        variant: variant && {
+          ...variant,
+          prices: db.prices.filter((p) => p.variantId === variant.id),
+          product: product && { id: product.id, name: product.name, slug: product.slug },
+        },
+      };
+    });
     const amounts = items.map((item) => {
       const price = retailPrice(item.variantId);
       return price === null ? null : price * item.quantity;
@@ -532,7 +562,7 @@ const server = createServer(async (req, res) => {
 
   // --- orders --------------------------------------------------------------
   if (path === "/orders" && method === "GET") {
-    if (needsAuth()) return;
+    if (needs("orders.read")) return;
     return send(res, 200, db.orders);
   }
   if (path === "/orders/my" && method === "GET") {
@@ -601,7 +631,7 @@ const server = createServer(async (req, res) => {
   }
   const orderStatusMatch = path.match(/^\/orders\/([^/]+)\/status$/);
   if (orderStatusMatch && method === "PATCH") {
-    if (needsAuth()) return;
+    if (needs("orders.updateStatus")) return;
     const order = db.orders.find((o) => o.id === orderStatusMatch[1]);
     if (!order) return err(res, 404, "Order not found", "Not Found");
     order.status = body.status;
@@ -617,7 +647,7 @@ const server = createServer(async (req, res) => {
 
   // --- bulk prices ---------------------------------------------------------
   if (path === "/prices/bulk" && method === "POST") {
-    if (needsAuth()) return;
+    if (needs("prices.update")) return;
     let updated = 0;
     for (const update of body.updates ?? []) {
       if (!db.variants.some((v) => v.id === update.variantId)) continue;
@@ -631,7 +661,7 @@ const server = createServer(async (req, res) => {
     return send(res, 200, { updated });
   }
   if (path === "/products" && method === "POST") {
-    if (needsAuth()) return;
+    if (needs("products.create")) return;
     const category = db.categories.find((c) => c.id === body.categoryId);
     if (!category) return err(res, 404, "Category not found", "Not Found");
     if (body.brandId && !db.brands.some((b) => b.id === body.brandId)) {
@@ -696,7 +726,7 @@ const server = createServer(async (req, res) => {
 
   const variantsMatch = path.match(/^\/products\/([^/]+)\/variants$/);
   if (variantsMatch) {
-    if (needsAuth()) return;
+    if (needs(method === "GET" ? "products.read" : "products.update")) return;
     const product = db.products.find((p) => p.id === variantsMatch[1]);
     if (!product) return err(res, 404, "Product not found", "Not Found");
 
@@ -765,7 +795,7 @@ const server = createServer(async (req, res) => {
 
   const variantStatusMatch = path.match(/^\/products\/([^/]+)\/variants\/([^/]+)\/status$/);
   if (variantStatusMatch && method === "PATCH") {
-    if (needsAuth()) return;
+    if (needs("products.update")) return;
     const variant = db.variants.find((v) => v.id === variantStatusMatch[2]);
     if (!variant) return err(res, 404, "Variant not found", "Not Found");
     variant.status = body.status;
@@ -774,7 +804,7 @@ const server = createServer(async (req, res) => {
 
   const variantMatch = path.match(/^\/products\/([^/]+)\/variants\/([^/]+)$/);
   if (variantMatch) {
-    if (needsAuth()) return;
+    if (needs(method === "DELETE" ? "products.delete" : "products.read")) return;
     const variant = db.variants.find((v) => v.id === variantMatch[2]);
     if (!variant) return err(res, 404, "Variant not found", "Not Found");
     if (method === "GET") {
@@ -814,11 +844,11 @@ const server = createServer(async (req, res) => {
     const product = db.products.find((p) => p.id === productMatch[1]);
     if (!product) return err(res, 404, "Product not found", "Not Found");
     if (method === "GET") {
-      if (needsAuth()) return;
+      if (needs("products.read")) return;
       return send(res, 200, withDisplayPrice(product));
     }
     if (method === "PATCH") {
-      if (needsAuth()) return;
+      if (needs("products.update")) return;
       if ("categoryId" in body || "type" in body) {
         return err(res, 400, "categoryId and type are immutable", "Bad Request");
       }
@@ -829,7 +859,7 @@ const server = createServer(async (req, res) => {
       return send(res, 200, withDisplayPrice(product));
     }
     if (method === "DELETE") {
-      if (needsAuth()) return;
+      if (needs("products.delete")) return;
       if (product.status === "PUBLISHED") {
         return err(res, 409, "Archive the product before deleting", "Conflict");
       }
@@ -842,7 +872,7 @@ const server = createServer(async (req, res) => {
   // --- prices --------------------------------------------------------------
   const priceMatch = path.match(/^\/variants\/([^/]+)\/prices$/);
   if (priceMatch && method === "POST") {
-    if (needsAuth()) return;
+    if (needs("prices.update")) return;
     const variant = db.variants.find((v) => v.id === priceMatch[1]);
     if (!variant) return err(res, 404, "Variant not found", "Not Found");
     const existing = db.prices.find(
@@ -863,11 +893,11 @@ const server = createServer(async (req, res) => {
 
   // --- warehouses ----------------------------------------------------------
   if (path === "/warehouses" && method === "GET") {
-    if (needsAuth()) return;
+    if (needs("warehouses.manage")) return;
     return send(res, 200, db.warehouses);
   }
   if (path === "/warehouses" && method === "POST") {
-    if (needsAuth()) return;
+    if (needs("warehouses.manage")) return;
     if (db.warehouses.some((w) => w.code === body.code)) {
       return err(res, 409, "Warehouse code already exists", "Conflict");
     }
@@ -883,12 +913,12 @@ const server = createServer(async (req, res) => {
 
   // --- inventory -----------------------------------------------------------
   if (path === "/inventory" && method === "GET") {
-    if (needsAuth()) return;
+    if (needs("inventory.read")) return;
     const variantId = url.searchParams.get("variantId");
     return send(res, 200, db.levels.filter((l) => l.variantId === variantId));
   }
   if (path === "/inventory/movements" && method === "GET") {
-    if (needsAuth()) return;
+    if (needs("inventory.read")) return;
     const variantId = url.searchParams.get("variantId");
     return send(
       res,
@@ -899,7 +929,7 @@ const server = createServer(async (req, res) => {
     );
   }
   if (path === "/inventory/receive" && method === "POST") {
-    if (needsAuth()) return;
+    if (needs("inventory.adjust")) return;
     if (!db.variants.some((v) => v.id === body.variantId)) {
       return err(res, 404, "Variant not found", "Not Found");
     }
@@ -924,7 +954,7 @@ const server = createServer(async (req, res) => {
     return send(res, 201, movement);
   }
   if (path === "/inventory/adjustments" && method === "POST") {
-    if (needsAuth()) return;
+    if (needs("inventory.adjust")) return;
     if (!body.reason) return err(res, 400, "reason is required", "Bad Request");
     if (!db.variants.some((v) => v.id === body.variantId)) {
       return err(res, 404, "Variant not found", "Not Found");
@@ -961,6 +991,18 @@ const server = createServer(async (req, res) => {
   }
 
   // --- test helpers --------------------------------------------------------
+  if (path === "/__media" && method === "POST") {
+    const media = {
+      id: randomUUID(),
+      entityType: body.entityType,
+      entityId: body.entityId,
+      key: `${body.entityType}/${body.entityId}/img.png`,
+      url: `http://localhost:9000/bucket/${body.entityId}.png`,
+      sortOrder: body.sortOrder ?? 0,
+    };
+    db.media.push(media);
+    return send(res, 201, media);
+  }
   if (path === "/__reset" && method === "POST") {
     db.categories = [];
     db.attributes = [];

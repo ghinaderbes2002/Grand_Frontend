@@ -1,8 +1,9 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 
+import { CACHE_TAGS } from "@/lib/api/cache";
 import { apiFetch } from "@/lib/api/client";
 import type { ImportBatch, Uuid } from "@/lib/api/types";
 import { requireSession } from "@/lib/auth/session";
@@ -45,6 +46,8 @@ export async function uploadImportAction(
     return errorState(...describeApiError(error));
   }
 
+  updateTag(CACHE_TAGS.products);
+  updateTag(CACHE_TAGS.categories);
   revalidatePath(`/${locale}/admin/imports`, "layout");
   redirect(`/${locale}/admin/imports/${batch.id}`);
 }
@@ -67,7 +70,11 @@ export async function commitImportAction(
     return errorState(...describeApiError(error, { 409: "notPreviewed" }));
   }
 
+  updateTag(CACHE_TAGS.products);
+  updateTag(CACHE_TAGS.categories);
   revalidatePath(`/${locale}/admin/imports/${batchId}`);
+  updateTag(CACHE_TAGS.products);
+  updateTag(CACHE_TAGS.categories);
   revalidatePath(`/${locale}/admin/imports`);
   return { status: "success" };
 }

@@ -1,8 +1,9 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { z } from "zod";
 
+import { CACHE_TAGS } from "@/lib/api/cache";
 import { apiFetch } from "@/lib/api/client";
 import type {
   BulkPriceUpdateResult,
@@ -56,6 +57,7 @@ export async function createVariantAction(
     return errorState(...describeApiError(error, { 409: "skuOrComboTaken" }));
   }
 
+  updateTag(CACHE_TAGS.products);
   revalidatePath(`/${locale}/admin/products/${productId}`);
   return { status: "success" };
 }
@@ -78,6 +80,7 @@ export async function setVariantStatusAction(
     return errorState(...describeApiError(error));
   }
 
+  updateTag(CACHE_TAGS.products);
   revalidatePath(`/${locale}/admin/products/${productId}`);
   return { status: "success" };
 }
@@ -100,6 +103,7 @@ export async function deleteVariantAction(
     return errorState(...describeApiError(error, { 409: "lastVariant" }));
   }
 
+  updateTag(CACHE_TAGS.products);
   revalidatePath(`/${locale}/admin/products/${productId}`);
   return { status: "success" };
 }
@@ -151,6 +155,7 @@ export async function setPricesBulkAction(
     return errorState(...describeApiError(error));
   }
 
+  updateTag(CACHE_TAGS.products);
   revalidatePath(`/${locale}/admin/products/${productId}`);
   return { status: "success" };
 }
@@ -185,6 +190,7 @@ export async function setPriceAction(
     return errorState(...describeApiError(error));
   }
 
+  updateTag(CACHE_TAGS.products);
   revalidatePath(`/${locale}/admin/products/${productId}`);
   return { status: "success" };
 }

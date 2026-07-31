@@ -1,5 +1,8 @@
 import "server-only";
 
+import { cache } from "react";
+
+import { CACHE_TAGS, CATALOG_TTL, publicCache } from "./cache";
 import { apiFetch, type QueryValue } from "./client";
 import type {
   CursorPage,
@@ -10,7 +13,11 @@ import type {
   Uuid,
 } from "./types";
 
-const fresh = { cache: "no-store" } as const;
+/** Public storefront reads, invalidated by tag when the catalog changes. */
+const publicProducts = publicCache(CATALOG_TTL, [CACHE_TAGS.products]);
+
+/** Admin reads carry a token, so `client.ts` forces them uncached regardless. */
+const adminRead = { cache: "no-store", auth: true } as const;
 
 /**
  * Storefront listing. Public, and **`PUBLISHED` only** — the contract exposes
@@ -25,29 +32,34 @@ export function listProducts(query: ProductListQuery = {}) {
     params[`attr_${key}`] = value;
   }
 
-  return apiFetch<CursorPage<Product>>("/products", { ...fresh, query: params });
+  return apiFetch<CursorPage<Product>>("/products", {
+    ...publicProducts,
+    query: params,
+  });
 }
 
-/** Storefront detail; 404s unless the product is `PUBLISHED`. */
-export function getProductBySlug(slug: string) {
-  return apiFetch<Product>(`/products/slug/${slug}`, fresh);
-}
+/**
+ * Storefront detail; 404s unless the product is `PUBLISHED`.
+ *
+ * Wrapped in `cache` so `generateMetadata` and the page body share one call
+ * within a single render, on top of the cross-request cache.
+ */
+export const getProductBySlug = cache((slug: string) =>
+  apiFetch<Product>(`/products/slug/${slug}`, publicProducts),
+);
 
 /** Admin detail — any status. Requires `products.read`. */
 export function getProduct(id: Uuid) {
-  return apiFetch<Product>(`/products/${id}`, { ...fresh, auth: true });
+  return apiFetch<Product>(`/products/${id}`, adminRead);
 }
 
 export function listVariants(productId: Uuid) {
-  return apiFetch<ProductVariant[]>(`/products/${productId}/variants`, {
-    ...fresh,
-    auth: true,
-  });
+  return apiFetch<ProductVariant[]>(`/products/${productId}/variants`, adminRead);
 }
 
 export function getVariant(productId: Uuid, variantId: Uuid) {
   return apiFetch<ProductVariant & { prices?: Price[] }>(
     `/products/${productId}/variants/${variantId}`,
-    { ...fresh, auth: true },
+    adminRead,
   );
 }

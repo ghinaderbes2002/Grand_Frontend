@@ -130,6 +130,93 @@ await publish(paper.id);
 
   const anonList = await anon("/ar/shop");
   check("shop is public", anonList.status === 200, `status ${anonList.status}`);
+
+  check(
+    "category tree navigation is rendered",
+    list.includes(`categoryId=${cat.id}`) && list.includes(`categoryId=${otherCat.id}`),
+  );
+
+  await post("/__media", { entityType: "product", entityId: ink.id });
+  const withImage = await body("/ar/shop");
+  check(
+    "listing shows a product image when one exists",
+    withImage.includes(`bucket/${ink.id}.png`),
+  );
+  // `sizes`/`srcset` only appear when the optimizer is on, and
+  // NEXT_PUBLIC_MEDIA_ORIGIN is inlined at build time — the test build has it
+  // off. What holds either way: next/image renders it, lazily, with the
+  // dimensions pinned so the grid does not shift as images arrive.
+  const tag = withImage.match(/<img[^>]*>/)?.[0] ?? "";
+  check(
+    "images render through next/image, lazily and without layout shift",
+    tag.includes('loading="lazy"') &&
+      tag.includes("data-nimg") &&
+      tag.includes("height:100%") &&
+      tag.includes("width:100%"),
+    tag.slice(0, 150),
+  );
+}
+
+// --- security headers ------------------------------------------------------
+{
+  const res = await fetch(`${APP}/ar/shop`);
+  const expected = {
+    "x-content-type-options": "nosniff",
+    "referrer-policy": "strict-origin-when-cross-origin",
+    "x-frame-options": "DENY",
+  };
+
+  for (const [header, value] of Object.entries(expected)) {
+    check(
+      `response sets ${header}`,
+      res.headers.get(header) === value,
+      `got ${res.headers.get(header)}`,
+    );
+  }
+  check(
+    "response restricts powerful browser features",
+    (res.headers.get("permissions-policy") ?? "").includes("camera=()"),
+    res.headers.get("permissions-policy") ?? "missing",
+  );
+}
+
+// --- metadata --------------------------------------------------------------
+{
+  const page = await body(`/ar/shop/${ink.slug}`);
+  check(
+    "product page sets its own title",
+    page.includes("<title>حبر إيكو") || page.includes("حبر إيكو · "),
+    page.match(/<title>[^<]*<\/title>/)?.[0],
+  );
+  check(
+    "product page sets a description",
+    page.includes('name="description" content="حبر صديق للبيئة'),
+  );
+  check(
+    "product page sets an Open Graph image",
+    page.includes('property="og:image"') && page.includes(`bucket/${ink.id}.png`),
+  );
+  // The canonical is resolved against metadataBase, so an Arabic slug arrives
+  // percent-encoded — compare against the encoded form, not the raw text.
+  const canonical = page.match(/<link[^>]*rel="canonical"[^>]*>/)?.[0] ?? "";
+  check(
+    "product page sets a canonical URL",
+    canonical.includes("/ar/shop/") &&
+      canonical.includes(encodeURIComponent(ink.slug).replace(/%2F/g, "/")),
+    canonical,
+  );
+
+  const robots = await fetch(`${APP}/robots.txt`).then((r) => r.text());
+  check(
+    "robots.txt keeps crawlers out of the private surfaces",
+    robots.includes("/*/admin") && robots.includes("/*/checkout"),
+  );
+
+  const sitemap = await fetch(`${APP}/sitemap.xml`).then((r) => r.text());
+  check(
+    "sitemap lists published products in both locales",
+    sitemap.includes(`/ar/shop/${ink.slug}`) && sitemap.includes(`/en/shop/${ink.slug}`),
+  );
 }
 
 // --- attribute filters -----------------------------------------------------
@@ -246,6 +333,11 @@ await publish(paper.id);
   check("cart lists the added line", filled.includes("ECO-RED"));
   check("cart shows the total", filled.includes("100"), "4 × 25");
   check("cart links to checkout", filled.includes(`/ar/checkout`));
+  check(
+    "cart names the product when the response embeds it",
+    filled.includes("حبر إيكو") && filled.includes(`/ar/shop/${ink.slug}`),
+  );
+  check("cart shows the line price", filled.includes("25"), "unit price × quantity");
 
   // A line with no retail price makes the total unknowable.
   const paperVariant = (await fetch(`${API}/__db`).then((r) => r.json())).variants.find(

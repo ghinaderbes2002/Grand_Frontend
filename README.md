@@ -26,7 +26,7 @@ The frontend runs on **3001** because the backend already owns 3000.
 Two things are being checked, and they are not the same thing.
 
 `npm test` (needs `npm run build` first) boots `tests/mock-api.mjs` and the
-production build against it, then runs 136 checks across six suites: token
+production build against it, then runs 181 checks across eight suites: token
 refresh under concurrency, catalog CRUD, product/variant/price flows, inventory,
 the admin filtering and bulk-pricing screens, and the customer journey from
 browsing through cart, checkout and order pages. It verifies **this frontend's
@@ -37,9 +37,24 @@ arguments are encoded into the form, so driving them would test Next's plumbing
 more than this code. The suites drive mutations through the mock's REST API and
 assert on what the pages then render.
 
+The mock enforces the permission the contract states for every endpoint, so the
+suites exercise what the API would actually allow — not merely what the UI
+chooses to show. `customer-role.test.mjs` runs the whole purchase journey as a
+real `customer` (permissions `[]`), which is the only suite that can catch a
+screen the UI opens but the API would refuse.
+
 It does **not** verify the backend. The mock encodes our reading of
 `API_CONTRACT.md`, so a misreading would be mirrored in both and the tests would
 still pass. That is what `npm run verify:contract` is for.
+
+> **Open contract question — order cancellation.** Line 398 documents
+> `PATCH /orders/:id/status` as requiring `orders.updateStatus`, while note 11
+> tells the frontend to use that same call to cancel — and a customer holds no
+> permissions. Compare `POST /orders/:id/pay`, which grants the order owner
+> access explicitly; nothing similar is written here. Read literally, a customer
+> cancelling gets a 403, and `customer-role.test.mjs` asserts that reading. The
+> button is deliberately kept and a 403 is mapped to its own message, so if the
+> backend does allow owners nothing needs changing beyond that expectation.
 
 > When asserting on markup, match rendered tags — never bare substrings. The RSC
 > payload embeds the entire dictionary, so `html.includes("Delete")` is true on
@@ -101,6 +116,40 @@ user has. Two consequences shape the design:
 
 Both caches are per server instance, not a distributed lock — see the comments
 in that file before scaling out.
+
+### Caching, and the one rule that matters
+
+Public catalog reads are cached and tagged (`lib/api/cache.ts`); everything else
+is not. The shop page alone used to make ~28 uncached calls per view — the
+listing, categories, brands, the tree, and one media call per product.
+
+**A cached response is shared between users, so nothing carrying a token may be
+cached.** That is enforced in `apiFetch`, not by convention: when a token is
+attached, `cache: "no-store"` is forced regardless of what the caller passed.
+A caller cannot make that mistake by accident, and `caching.test.mjs` guards it.
+
+Admin mutations call `updateTag` (not `revalidateTag`) so an editor sees their
+own change immediately rather than stale-while-revalidate. The `revalidate`
+lifetimes are only a backstop for writes this app does not make — a CSV import
+run elsewhere, another admin client, a direct database edit.
+
+`CACHE_TTL_SCALE=0` disables caching; the test runner sets it, because the
+suites seed straight through the API and never trigger the invalidating actions.
+
+### Images and headers
+
+Product images render through `next/image` (`components/ui/remote-image.tsx`),
+which needs to be told which remote host to trust. Set
+`NEXT_PUBLIC_MEDIA_ORIGIN` to the object store's origin and images get resized,
+converted to WebP/AVIF and lazy-loaded. Leave it unset and they still render —
+`unoptimized` bypasses the optimizer — so a missing env var costs performance,
+not correctness. Every image is rendered with `fill` inside a sized wrapper, so
+the grid does not shift as they arrive.
+
+`next.config.ts` also sets `X-Content-Type-Options`, `Referrer-Policy`,
+`X-Frame-Options` and a `Permissions-Policy` that switches off camera,
+microphone and geolocation. There is no CSP yet — writing one that does not
+break Next's inline bootstrap scripts needs nonce plumbing through `proxy.ts`.
 
 ### Layout
 
@@ -260,6 +309,19 @@ from `GET /category-attributes` and renders one control per attribute, shaped by
 its type. Each becomes an `attr_<key>` param, which is what the products
 endpoint expects; `SELECT`/`COLOR_SELECT` submit the option's `value`, never its
 label.
+
+Product pages carry their own title, description, Open Graph image and canonical
+URL; `app/robots.ts` keeps crawlers off everything behind a login and
+`app/sitemap.ts` walks the cursor-paginated listing to enumerate published
+products in both locales. Set `SITE_URL` in production — it is the base for
+every canonical and OG URL.
+
+> **Two known costs, both removable by the backend.** The listing issues one
+> `GET /media` per product because the products response carries no image;
+> embedding a thumbnail would delete that entirely. And the cart can only name a
+> line if the cart response embeds `variant.product` — a customer cannot resolve
+> it themselves, since `GET /products/:id` needs `products.read`. The UI falls
+> back to the SKU when it is absent.
 
 Checkout sends no line items — the API builds the order from the server-side
 cart. A cart whose `total` is `null` (some line has no retail price) blocks

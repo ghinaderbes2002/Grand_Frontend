@@ -1,17 +1,21 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { AttributeFilterFields } from "@/components/shop/attribute-filter-fields";
+import { CategoryNav } from "@/components/shop/category-nav";
+import { ProductCard } from "@/components/shop/product-card";
 import { Button } from "@/components/ui/button";
 import {
+  getCategoryTree,
   listAttributes,
   listBrands,
   listCategories,
   listCategoryAttributes,
 } from "@/lib/api/catalog";
+import { listMedia } from "@/lib/api/media";
 import { listProducts } from "@/lib/api/products";
 import type { Attribute, CategoryAttribute } from "@/lib/api/types";
-import { formatAmount } from "@/lib/format";
 import {
   ATTR_QUERY_PREFIX,
   filterableAttributes,
@@ -24,6 +28,21 @@ import { getDictionary } from "@/lib/i18n/dictionaries";
 /** Reads one search param as a string, ignoring repeated values. */
 function one(value: string | string[] | undefined) {
   return typeof value === "string" && value !== "" ? value : undefined;
+}
+
+export async function generateMetadata({
+  params,
+}: PageProps<"/[lang]/shop">): Promise<Metadata> {
+  const { lang } = await params;
+  if (!isLocale(lang)) return {};
+
+  const dict = getDictionary(lang);
+  return {
+    title: dict.shop.title,
+    // Filtered listings are near-duplicates of each other; only the bare shop
+    // URL is worth indexing.
+    alternates: { canonical: `/${lang}/shop` },
+  };
 }
 
 export default async function ShopPage({
@@ -48,11 +67,28 @@ export default async function ShopPage({
     limit: 24,
   };
 
-  const [page, categories, brands] = await Promise.all([
+  const [page, categories, brands, tree] = await Promise.all([
     listProducts(filters),
     listCategories(),
     listBrands(),
+    getCategoryTree().catch(() => []),
   ]);
+
+  // One media call per product: the listing response carries no images and the
+  // media endpoint takes a single entity. They run in parallel and the page
+  // caps at 24 products, but embedding a thumbnail in the list response would
+  // remove this entirely — it is on the list of asks for the backend.
+  const images = new Map(
+    await Promise.all(
+      page.items.map(
+        async (product) =>
+          [
+            product.id,
+            (await listMedia("product", product.id).catch(() => []))[0] ?? null,
+          ] as const,
+      ),
+    ),
+  );
 
   // Attribute filters only exist relative to a category, so they appear once
   // one is chosen. The contract points at `/category-attributes` for exactly
@@ -79,13 +115,29 @@ export default async function ShopPage({
   }
   if (page.nextCursor) nextParams.set("cursor", page.nextCursor);
 
-  return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-4 py-8">
-      <h1 className="text-2xl font-semibold">{dict.shop.title}</h1>
+  // Category links preserve whatever else is filtered.
+  const navParams = new URLSearchParams();
+  if (filters.q) navParams.set("q", filters.q);
+  if (filters.brandId) navParams.set("brandId", filters.brandId);
+  if (filters.minPrice !== undefined) navParams.set("minPrice", String(filters.minPrice));
+  if (filters.maxPrice !== undefined) navParams.set("maxPrice", String(filters.maxPrice));
 
+  return (
+    <div className="mx-auto grid w-full max-w-6xl gap-8 px-4 py-8 lg:grid-cols-[220px_1fr]">
+      <aside className="flex flex-col gap-4">
+        <h1 className="text-2xl font-semibold">{dict.shop.title}</h1>
+        <CategoryNav
+          tree={tree}
+          locale={lang}
+          selectedId={filters.categoryId}
+          query={navParams}
+        />
+      </aside>
+
+      <div className="flex flex-col gap-8">
       {/* A GET form: filters live in the URL, so results are shareable and the
           page keeps working without client-side JavaScript. */}
-      <form method="get" className="border-border grid gap-3 rounded-xl border p-4 sm:grid-cols-2 lg:grid-cols-3">
+      <form method="get" className="border-border grid gap-3 rounded-xl border p-4 sm:grid-cols-2">
         <label className="flex flex-col gap-1.5 text-sm">
           {dict.shop.search}
           <input
@@ -183,25 +235,11 @@ export default async function ShopPage({
         <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {page.items.map((product) => (
             <li key={product.id}>
-              <Link
-                href={`/${lang}/shop/${product.slug}`}
-                className="border-border hover:bg-surface flex h-full flex-col gap-2 rounded-xl border p-4 transition"
-              >
-                <span className="font-medium">{product.name}</span>
-                <span className="text-muted mt-auto text-sm">
-                  {product.displayPrice ? (
-                    product.displayPrice.min === product.displayPrice.max ? (
-                      formatAmount(product.displayPrice.min, lang)
-                    ) : (
-                      <>
-                        {dict.shop.from} {formatAmount(product.displayPrice.min, lang)}
-                      </>
-                    )
-                  ) : (
-                    dict.shop.unavailable
-                  )}
-                </span>
-              </Link>
+              <ProductCard
+                product={product}
+                image={images.get(product.id) ?? null}
+                locale={lang}
+              />
             </li>
           ))}
         </ul>
@@ -212,6 +250,7 @@ export default async function ShopPage({
           <Button variant="ghost">{dict.shop.loadMore}</Button>
         </Link>
       ) : null}
+      </div>
     </div>
   );
 }

@@ -125,12 +125,27 @@ await post("/__reserve", { variantId: variant.id, quantity: 120 });
 }
 
 // --- permissions ----------------------------------------------------------
+// This screen names stock by SKU, so it needs `products.read` alongside
+// `inventory.read` — the product and variant it reads sit behind that.
 await post("/__role", { roleKey: "inventory_manager", permissions: ["inventory.read"] });
 {
-  const html = await body(invPath);
-  check("inventory.read alone renders the levels", html.includes("450"));
+  const denied = await body(invPath);
   check(
-    "inventory.read alone hides the mutation forms",
+    "inventory.read without products.read is refused up front",
+    denied.includes("ما عندك صلاحية"),
+    "rather than admitting the role and failing on the first product fetch",
+  );
+}
+
+await post("/__role", {
+  roleKey: "inventory_manager",
+  permissions: ["inventory.read", "products.read"],
+});
+{
+  const html = await body(invPath);
+  check("read-only inventory role sees the levels", html.includes("450"));
+  check(
+    "read-only inventory role gets no mutation forms",
     !html.includes('name="quantityDelta"'),
   );
   const warehouses = await body("/ar/admin/warehouses");

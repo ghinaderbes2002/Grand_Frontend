@@ -7,6 +7,11 @@ import { requireSession } from "@/lib/auth/session";
 import { isLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 
+/** Nothing behind the login belongs in a search index. */
+export const metadata = {
+  robots: { index: false, follow: false },
+};
+
 export default async function AdminLayout({ children, params }: LayoutProps<"/[lang]/admin">) {
   const { lang } = await params;
   if (!isLocale(lang)) notFound();

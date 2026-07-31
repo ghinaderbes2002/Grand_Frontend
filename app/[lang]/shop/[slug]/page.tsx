@@ -1,7 +1,9 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { AddToCartForm } from "@/components/shop/add-to-cart-form";
+import { RemoteImage } from "@/components/ui/remote-image";
 import { ApiError } from "@/lib/api/errors";
 import { listMedia } from "@/lib/api/media";
 import { getProductBySlug } from "@/lib/api/products";
@@ -9,6 +11,37 @@ import { getSessionOrNull } from "@/lib/auth/session";
 import { formatAmount } from "@/lib/format";
 import { isLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionaries";
+
+/**
+ * Product pages are the storefront's search-engine surface, so they carry their
+ * own title, description and share image. The reads here are `cache`d, so this
+ * shares its fetches with the page body rather than doubling them.
+ */
+export async function generateMetadata({
+  params,
+}: PageProps<"/[lang]/shop/[slug]">): Promise<Metadata> {
+  const { lang, slug } = await params;
+  if (!isLocale(lang)) return {};
+
+  const product = await getProductBySlug(slug).catch(() => null);
+  if (!product) return {};
+
+  const media = await listMedia("product", product.id).catch(() => []);
+  const description = product.description?.slice(0, 160);
+
+  return {
+    title: product.name,
+    description,
+    alternates: { canonical: `/${lang}/shop/${product.slug}` },
+    openGraph: {
+      type: "website",
+      title: product.name,
+      description,
+      locale: lang,
+      images: media[0] ? [{ url: media[0].url, alt: product.name }] : undefined,
+    },
+  };
+}
 
 export default async function ProductPage({ params }: PageProps<"/[lang]/shop/[slug]">) {
   const { lang, slug } = await params;
@@ -38,28 +71,26 @@ export default async function ProductPage({ params }: PageProps<"/[lang]/shop/[s
 
       <div className="grid gap-8 md:grid-cols-2">
         <div className="flex flex-col gap-3">
-          {media.length > 0 ? (
-            // Storage host is unknown at build time, so next/image's
-            // remotePatterns cannot cover it.
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={media[0].url}
-              alt={product.name}
-              className="border-border aspect-square w-full rounded-xl border object-cover"
-            />
-          ) : (
-            <div className="border-border bg-surface aspect-square w-full rounded-xl border" />
-          )}
+          <div className="border-border bg-surface relative aspect-square w-full overflow-hidden rounded-xl border">
+            {media[0] ? (
+              <RemoteImage
+                src={media[0].url}
+                alt={product.name}
+                sizes="(min-width: 768px) 32rem, 90vw"
+                // The largest image above the fold; worth loading eagerly.
+                priority
+              />
+            ) : null}
+          </div>
+
           {media.length > 1 ? (
             <ul className="grid grid-cols-4 gap-2">
               {media.slice(1).map((item) => (
-                <li key={item.id}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={item.url}
-                    alt=""
-                    className="border-border aspect-square w-full rounded-lg border object-cover"
-                  />
+                <li
+                  key={item.id}
+                  className="border-border bg-surface relative aspect-square overflow-hidden rounded-lg border"
+                >
+                  <RemoteImage src={item.url} alt="" sizes="8rem" />
                 </li>
               ))}
             </ul>

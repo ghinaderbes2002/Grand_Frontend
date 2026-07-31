@@ -1,9 +1,10 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
+import { CACHE_TAGS } from "@/lib/api/cache";
 import { apiFetch } from "@/lib/api/client";
 import type { Brand, Uuid } from "@/lib/api/types";
 import { requireSession } from "@/lib/auth/session";
@@ -46,6 +47,8 @@ export async function createBrandAction(
     return errorState(...describeApiError(error, { 409: "slugTaken" }));
   }
 
+  updateTag(CACHE_TAGS.brands);
+  updateTag(CACHE_TAGS.products);
   revalidatePath(`/${locale}/admin/brands`, "layout");
   return { status: "success" };
 }
@@ -74,6 +77,8 @@ export async function updateBrandAction(
     return errorState(...describeApiError(error, { 409: "slugTaken" }));
   }
 
+  updateTag(CACHE_TAGS.brands);
+  updateTag(CACHE_TAGS.products);
   revalidatePath(`/${locale}/admin/brands`, "layout");
   return { status: "success" };
 }
@@ -95,6 +100,8 @@ export async function deleteBrandAction(
     return errorState(...describeApiError(error, { 409: "brandInUse" }));
   }
 
+  updateTag(CACHE_TAGS.brands);
+  updateTag(CACHE_TAGS.products);
   revalidatePath(`/${locale}/admin/brands`, "layout");
   redirect(`/${locale}/admin/brands`);
 }

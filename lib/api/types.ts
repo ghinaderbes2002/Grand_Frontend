@@ -511,7 +511,16 @@ export type CartItem = {
   id: Uuid;
   variantId: Uuid;
   quantity: number;
-  variant: ProductVariant;
+  /**
+   * The contract shows this as `{ "...": "..." }` without saying what it holds.
+   * A customer cannot resolve it themselves — `GET /products/:id` needs
+   * `products.read` — so the cart can only name a line if these are embedded.
+   * TODO: confirm; the UI falls back to the SKU when they are absent.
+   */
+  variant: ProductVariant & {
+    product?: Pick<Product, "id" | "name" | "slug">;
+    prices?: Price[];
+  };
 };
 
 export type Cart = {

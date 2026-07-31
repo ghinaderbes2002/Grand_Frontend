@@ -1,16 +1,21 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { FormError } from "@/components/ui/form-error";
 import type { CartItem } from "@/lib/api/types";
+import { formatAmount } from "@/lib/format";
 import { removeCartItemAction, updateCartItemAction } from "@/lib/shop/cart";
 import { idleFormState } from "@/lib/forms/state";
 import { useI18n } from "@/lib/i18n/context";
 
 export function CartItemRow({ item }: { item: CartItem }) {
   const { locale, dict } = useI18n();
+
+  const unitPrice =
+    item.variant.prices?.find((price) => price.priceListKey === "retail")?.amount ?? null;
 
   const [updateState, updateAction, updating] = useActionState(
     updateCartItemAction.bind(null, locale, item.id),
@@ -26,8 +31,31 @@ export function CartItemRow({ item }: { item: CartItem }) {
       <FormError state={updateState} />
       <FormError state={removeState} />
 
+      {/* Name and unit price only render if the cart response embeds them —
+          a customer cannot look a product up, `GET /products/:id` needs
+          `products.read`. Falls back to the SKU, which is always present. */}
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <span className="font-mono text-sm">{item.variant.sku}</span>
+        <span className="flex flex-col gap-0.5">
+          {item.variant.product?.name ? (
+            <Link
+              href={`/${locale}/shop/${item.variant.product.slug}`}
+              className="font-medium hover:underline"
+            >
+              {item.variant.product.name}
+            </Link>
+          ) : null}
+          <span className="text-muted font-mono text-xs">{item.variant.sku}</span>
+        </span>
+
+        {unitPrice !== null ? (
+          <span className="text-sm">
+            {formatAmount(unitPrice * item.quantity, locale)}
+            <span className="text-muted text-xs">
+              {" "}
+              ({formatAmount(unitPrice, locale)} × {item.quantity})
+            </span>
+          </span>
+        ) : null}
       </div>
 
       <div className="flex flex-wrap items-end gap-3">

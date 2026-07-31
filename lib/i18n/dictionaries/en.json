@@ -67,7 +67,8 @@
     "belowMinOrder": "That quantity is below the product's minimum order",
     "invalidTransition": "That status change is not allowed from the current status",
     "notPreviewed": "This batch was already committed, or has not been previewed",
-    "refundTooLarge": "That amount exceeds what is left to refund"
+    "refundTooLarge": "That amount exceeds what is left to refund",
+    "cancelNotPermitted": "You cannot cancel this order yourself — please contact support."
   },
   "auth": {
     "email": "Email",
@@ -450,6 +451,15 @@
         "ERROR": "Error",
         "SKIPPED": "Skipped"
       }
+    },
+    "stats": {
+      "attention": "Needs attention",
+      "awaitingPayment": "Awaiting payment",
+      "toConfirm": "Awaiting confirmation",
+      "toShip": "Ready to ship",
+      "publishedProducts": "Published products",
+      "totalOrders": "Total orders",
+      "noAttention": "Nothing needs attention."
     }
   },
   "shop": {

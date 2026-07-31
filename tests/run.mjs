@@ -28,6 +28,8 @@ const SUITES = [
   "inventory.test.mjs",
   "admin-extras.test.mjs",
   "shop.test.mjs",
+  "customer-role.test.mjs",
+  "caching.test.mjs",
 ];
 
 const children = [];
@@ -93,7 +95,15 @@ try {
 
   start(process.execPath, [NEXT_BIN, "start", "-p", String(APP_PORT)], {
     cwd: join(here, ".."),
-    env: { ...process.env, API_BASE_URL: `http://localhost:${MOCK_PORT}` },
+    env: {
+      ...process.env,
+      API_BASE_URL: `http://localhost:${MOCK_PORT}`,
+      // Suites seed straight through the mock's REST API, bypassing the Server
+      // Actions that invalidate cache tags. Caching public catalog reads would
+      // therefore serve stale data within a run — something production never
+      // does, since every write this app makes goes through those actions.
+      CACHE_TTL_SCALE: "0",
+    },
   });
   await waitFor(`http://localhost:${APP_PORT}/ar`, "Next server");
 

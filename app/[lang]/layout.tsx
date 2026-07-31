@@ -24,6 +24,8 @@ export async function generateMetadata({
 
   const dict = getDictionary(lang);
   return {
+    // Needed for the relative canonical and OG URLs the product pages set.
+    metadataBase: new URL(process.env.SITE_URL ?? "http://localhost:3001"),
     title: { default: dict.common.appName, template: `%s · ${dict.common.appName}` },
   };
 }

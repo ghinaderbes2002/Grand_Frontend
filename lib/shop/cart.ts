@@ -162,6 +162,19 @@ export async function placeOrderAction(
   redirect(`/${locale}/orders/${order.id}`);
 }
 
+/**
+ * Cancels the customer's own order.
+ *
+ * The contract is self-contradictory here: `PATCH /orders/:id/status` is
+ * documented as requiring `orders.updateStatus`, while note 11 tells the
+ * frontend to use that exact call to cancel — and a `customer` holds no
+ * permissions. Compare `POST /orders/:id/pay`, which grants access to the order
+ * owner explicitly; nothing similar is said for this one.
+ *
+ * The button is kept, since removing it would break the flow if the backend
+ * does allow owners. A 403 is mapped to its own message rather than the generic
+ * error, so the cause is legible if the other reading turns out to be right.
+ */
 export async function cancelOrderAction(
   locale: Locale,
   orderId: Uuid,
@@ -177,7 +190,12 @@ export async function cancelOrderAction(
       cache: "no-store",
     });
   } catch (error) {
-    return errorState(...describeApiError(error, { 409: "invalidTransition" }));
+    return errorState(
+      ...describeApiError(error, {
+        409: "invalidTransition",
+        403: "cancelNotPermitted",
+      }),
+    );
   }
 
   revalidatePath(`/${locale}/orders/${orderId}`);

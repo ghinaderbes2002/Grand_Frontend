@@ -1,9 +1,10 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
+import { CACHE_TAGS } from "@/lib/api/cache";
 import { apiFetch } from "@/lib/api/client";
 import type { Attribute, AttributeOption, Uuid } from "@/lib/api/types";
 import { requireSession } from "@/lib/auth/session";
@@ -44,6 +45,8 @@ export async function createAttributeAction(
     return errorState(...describeApiError(error, { 409: "keyTaken" }));
   }
 
+  updateTag(CACHE_TAGS.attributes);
+  updateTag(CACHE_TAGS.categories);
   revalidatePath(`/${locale}/admin/attributes`, "layout");
   redirect(`/${locale}/admin/attributes/${created.id}`);
 }
@@ -79,6 +82,8 @@ export async function updateAttributeAction(
     return errorState(...describeApiError(error));
   }
 
+  updateTag(CACHE_TAGS.attributes);
+  updateTag(CACHE_TAGS.categories);
   revalidatePath(`/${locale}/admin/attributes`, "layout");
   return { status: "success" };
 }
@@ -100,6 +105,8 @@ export async function deleteAttributeAction(
     return errorState(...describeApiError(error, { 409: "attributeInUse" }));
   }
 
+  updateTag(CACHE_TAGS.attributes);
+  updateTag(CACHE_TAGS.categories);
   revalidatePath(`/${locale}/admin/attributes`, "layout");
   redirect(`/${locale}/admin/attributes`);
 }
@@ -135,6 +142,8 @@ export async function addAttributeOptionAction(
     return errorState(...describeApiError(error, { 409: "optionValueTaken" }));
   }
 
+  updateTag(CACHE_TAGS.attributes);
+  updateTag(CACHE_TAGS.categories);
   revalidatePath(`/${locale}/admin/attributes/${attributeId}`);
   return { status: "success" };
 }
@@ -157,6 +166,8 @@ export async function deleteAttributeOptionAction(
     return errorState(...describeApiError(error));
   }
 
+  updateTag(CACHE_TAGS.attributes);
+  updateTag(CACHE_TAGS.categories);
   revalidatePath(`/${locale}/admin/attributes/${attributeId}`);
   return { status: "success" };
 }

@@ -28,7 +28,11 @@ export default async function VariantInventoryPage({
   const path = `/${lang}/admin/products/${id}/variants/${variantId}`;
   const session = await requireSession(lang, path);
 
-  if (!can(session, PERMISSIONS.inventoryRead)) {
+  // Both are needed, not just `inventory.read`: this screen identifies stock by
+  // SKU, and the product and variant it reads for that sit behind
+  // `products.read`. Admitting an inventory-only role here would let them in
+  // and then fail on the first fetch.
+  if (!can(session, PERMISSIONS.inventoryRead) || !can(session, PERMISSIONS.productsRead)) {
     return <NoAccess locale={lang} />;
   }
 

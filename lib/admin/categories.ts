@@ -1,9 +1,10 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
+import { CACHE_TAGS } from "@/lib/api/cache";
 import { apiFetch } from "@/lib/api/client";
 import type { Category, CategoryAttribute, Uuid } from "@/lib/api/types";
 import { requireSession } from "@/lib/auth/session";
@@ -61,6 +62,7 @@ export async function createCategoryAction(
     );
   }
 
+  updateTag(CACHE_TAGS.categories);
   revalidatePath(`/${locale}/admin/categories`, "layout");
   redirect(`/${locale}/admin/categories/${created.id}`);
 }
@@ -91,6 +93,7 @@ export async function updateCategoryAction(
     return errorState(...describeApiError(error, { 404: "parentNotFound" }));
   }
 
+  updateTag(CACHE_TAGS.categories);
   revalidatePath(`/${locale}/admin/categories`, "layout");
   return { status: "success" };
 }
@@ -112,6 +115,7 @@ export async function deleteCategoryAction(
     return errorState(...describeApiError(error, { 409: "categoryHasChildren" }));
   }
 
+  updateTag(CACHE_TAGS.categories);
   revalidatePath(`/${locale}/admin/categories`, "layout");
   redirect(`/${locale}/admin/categories`);
 }
@@ -150,6 +154,7 @@ export async function linkAttributeAction(
     return errorState(...describeApiError(error, { 409: "linkExists" }));
   }
 
+  updateTag(CACHE_TAGS.categories);
   revalidatePath(`/${locale}/admin/categories/${categoryId}`);
   return { status: "success" };
 }
@@ -172,6 +177,7 @@ export async function unlinkAttributeAction(
     return errorState(...describeApiError(error));
   }
 
+  updateTag(CACHE_TAGS.categories);
   revalidatePath(`/${locale}/admin/categories/${categoryId}`);
   return { status: "success" };
 }

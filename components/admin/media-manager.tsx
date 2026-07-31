@@ -5,6 +5,7 @@ import { useRef, useState, useTransition } from "react";
 
 import { Button } from "@/components/ui/button";
 import { FormError } from "@/components/ui/form-error";
+import { RemoteImage } from "@/components/ui/remote-image";
 import {
   confirmMediaAction,
   deleteMediaAction,
@@ -114,14 +115,9 @@ export function MediaManager({
         <ul className="grid grid-cols-3 gap-3">
           {media.map((item) => (
             <li key={item.id} className="flex flex-col gap-1.5">
-              {/* Storage host is not known at build time, so next/image's
-                  remotePatterns cannot cover it — a plain img is correct here. */}
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={item.url}
-                alt=""
-                className="border-border aspect-square w-full rounded-lg border object-cover"
-              />
+              <div className="border-border bg-surface relative aspect-square w-full overflow-hidden rounded-lg border">
+                <RemoteImage src={item.url} alt="" sizes="10rem" />
+              </div>
               {canManage ? (
                 <Button
                   type="button"

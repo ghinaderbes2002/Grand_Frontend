@@ -1,9 +1,10 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
+import { CACHE_TAGS } from "@/lib/api/cache";
 import { apiFetch } from "@/lib/api/client";
 import type { Product, Uuid } from "@/lib/api/types";
 import { requireSession } from "@/lib/auth/session";
@@ -57,6 +58,7 @@ export async function createProductAction(
     return errorState(...describeApiError(error, { 409: "slugOrSkuTaken" }));
   }
 
+  updateTag(CACHE_TAGS.products);
   revalidatePath(`/${locale}/admin/products`, "layout");
   redirect(`/${locale}/admin/products/${created.id}`);
 }
@@ -97,6 +99,7 @@ export async function updateProductAction(
     return errorState(...describeApiError(error, { 409: "slugOrSkuTaken" }));
   }
 
+  updateTag(CACHE_TAGS.products);
   revalidatePath(`/${locale}/admin/products`, "layout");
   return { status: "success" };
 }
@@ -118,6 +121,7 @@ export async function deleteProductAction(
     return errorState(...describeApiError(error, { 409: "publishedCannotDelete" }));
   }
 
+  updateTag(CACHE_TAGS.products);
   revalidatePath(`/${locale}/admin/products`, "layout");
   redirect(`/${locale}/admin/products`);
 }

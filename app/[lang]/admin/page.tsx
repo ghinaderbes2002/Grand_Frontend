@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { PERMISSIONS, canAny } from "@/lib/auth/permissions";
+import { listOrders } from "@/lib/api/orders";
+import { listProducts } from "@/lib/api/products";
+import { PERMISSIONS, can, canAny } from "@/lib/auth/permissions";
 import { requireSession } from "@/lib/auth/session";
 import { isLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionaries";
@@ -70,18 +72,89 @@ export default async function AdminOverviewPage({ params }: PageProps<"/[lang]/a
     },
   ].filter((card) => card.allowed);
 
+  // Counts come from the endpoints the role can already reach, so the overview
+  // never causes a 403. Orders are counted client-side because `GET /orders`
+  // takes no filter parameters.
+  const canReadOrders = can(session, PERMISSIONS.ordersRead);
+  const [orders, products] = await Promise.all([
+    canReadOrders ? listOrders().catch(() => []) : Promise.resolve([]),
+    listProducts({ limit: 1 }).catch(() => null),
+  ]);
+
+  const attention = [
+    {
+      label: dict.admin.stats.awaitingPayment,
+      count: orders.filter((order) => order.status === "PENDING_PAYMENT").length,
+      href: `/${lang}/admin/orders?status=PENDING_PAYMENT`,
+    },
+    {
+      label: dict.admin.stats.toConfirm,
+      count: orders.filter((order) => order.status === "PAID").length,
+      href: `/${lang}/admin/orders?status=PAID`,
+    },
+    {
+      label: dict.admin.stats.toShip,
+      count: orders.filter((order) => order.status === "READY_TO_SHIP").length,
+      href: `/${lang}/admin/orders?status=READY_TO_SHIP`,
+    },
+  ].filter((item) => item.count > 0);
+
   return (
-    <div className="grid gap-4 sm:grid-cols-2">
-      {cards.map((card) => (
-        <Link
-          key={card.href}
-          href={card.href}
-          className="border-border hover:bg-surface flex flex-col gap-2 rounded-xl border p-5 transition"
-        >
-          <span className="font-medium">{card.title}</span>
-          <span className="text-muted text-sm">{card.body}</span>
-        </Link>
-      ))}
+    <div className="flex flex-col gap-8">
+      {canReadOrders ? (
+        <section className="flex flex-col gap-3">
+          <h2 className="font-medium">{dict.admin.stats.attention}</h2>
+          {attention.length === 0 ? (
+            <p className="text-muted text-sm">{dict.admin.stats.noAttention}</p>
+          ) : (
+            <ul className="grid gap-3 sm:grid-cols-3">
+              {attention.map((item) => (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    className="border-border hover:bg-surface flex flex-col gap-1 rounded-xl border p-4 transition"
+                  >
+                    <span className="text-accent text-2xl font-semibold">
+                      {item.count}
+                    </span>
+                    <span className="text-muted text-sm">{item.label}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          <dl className="text-muted flex flex-wrap gap-x-6 gap-y-1 text-sm">
+            <div className="flex gap-1.5">
+              <dt>{dict.admin.stats.totalOrders}:</dt>
+              <dd className="text-foreground font-medium">{orders.length}</dd>
+            </div>
+            {products ? (
+              <div className="flex gap-1.5">
+                <dt>{dict.admin.stats.publishedProducts}:</dt>
+                {/* The listing is cursor-paginated with no total, so this only
+                    reports whether the catalogue has anything published. */}
+                <dd className="text-foreground font-medium">
+                  {products.items.length > 0 ? "✓" : "—"}
+                </dd>
+              </div>
+            ) : null}
+          </dl>
+        </section>
+      ) : null}
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        {cards.map((card) => (
+          <Link
+            key={card.href}
+            href={card.href}
+            className="border-border hover:bg-surface flex flex-col gap-2 rounded-xl border p-5 transition"
+          >
+            <span className="font-medium">{card.title}</span>
+            <span className="text-muted text-sm">{card.body}</span>
+          </Link>
+        ))}
+      </div>
     </div>
   );
 }

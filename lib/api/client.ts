@@ -77,6 +77,14 @@ export async function apiFetch<T>(
     requestHeaders.set("Authorization", `Bearer ${token}`);
   }
 
+  // A cached response is shared across users. Anything carrying a token is
+  // per-user by definition, so caching one would hand one customer's cart or
+  // order history to the next visitor. Forcing `no-store` here means a caller
+  // cannot make that mistake by passing cache options alongside `auth`.
+  const cacheOptions = token
+    ? ({ cache: "no-store" } as const)
+    : ({ cache, next } as const);
+
   if (idempotencyKey) {
     requestHeaders.set("Idempotency-Key", idempotencyKey);
   }
@@ -87,8 +95,7 @@ export async function apiFetch<T>(
       method,
       headers: requestHeaders,
       body: requestBody,
-      cache,
-      next,
+      ...cacheOptions,
       signal,
     });
   } catch (cause) {

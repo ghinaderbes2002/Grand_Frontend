@@ -1,7 +1,8 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 
+import { CACHE_TAGS } from "@/lib/api/cache";
 import { apiFetch } from "@/lib/api/client";
 import type {
   Media,
@@ -102,6 +103,7 @@ export async function confirmMediaAction(
     return errorState(...describeApiError(error));
   }
 
+  updateTag(CACHE_TAGS.media);
   revalidatePath(revalidate);
   return { status: "success" };
 }
@@ -123,6 +125,7 @@ export async function deleteMediaAction(
     return errorState(...describeApiError(error));
   }
 
+  updateTag(CACHE_TAGS.media);
   revalidatePath(revalidate);
   return { status: "success" };
 }
