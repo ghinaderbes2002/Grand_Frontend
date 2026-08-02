@@ -30,6 +30,11 @@ function mediaPattern() {
 }
 
 const nextConfig: NextConfig = {
+  // Emits a self-contained server bundle with only the dependencies actually
+  // used, which is what the Docker image ships. Without it the runtime image
+  // has to carry all of node_modules.
+  output: "standalone",
+
   images: {
     remotePatterns: mediaPattern(),
   },

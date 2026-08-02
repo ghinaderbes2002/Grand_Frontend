@@ -1,0 +1,36 @@
+services:
+  web:
+    build:
+      context: .
+      args:
+        # Baked into the client bundle at build time — a rebuild is required to
+        # change it, unlike everything under `environment` below.
+        NEXT_PUBLIC_MEDIA_ORIGIN: ${NEXT_PUBLIC_MEDIA_ORIGIN:-}
+    image: printing-store-web
+    restart: unless-stopped
+
+    ports:
+      # host:container — the app always listens on 3000 inside.
+      - "${WEB_PORT:-3016}:3000"
+
+    environment:
+      # Where this app reaches the API. Server-side only; the browser never
+      # sees it. See the deployment notes in the README for how to point this
+      # at a backend on the host, in another container, or on another machine.
+      API_BASE_URL: ${API_BASE_URL:?set API_BASE_URL}
+      # Public origin of this frontend — the base for canonical and OG URLs.
+      SITE_URL: ${SITE_URL:?set SITE_URL}
+      # Optional: 0 disables catalog caching entirely.
+      CACHE_TTL_SCALE: ${CACHE_TTL_SCALE:-1}
+
+    # Lets `API_BASE_URL=http://host.docker.internal:<port>` reach a backend
+    # running directly on the host rather than in a container.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+    # The image's HEALTHCHECK decides this; compose only surfaces it.
+    healthcheck:
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s

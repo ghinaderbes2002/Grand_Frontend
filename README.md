@@ -21,6 +21,57 @@ The frontend runs on **3001** because the backend already owns 3000.
 | `npm run lint`            | ESLint                                    |
 | `npm run verify:contract` | Check a live backend against our assumptions |
 
+## Deploying
+
+```bash
+cp .env.docker.example .env      # then edit it
+docker compose up -d --build
+```
+
+The image is a three-stage build producing Next's `standalone` output, so the
+runtime layer carries only the dependencies actually used — not all of
+`node_modules`. It runs as the non-root `node` user and has a health check the
+`unless-stopped` restart policy acts on.
+
+The container always listens on **3000 internally**; `WEB_PORT` decides what is
+published on the host (3016 by default).
+
+### Pointing it at the backend
+
+`API_BASE_URL` is read at run time. Which value is right depends on how the
+backend runs:
+
+| Backend runs… | `API_BASE_URL` |
+| --- | --- |
+| directly on the host | `http://host.docker.internal:<port>` |
+| in a container on the same compose network | `http://<service-name>:<port>` |
+| on another machine | `http://217.76.53.136:<port>` |
+
+`host.docker.internal` works because the compose file maps it to the host
+gateway; without that it resolves only on Docker Desktop, not on a Linux server.
+
+Prefer the first two over the third: routing through the public IP sends
+internal traffic out and back through the server's external interface, and
+exposes the API port publicly for no reason.
+
+### Build-time vs run-time configuration
+
+Everything is a run-time environment variable **except**
+`NEXT_PUBLIC_MEDIA_ORIGIN` — `NEXT_PUBLIC_*` values are inlined into the client
+bundle during `next build`, so changing it needs `docker compose up -d --build`,
+not a restart. Left empty, images render unoptimized rather than breaking.
+
+### Before going live
+
+- `SITE_URL` must match how visitors actually reach the site, port included —
+  it is the base for every canonical and Open Graph URL.
+- Cookies are marked `Secure` when `NODE_ENV=production`, which the image sets.
+  **Over plain `http://` a browser will refuse to store them and login will not
+  work.** Put the app behind TLS, or drop `secure` in `lib/auth/cookies.ts` for
+  a temporary HTTP-only staging box.
+- Put a reverse proxy in front for TLS and compression. Next does not terminate
+  TLS itself.
+
 ## Testing
 
 Two things are being checked, and they are not the same thing.

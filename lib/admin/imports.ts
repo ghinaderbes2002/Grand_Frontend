@@ -70,11 +70,10 @@ export async function commitImportAction(
     return errorState(...describeApiError(error, { 409: "notPreviewed" }));
   }
 
+  // A commit creates products and can touch categories, so both tags drop.
   updateTag(CACHE_TAGS.products);
   updateTag(CACHE_TAGS.categories);
   revalidatePath(`/${locale}/admin/imports/${batchId}`);
-  updateTag(CACHE_TAGS.products);
-  updateTag(CACHE_TAGS.categories);
   revalidatePath(`/${locale}/admin/imports`);
   return { status: "success" };
 }
