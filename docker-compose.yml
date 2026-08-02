@@ -11,7 +11,7 @@ services:
 
     ports:
       # host:container — the app always listens on 3000 inside.
-      - "${WEB_PORT:-3016}:3000"
+      - "${WEB_PORT:-3018}:3000"
 
     environment:
       # Where this app reaches the API. Server-side only; the browser never

@@ -34,7 +34,10 @@ runtime layer carries only the dependencies actually used — not all of
 `unless-stopped` restart policy acts on.
 
 The container always listens on **3000 internally**; `WEB_PORT` decides what is
-published on the host (3016 by default).
+published on the host (3018 by default).
+
+`API_BASE_URL` may carry a path, for a backend behind a global prefix:
+`http://host:3019/api`.
 
 ### Pointing it at the backend
 

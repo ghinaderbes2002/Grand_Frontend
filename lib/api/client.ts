@@ -114,7 +114,11 @@ export async function apiFetch<T>(
 }
 
 export function buildUrl(path: string, query?: Record<string, QueryValue>) {
-  const url = new URL(path.startsWith("/") ? path : `/${path}`, `${API_BASE_URL}/`);
+  // The leading slash is stripped so the path resolves *relative* to the base.
+  // Keeping it would make it absolute and silently discard any path on
+  // API_BASE_URL — which breaks deployments where the API sits behind a prefix
+  // such as `http://host:3016/api` (NestJS's `setGlobalPrefix`).
+  const url = new URL(path.replace(/^\//, ""), `${API_BASE_URL}/`);
 
   if (query) {
     for (const [key, value] of Object.entries(query)) {
