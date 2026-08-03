@@ -9,6 +9,7 @@ import type {
   Price,
   Product,
   ProductListQuery,
+  ProductStatus,
   ProductVariant,
   Uuid,
 } from "./types";
@@ -47,6 +48,27 @@ export function listProducts(query: ProductListQuery = {}) {
 export const getProductBySlug = cache((slug: string) =>
   apiFetch<Product>(`/products/slug/${slug}`, publicProducts),
 );
+
+/**
+ * Admin listing — every status, not just `PUBLISHED`. Same query params as the
+ * storefront listing plus `status`. This is what makes drafts reachable; before
+ * it existed you had to already know a product's id.
+ */
+export function listAdminProducts(
+  query: ProductListQuery & { status?: ProductStatus } = {},
+) {
+  const { attributes, ...rest } = query;
+
+  const params: Record<string, QueryValue> = { ...rest };
+  for (const [key, value] of Object.entries(attributes ?? {})) {
+    params[`attr_${key}`] = value;
+  }
+
+  return apiFetch<CursorPage<Product>>("/products/admin", {
+    ...adminRead,
+    query: params,
+  });
+}
 
 /** Admin detail — any status. Requires `products.read`. */
 export function getProduct(id: Uuid) {

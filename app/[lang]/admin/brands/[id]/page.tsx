@@ -1,10 +1,10 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { BrandForm } from "@/components/admin/brand-form";
 import { ConfirmButton } from "@/components/admin/confirm-button";
 import { MediaManager } from "@/components/admin/media-manager";
 import { NoAccess } from "@/components/admin/no-access";
+import { Card, PageHeader } from "@/components/admin/page-header";
 import { deleteBrandAction } from "@/lib/admin/brands";
 import { getBrand } from "@/lib/api/catalog";
 import { ApiError } from "@/lib/api/errors";
@@ -37,14 +37,16 @@ export default async function BrandDetailPage({
 
   return (
     <div className="flex max-w-md flex-col gap-6">
-      <Link href={`/${lang}/admin/brands`} className="text-muted hover:text-foreground text-sm">
-        ← {dict.admin.brands.title}
-      </Link>
+      <PageHeader
+        back={{ href: `/${lang}/admin/brands`, label: dict.admin.brands.title }}
+        title={dict.admin.brands.editTitle}
+      />
 
-      <h2 className="text-lg font-medium">{dict.admin.brands.editTitle}</h2>
-      <BrandForm brand={brand} />
+      <Card>
+        <BrandForm brand={brand} />
+      </Card>
 
-      <div className="border-border rounded-xl border p-5">
+      <Card>
         <h2 className="mb-4 font-medium">{dict.admin.media.title}</h2>
         <MediaManager
           entityType="brand"
@@ -53,7 +55,7 @@ export default async function BrandDetailPage({
           revalidate={`/${lang}/admin/brands/${brand.id}`}
           canManage={can(session, PERMISSIONS.mediaManage)}
         />
-      </div>
+      </Card>
 
       {can(session, PERMISSIONS.productsDelete) ? (
         <div className="border-border border-t pt-4">

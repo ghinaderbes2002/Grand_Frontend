@@ -135,9 +135,13 @@ await fetch(`${API}/products/${product.id}`, {
     "filter lists every order status",
     list.includes('value="PENDING_PAYMENT"') && list.includes('value="REFUNDED"'),
   );
+  // Filtering moved to the API, so the page no longer carries a caveat about
+  // narrowing results after the fact.
+  const filtered = await body("/ar/admin/orders?status=PENDING_PAYMENT");
   check(
-    "the client-side filtering caveat is shown",
-    list.includes("الفلترة بتصير بعد الجلب"),
+    "the status filter is applied server-side",
+    /<option[^>]*value="PENDING_PAYMENT"[^>]*selected/.test(filtered),
+    filtered.match(/<option[^>]*selected[^>]*>/)?.[0],
   );
 }
 

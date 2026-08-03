@@ -1,11 +1,12 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { NoAccess } from "@/components/admin/no-access";
+import { Card, PageHeader } from "@/components/admin/page-header";
 import { ProductForm } from "@/components/admin/product-form";
 import { Button } from "@/components/ui/button";
 import { splitCategoryAttributes } from "@/lib/admin/attribute-specs";
 import { getCategory, listAttributes, listBrands, listCategories } from "@/lib/api/catalog";
+import { categoryOptions } from "@/lib/catalog/category-labels";
 import { ApiError } from "@/lib/api/errors";
 import { PERMISSIONS, can } from "@/lib/auth/permissions";
 import { requireSession } from "@/lib/auth/session";
@@ -34,25 +35,21 @@ export default async function NewProductPage({
   const { categoryId } = await searchParams;
   const selectedId = typeof categoryId === "string" ? categoryId : undefined;
 
-  const back = (
-    <Link
-      href={`/${lang}/admin/products`}
-      className="text-muted hover:text-foreground text-sm"
-    >
-      ← {dict.admin.products.title}
-    </Link>
-  );
+  const back = {
+    href: `/${lang}/admin/products`,
+    label: dict.admin.products.title,
+  };
 
   if (!selectedId) {
     const categories = await listCategories();
 
     return (
       <div className="flex max-w-lg flex-col gap-6">
-        {back}
-        <div className="flex flex-col gap-1">
-          <h2 className="text-lg font-medium">{dict.admin.products.chooseCategory}</h2>
-          <p className="text-muted text-sm">{dict.admin.products.chooseCategoryHint}</p>
-        </div>
+        <PageHeader
+          back={back}
+          title={dict.admin.products.chooseCategory}
+          subtitle={dict.admin.products.chooseCategoryHint}
+        />
 
         {categories.length === 0 ? (
           <p className="text-muted text-sm">{dict.admin.empty}</p>
@@ -63,9 +60,9 @@ export default async function NewProductPage({
               aria-label={dict.admin.products.category}
               className="border-border bg-background h-11 rounded-lg border px-3 text-sm outline-none transition focus:ring-2 focus:ring-accent/40"
             >
-              {categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.path || category.name}
+              {categoryOptions(categories).map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.label}
                 </option>
               ))}
             </select>
@@ -95,20 +92,20 @@ export default async function NewProductPage({
 
   return (
     <div className="flex max-w-2xl flex-col gap-6">
-      {back}
-      <div className="flex flex-col gap-1">
-        <h2 className="text-lg font-medium">{dict.admin.products.newTitle}</h2>
-        <p className="text-muted text-sm">
-          {dict.admin.products.category}: {category.path || category.name}
-        </p>
-      </div>
-
-      <ProductForm
-        categoryId={category.id}
-        type={type}
-        brands={brands}
-        attributeSpecs={informational}
+      <PageHeader
+        back={back}
+        title={dict.admin.products.newTitle}
+        subtitle={`${dict.admin.products.category}: ${category.name}`}
       />
+
+      <Card>
+        <ProductForm
+          categoryId={category.id}
+          type={type}
+          brands={brands}
+          attributeSpecs={informational}
+        />
+      </Card>
     </div>
   );
 }

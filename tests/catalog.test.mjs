@@ -107,7 +107,23 @@ await setRole("super_admin", []);
     picker.includes("sheet_size") && !picker.includes("(color)"),
     picker.match(/<option[^>]*>([^<]*)</g)?.join(" | "),
   );
-  check("category path is shown", detail.includes("/مواد-الطباعة/ورق-ترانسفير"));
+  // The breadcrumb is built from parent names, not from `Category.path` — the
+  // live backend fills that with ids, and rendering it showed raw UUIDs.
+  check(
+    "the category breadcrumb reads as names",
+    detail.includes("مواد الطباعة › ورق ترانسفير"),
+  );
+  // `path` still ships inside the RSC payload because the form receives the
+  // whole category, so a substring check would always match. The parent picker
+  // is where a customer would actually see it.
+  const parents = detail.match(/<select[^>]*name="parentId"[\s\S]*?<\/select>/)?.[0] ?? "";
+  const parentLabels = parents.match(/<option[^>]*>([^<]*)</g)?.join(" | ") ?? "";
+  check(
+    "the parent picker lists names, not id paths",
+    parentLabels.includes("مواد الطباعة") &&
+      !/[0-9a-f]{8}-[0-9a-f]{4}-/.test(parentLabels),
+    parentLabels,
+  );
 
   const attribute = await body(`/ar/admin/attributes/${colour.id}`);
   check(

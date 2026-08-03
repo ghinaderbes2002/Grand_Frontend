@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { OrderStatusBadge } from "@/components/orders/order-status-badge";
+import { PageShell, ShopPageHeader } from "@/components/shop/page-shell";
 import { Button } from "@/components/ui/button";
 import { listMyOrders } from "@/lib/api/orders";
 import { requireSession } from "@/lib/auth/session";
@@ -19,18 +20,18 @@ export default async function MyOrdersPage({ params }: PageProps<"/[lang]/orders
   const orders = await listMyOrders();
 
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-8">
-      <h1 className="text-2xl font-semibold">{dict.admin.orders.myOrders}</h1>
+    <PageShell width="narrow">
+      <ShopPageHeader title={dict.admin.orders.myOrders} />
 
       {orders.length === 0 ? (
-        <div className="flex flex-col items-start gap-4">
+        <div className="border-border flex flex-col items-start gap-4 rounded-2xl border border-dashed p-8">
           <p className="text-muted text-sm">{dict.admin.orders.noOrders}</p>
           <Link href={`/${lang}/shop`}>
             <Button>{dict.shop.title}</Button>
           </Link>
         </div>
       ) : (
-        <ul className="border-border divide-border divide-y rounded-xl border">
+        <ul className="border-border divide-border divide-y rounded-2xl border">
           {orders.map((order) => (
             <li key={order.id}>
               <Link
@@ -52,6 +53,6 @@ export default async function MyOrdersPage({ params }: PageProps<"/[lang]/orders
           ))}
         </ul>
       )}
-    </div>
+    </PageShell>
   );
 }

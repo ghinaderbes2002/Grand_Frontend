@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { NoAccess } from "@/components/admin/no-access";
+import { PageHeader } from "@/components/admin/page-header";
 import { OrderStatusBadge } from "@/components/orders/order-status-badge";
 import { Button } from "@/components/ui/button";
 import { ORDER_STATUSES } from "@/lib/admin/schemas";
@@ -27,31 +28,36 @@ export default async function OrdersPage({
     return <NoAccess locale={lang} />;
   }
 
-  const { status } = await searchParams;
+  const { status, cursor } = await searchParams;
   const selected =
     typeof status === "string" && ORDER_STATUSES.includes(status as OrderStatus)
       ? (status as OrderStatus)
       : undefined;
 
-  const all = await listOrders();
+  // Filtered and paginated by the API, not after the fact.
+  const page = await listOrders({
+    status: selected,
+    cursor: typeof cursor === "string" ? cursor : undefined,
+    limit: 30,
+  });
+  const orders = page.items;
 
-  // `GET /orders` documents no query parameters, so this filters what came
-  // back rather than narrowing the request. Fine for now, but the endpoint
-  // needs status filtering and pagination before this list grows.
-  const orders = selected ? all.filter((order) => order.status === selected) : all;
+  const nextParams = new URLSearchParams();
+  if (selected) nextParams.set("status", selected);
+  if (page.nextCursor) nextParams.set("cursor", page.nextCursor);
 
   return (
     <div className="flex flex-col gap-6">
-      <header className="flex flex-col gap-1">
-        <h2 className="text-lg font-medium">{dict.admin.orders.title}</h2>
-        <p className="text-muted max-w-2xl text-sm">{dict.admin.orders.subtitle}</p>
-      </header>
+      <PageHeader title={dict.admin.orders.title} subtitle={dict.admin.orders.subtitle} />
 
-      <p className="border-border bg-surface/40 text-muted rounded-lg border px-3 py-2 text-sm">
+      <p className="border-border bg-surface/40 text-muted rounded-xl border px-4 py-2.5 text-sm">
         {dict.admin.orders.paymentTimeout}
       </p>
 
-      <form method="get" className="flex flex-wrap items-end gap-3">
+      <form
+        method="get"
+        className="border-border bg-surface/30 flex flex-wrap items-end gap-3 rounded-2xl border p-4"
+      >
         <label className="flex flex-col gap-1.5 text-sm">
           {dict.admin.filters.status}
           <select
@@ -79,17 +85,12 @@ export default async function OrdersPage({
           </Link>
         ) : null}
 
-        <span className="text-muted ms-auto text-xs">
-          {dict.admin.filters.showing}: {orders.length} / {all.length}
-          <br />
-          {dict.admin.filters.clientFiltered}
-        </span>
       </form>
 
       {orders.length === 0 ? (
         <p className="text-muted text-sm">{dict.admin.empty}</p>
       ) : (
-        <div className="border-border overflow-x-auto rounded-xl border">
+        <div className="border-border overflow-x-auto rounded-2xl border">
           <table className="w-full text-sm">
             <thead className="border-border bg-surface/60 border-b">
               <tr>
@@ -123,6 +124,15 @@ export default async function OrdersPage({
           </table>
         </div>
       )}
+
+      {page.nextCursor ? (
+        <Link
+          href={`/${lang}/admin/orders?${nextParams.toString()}`}
+          className="self-center"
+        >
+          <Button variant="ghost">{dict.admin.filters.loadMore}</Button>
+        </Link>
+      ) : null}
     </div>
   );
 }

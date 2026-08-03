@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { ImportUploadForm } from "@/components/admin/import-forms";
 import { NoAccess } from "@/components/admin/no-access";
+import { Card, PageHeader } from "@/components/admin/page-header";
 import { listImportBatches } from "@/lib/api/imports";
 import { PERMISSIONS, can } from "@/lib/auth/permissions";
 import { requireSession } from "@/lib/auth/session";
@@ -56,13 +57,11 @@ export default async function ImportsPage({ params }: PageProps<"/[lang]/admin/i
   const batches = await listImportBatches();
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
-      <section className="flex flex-col gap-6">
-        <header className="flex flex-col gap-1">
-          <h2 className="text-lg font-medium">{dict.admin.imports.title}</h2>
-          <p className="text-muted max-w-2xl text-sm">{dict.admin.imports.subtitle}</p>
-        </header>
+    <div className="flex flex-col gap-6">
+      <PageHeader title={dict.admin.imports.title} subtitle={dict.admin.imports.subtitle} />
 
+      <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
+        <section className="flex min-w-0 flex-col gap-6">
         <div className="flex flex-col gap-2">
           <h3 className="font-medium">{dict.admin.imports.columns}</h3>
           <p className="text-muted text-xs">{dict.admin.imports.columnsHint}</p>
@@ -119,12 +118,13 @@ export default async function ImportsPage({ params }: PageProps<"/[lang]/admin/i
             </ul>
           )}
         </div>
-      </section>
+        </section>
 
-      <section className="border-border h-fit rounded-xl border p-5">
-        <h2 className="mb-4 text-lg font-medium">{dict.admin.imports.upload}</h2>
-        <ImportUploadForm />
-      </section>
+        <Card className="h-fit">
+          <h2 className="mb-4 font-medium">{dict.admin.imports.upload}</h2>
+          <ImportUploadForm />
+        </Card>
+      </div>
     </div>
   );
 }

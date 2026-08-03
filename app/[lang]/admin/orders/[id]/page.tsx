@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { ConfirmButton } from "@/components/admin/confirm-button";
@@ -8,11 +7,12 @@ import {
   RefundForm,
   ShipmentForm,
 } from "@/components/admin/order-forms";
+import { PageHeader } from "@/components/admin/page-header";
 import { OrderItemsTable } from "@/components/orders/order-items-table";
 import { OrderStatusBadge } from "@/components/orders/order-status-badge";
 import { deliverShipmentAction } from "@/lib/admin/orders";
 import { ApiError } from "@/lib/api/errors";
-import { getOrder, listShipments } from "@/lib/api/orders";
+import { getOrder } from "@/lib/api/orders";
 import { PERMISSIONS, can } from "@/lib/auth/permissions";
 import { requireSession } from "@/lib/auth/session";
 import { formatAmount, formatDateTime, shortId } from "@/lib/format";
@@ -40,30 +40,20 @@ export default async function OrderDetailPage({
 
   const canUpdateStatus = can(session, PERMISSIONS.ordersUpdateStatus);
 
-  // Shipments need `orders.updateStatus`; degrade rather than fail the page.
-  const shipments = canUpdateStatus
-    ? await listShipments(order.id).catch(() => [])
-    : [];
+  // Embedded in the order response — no separate call, and no permission wall
+  // in front of reading them.
+  const shipments = order.shipments ?? [];
 
   return (
     <div className="flex flex-col gap-8">
-      <div className="flex flex-col gap-2">
-        <Link
-          href={`/${lang}/admin/orders`}
-          className="text-muted hover:text-foreground text-sm"
-        >
-          ← {dict.admin.orders.title}
-        </Link>
-        <div className="flex flex-wrap items-center gap-3">
-          <h2 className="font-mono text-lg font-medium">{shortId(order.id)}</h2>
-          <OrderStatusBadge status={order.status} />
-          <span className="text-muted text-sm">
-            {formatDateTime(order.createdAt, lang)}
-          </span>
-        </div>
-      </div>
+      <PageHeader
+        back={{ href: `/${lang}/admin/orders`, label: dict.admin.orders.title }}
+        title={shortId(order.id)}
+        subtitle={formatDateTime(order.createdAt, lang)}
+        action={<OrderStatusBadge status={order.status} />}
+      />
 
-      <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
+      <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
         <section className="flex flex-col gap-6">
           <div className="flex flex-col gap-3">
             <h3 className="font-medium">{dict.admin.orders.items}</h3>
@@ -86,8 +76,6 @@ export default async function OrderDetailPage({
             </address>
           </div>
 
-          {/* No endpoint lists an order's payments, so a refund is only
-              reachable when the order response happens to embed them. */}
           {can(session, PERMISSIONS.ordersRefund) ? (
             <div className="flex flex-col gap-3">
               <h3 className="font-medium">{dict.admin.payments.title}</h3>

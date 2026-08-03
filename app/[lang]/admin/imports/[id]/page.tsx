@@ -1,8 +1,8 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { CommitImportButton } from "@/components/admin/import-forms";
 import { NoAccess } from "@/components/admin/no-access";
+import { PageHeader } from "@/components/admin/page-header";
 import { ApiError } from "@/lib/api/errors";
 import { getImportBatch } from "@/lib/api/imports";
 import type { ImportRowStatus } from "@/lib/api/types";
@@ -43,23 +43,16 @@ export default async function ImportBatchPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-2">
-        <Link
-          href={`/${lang}/admin/imports`}
-          className="text-muted hover:text-foreground text-sm"
-        >
-          ← {dict.admin.imports.title}
-        </Link>
-        <div className="flex flex-wrap items-center gap-3">
-          <h2 className="text-lg font-medium">{batch.filename}</h2>
-          <span className="border-border text-muted rounded-md border px-2 py-0.5 text-xs">
+      <PageHeader
+        back={{ href: `/${lang}/admin/imports`, label: dict.admin.imports.title }}
+        title={batch.filename}
+        subtitle={formatDateTime(batch.createdAt, lang)}
+        action={
+          <span className="border-border text-muted rounded-md border px-2 py-1 text-xs">
             {dict.admin.imports.statuses[batch.status]}
           </span>
-          <span className="text-muted text-sm">
-            {formatDateTime(batch.createdAt, lang)}
-          </span>
-        </div>
-      </div>
+        }
+      />
 
       <div className="flex flex-wrap gap-4 text-sm">
         <span>

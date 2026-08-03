@@ -431,6 +431,71 @@ await publish(paper.id);
   check("an unknown order 404s", missing.status === 404, `status ${missing.status}`);
 }
 
+// --- tracking, now that the order embeds its shipments ---------------------
+{
+  await post("/cart/items", { variantId: red.id, quantity: 2 }, at);
+  const order = await post(
+    "/orders",
+    { shippingAddress: { city: "عمّان", street: "شارع المدينة" } },
+    at,
+  );
+
+  const advance = (status) =>
+    call("PATCH", `/orders/${order.id}/status`, { status }, at);
+  for (const status of ["PAID", "CONFIRMED", "PROCESSING", "READY_TO_SHIP"]) {
+    await advance(status);
+  }
+  await post(
+    `/orders/${order.id}/shipments`,
+    { carrier: "Aramex", trackingNumber: "ARX-12345" },
+    at,
+  );
+
+  // The dedicated shipments endpoint sits behind `orders.updateStatus`, which a
+  // customer does not have — embedding them in the order is what makes this
+  // visible at all.
+  const detail = await body(`/ar/orders/${order.id}`);
+  check(
+    "the customer sees their carrier and tracking number",
+    detail.includes("Aramex") && detail.includes("ARX-12345"),
+  );
+  check("the order shows as shipped", detail.includes("مشحون"));
+}
+
+// --- currency --------------------------------------------------------------
+{
+  const list = await body("/ar/shop");
+  check(
+    "amounts are formatted as USD with two decimals",
+    /\$\s?25\.00|25\.00\s?\$|US\$\s?25\.00/.test(list) || list.includes("25.00"),
+    list.match(/[^<>]*25[.,]00[^<>]*/)?.[0]?.trim(),
+  );
+}
+
+// --- home page -------------------------------------------------------------
+// The landing page pulls the catalog itself, so a broken read there would
+// otherwise only show up in the browser.
+{
+  const home = await body("/ar");
+
+  // The product name reaching the payload proves nothing — the whole dictionary
+  // ships to the client. Assert on the card's own link instead.
+  check(
+    "the home page lists products from the catalog",
+    home.includes(`/ar/shop/${ink.slug}`),
+  );
+  check(
+    "and links each top-level category into the shop",
+    home.includes(`/ar/shop?categoryId=${cat.id}`),
+  );
+
+  // The scaffold copy this page shipped with, which the real content replaced.
+  check("the placeholder copy is gone", !home.includes("الأساس جاهز"));
+
+  const anonHome = await anon("/ar");
+  check("an anonymous visitor gets it without a redirect", anonHome.status === 200);
+}
+
 const failed = results.filter((r) => !r.pass);
 console.log(`\n${results.length - failed.length}/${results.length} passed`);
 process.exit(failed.length ? 1 : 0);

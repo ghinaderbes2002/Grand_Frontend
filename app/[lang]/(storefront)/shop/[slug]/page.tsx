@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { AddToCartForm } from "@/components/shop/add-to-cart-form";
+import { Button } from "@/components/ui/button";
 import { RemoteImage } from "@/components/ui/remote-image";
 import { ApiError } from "@/lib/api/errors";
 import { listMedia } from "@/lib/api/media";
@@ -64,14 +65,15 @@ export default async function ProductPage({ params }: PageProps<"/[lang]/shop/[s
   const sellable = variants.filter((variant) => variant.status === "ACTIVE");
 
   return (
-    <div className="mx-auto flex w-full max-w-4xl flex-col gap-8 px-4 py-8">
+    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-8">
       <Link href={`/${lang}/shop`} className="text-muted hover:text-foreground text-sm">
-        ← {dict.shop.backToShop}
+        <span aria-hidden="true">‹ </span>
+        {dict.shop.backToShop}
       </Link>
 
       <div className="grid gap-8 md:grid-cols-2">
         <div className="flex flex-col gap-3">
-          <div className="border-border bg-surface relative aspect-square w-full overflow-hidden rounded-xl border">
+          <div className="border-border bg-surface relative aspect-square w-full overflow-hidden rounded-2xl border">
             {media[0] ? (
               <RemoteImage
                 src={media[0].url}
@@ -97,32 +99,54 @@ export default async function ProductPage({ params }: PageProps<"/[lang]/shop/[s
           ) : null}
         </div>
 
-        <div className="flex flex-col gap-4">
-          <h1 className="text-2xl font-semibold">{product.name}</h1>
+        <div className="flex flex-col gap-5">
+          <div className="flex flex-col gap-3">
+            <h1 className="text-2xl font-semibold tracking-tight">{product.name}</h1>
 
-          <p className="text-lg">
-            {product.displayPrice
-              ? product.displayPrice.min === product.displayPrice.max
-                ? formatAmount(product.displayPrice.min, lang)
-                : `${formatAmount(product.displayPrice.min, lang)} – ${formatAmount(product.displayPrice.max, lang)}`
-              : dict.shop.unavailable}
-          </p>
+            <div className="flex flex-wrap items-center gap-3">
+              <p className="text-2xl font-semibold">
+                {product.displayPrice
+                  ? product.displayPrice.min === product.displayPrice.max
+                    ? formatAmount(product.displayPrice.min, lang)
+                    : `${formatAmount(product.displayPrice.min, lang)} – ${formatAmount(product.displayPrice.max, lang)}`
+                  : dict.shop.unavailable}
+              </p>
 
-          {product.description ? (
-            <p className="text-muted text-sm whitespace-pre-line">{product.description}</p>
-          ) : null}
+              <span
+                className={`rounded-md px-2 py-1 text-xs font-medium ${
+                  product.inStock
+                    ? "bg-success/10 text-success"
+                    : "bg-danger/10 text-danger"
+                }`}
+              >
+                {product.inStock ? dict.shop.inStock : dict.shop.outOfStock}
+              </span>
+            </div>
+
+            {product.description ? (
+              <p className="text-muted text-sm whitespace-pre-line">
+                {product.description}
+              </p>
+            ) : null}
+          </div>
 
           {!session ? (
-            <Link
-              href={`/${lang}/login?next=${encodeURIComponent(`/${lang}/shop/${slug}`)}`}
-              className="text-accent text-sm hover:underline"
-            >
-              {dict.nav.login}
-            </Link>
+            /* The cart lives on the server keyed to an account, so there is no
+               guest cart to fall back on — say so instead of showing a form
+               that would only bounce them to the login. */
+            <div className="border-border bg-surface/30 flex flex-col items-start gap-3 rounded-2xl border p-5">
+              <p className="font-medium">{dict.shop.loginToBuy}</p>
+              <p className="text-muted text-sm">{dict.shop.loginToBuyHint}</p>
+              <Link
+                href={`/${lang}/login?next=${encodeURIComponent(`/${lang}/shop/${slug}`)}`}
+              >
+                <Button>{dict.nav.login}</Button>
+              </Link>
+            </div>
           ) : sellable.length === 0 ? (
             <p className="text-muted text-sm">{dict.shop.unavailable}</p>
           ) : (
-            <div className="flex flex-col gap-5">
+            <div className="flex flex-col gap-4">
               {sellable.length > 1 ? (
                 <p className="text-muted text-sm">{dict.shop.chooseVariant}</p>
               ) : null}
@@ -130,21 +154,24 @@ export default async function ProductPage({ params }: PageProps<"/[lang]/shop/[s
               {sellable.map((variant) => (
                 <div
                   key={variant.id}
-                  className="border-border flex flex-col gap-3 rounded-xl border p-4"
+                  className="border-border bg-surface/30 flex flex-col gap-3 rounded-2xl border p-4"
                 >
                   <div className="flex flex-wrap items-baseline justify-between gap-2">
-                    <span className="font-mono text-xs">{variant.sku}</span>
                     {variant.attributeValues.length > 0 ? (
-                      <span className="text-muted text-xs">
+                      <span className="text-sm font-medium">
                         {variant.attributeValues.map((value) => value.value).join(" · ")}
                       </span>
                     ) : null}
+                    <span className="text-muted font-mono text-xs">{variant.sku}</span>
                   </div>
 
                   <AddToCartForm
                     variantId={variant.id}
                     sellingUnit={product.sellingUnit}
                     minOrderQuantity={product.minOrderQuantity}
+                    // Per-variant availability, so a shopper is told before
+                    // checkout instead of hitting a 409 at the end.
+                    disabled={variant.inStock === false}
                   />
                 </div>
               ))}

@@ -167,12 +167,23 @@ await post(`/variants/${redVariant.id}/prices`, { priceListKey: "retail", amount
 
 // --- listing --------------------------------------------------------------
 {
+  // `/products/admin` returns every status — a draft used to be unreachable
+  // from any listing once created.
   const list = await body("/ar/admin/products");
   check(
-    "draft products are absent from the published-only list",
-    !list.includes("ورق A4") && !list.includes("حبر إيكو"),
+    "the admin list shows drafts",
+    list.includes("ورق A4") && list.includes("حبر إيكو"),
   );
-  check("the listing caveat is shown", list.includes("بيرجّع المنشور فقط"));
+  check("each row carries its status", list.includes("مسودة"));
+
+  const drafts = await body("/ar/admin/products?status=DRAFT");
+  check("the status filter narrows the list", drafts.includes("حبر إيكو"));
+
+  const archived = await body("/ar/admin/products?status=ARCHIVED");
+  check(
+    "filtering to an unused status returns nothing",
+    !archived.includes(">حبر إيكو<"),
+  );
 
   await fetch(`${API}/products/${variableProduct.id}`, {
     method: "PATCH",

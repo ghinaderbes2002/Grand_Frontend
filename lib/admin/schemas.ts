@@ -146,6 +146,18 @@ export const warehouseSchema = z.object({
   isActive: z.boolean(),
 });
 
+/** `code` is immutable once created; only these two may change. */
+export const warehouseUpdateSchema = warehouseSchema.pick({
+  name: true,
+  isActive: true,
+});
+
+export const customerPriceListSchema = z.object({
+  customerId: uuid,
+  /** Blank clears the override and returns the customer to retail. */
+  priceListKey: z.string().trim().optional(),
+});
+
 const reason = z.string().trim().max(500, { error: "tooLong" });
 
 export const receiveInventorySchema = z.object({
@@ -214,6 +226,25 @@ export const cartItemSchema = z.object({
 export const cartQuantitySchema = z.object({
   /** Zero is meaningful here: the API treats it as "remove this item". */
   quantity: z.number({ error: "notANumber" }).nonnegative({ error: "notPositive" }),
+});
+
+export const couponSchema = z.object({
+  code: z
+    .string({ error: "required" })
+    .trim()
+    .min(1, { error: "required" })
+    .max(60, { error: "tooLong" })
+    // The API is strict about the alphabet; uppercase here so a lowercase
+    // entry is accepted rather than rejected on a technicality.
+    .transform((value) => value.toUpperCase())
+    .pipe(z.string().regex(/^[A-Z0-9_-]+$/, { error: "invalidCouponCode" })),
+  type: z.enum(["PERCENTAGE", "FIXED_AMOUNT"], { error: "required" }),
+  value: z.number({ error: "notANumber" }).positive({ error: "notPositive" }),
+  maxUses: z.number({ error: "notANumber" }).int().positive({ error: "notPositive" }).optional(),
+  minOrderTotal: z.number({ error: "notANumber" }).nonnegative({ error: "notPositive" }).optional(),
+  startsAt: z.string().trim().optional(),
+  expiresAt: z.string().trim().optional(),
+  isActive: z.boolean(),
 });
 
 export const categoryAttributeSchema = z.object({

@@ -1,9 +1,9 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { ConfirmButton } from "@/components/admin/confirm-button";
 import { OrderItemsTable } from "@/components/orders/order-items-table";
 import { OrderStatusBadge } from "@/components/orders/order-status-badge";
+import { PageShell, Panel, ShopPageHeader } from "@/components/shop/page-shell";
 import { PayButton } from "@/components/shop/pay-button";
 import { ApiError } from "@/lib/api/errors";
 import { getOrder } from "@/lib/api/orders";
@@ -29,28 +29,20 @@ export default async function MyOrderPage({ params }: PageProps<"/[lang]/orders/
   });
 
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-8">
-      <Link
-        href={`/${lang}/orders`}
-        className="text-muted hover:text-foreground text-sm"
-      >
-        ← {dict.admin.orders.myOrders}
-      </Link>
-
-      <div className="flex flex-wrap items-center gap-3">
-        <h1 className="font-mono text-xl font-semibold">{shortId(order.id)}</h1>
-        <OrderStatusBadge status={order.status} />
-        <span className="text-muted text-sm">
-          {formatDateTime(order.createdAt, lang)}
-        </span>
-      </div>
+    <PageShell width="narrow">
+      <ShopPageHeader
+        back={{ href: `/${lang}/orders`, label: dict.admin.orders.myOrders }}
+        title={shortId(order.id)}
+        subtitle={formatDateTime(order.createdAt, lang)}
+        action={<OrderStatusBadge status={order.status} />}
+      />
 
       {awaitingPayment(order.status) ? (
-        <div className="border-border rounded-xl border p-5">
+        <Panel>
           <h2 className="mb-3 font-medium">{dict.admin.payments.title}</h2>
           <p className="text-muted mb-3 text-xs">{dict.admin.orders.paymentTimeout}</p>
           <PayButton orderId={order.id} path={`/${lang}/orders/${order.id}`} />
-        </div>
+        </Panel>
       ) : null}
 
       <div className="flex flex-col gap-3">
@@ -61,6 +53,29 @@ export default async function MyOrderPage({ params }: PageProps<"/[lang]/orders/
           <span className="font-semibold">{formatAmount(order.total, lang)}</span>
         </p>
       </div>
+
+      {/* Shipments are embedded in the order, so the customer can finally see
+          their own carrier and tracking number — the dedicated endpoint is
+          behind `orders.updateStatus`, which they do not have. */}
+      {order.shipments?.length ? (
+        <div className="flex flex-col gap-2">
+          <h2 className="font-medium">{dict.admin.shipments.title}</h2>
+          <ul className="flex flex-col gap-2">
+            {order.shipments.map((shipment) => (
+              <li
+                key={shipment.id}
+                className="border-border flex flex-wrap items-baseline justify-between gap-2 rounded-lg border p-3 text-sm"
+              >
+                <span>{shipment.carrier}</span>
+                <span className="font-mono text-xs">{shipment.trackingNumber}</span>
+                <span className="text-muted text-xs">
+                  {dict.admin.shipments.statuses[shipment.status]}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
 
       <div className="flex flex-col gap-2">
         <h2 className="font-medium">{dict.admin.orders.shippingAddress}</h2>
@@ -83,6 +98,6 @@ export default async function MyOrderPage({ params }: PageProps<"/[lang]/orders/
           />
         </div>
       ) : null}
-    </div>
+    </PageShell>
   );
 }

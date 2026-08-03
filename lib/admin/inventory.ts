@@ -14,6 +14,7 @@ import {
   adjustInventorySchema,
   receiveInventorySchema,
   warehouseSchema,
+  warehouseUpdateSchema,
 } from "./schemas";
 
 /**
@@ -91,6 +92,43 @@ export async function adjustInventoryAction(
   }
 
   revalidatePath(`/${locale}/admin/products/${productId}`, "layout");
+  return { status: "success" };
+}
+
+/**
+ * Warehouses are never deleted — only deactivated. Removing one that has stock
+ * movements against it would orphan history, and the API refuses to disable the
+ * last active one because orders need a default warehouse to fall back to.
+ */
+export async function updateWarehouseAction(
+  locale: Locale,
+  id: Uuid,
+  _prevState: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  await requireSession(locale);
+
+  const parsed = warehouseUpdateSchema.safeParse({
+    name: formData.get("name"),
+    isActive: checkbox(formData, "isActive"),
+  });
+
+  if (!parsed.success) {
+    return fieldErrorState(z.flattenError(parsed.error).fieldErrors);
+  }
+
+  try {
+    await apiFetch<Warehouse>(`/warehouses/${id}`, {
+      method: "PATCH",
+      body: compact({ ...parsed.data }),
+      auth: true,
+      cache: "no-store",
+    });
+  } catch (error) {
+    return errorState(...describeApiError(error, { 409: "lastActiveWarehouse" }));
+  }
+
+  revalidatePath(`/${locale}/admin/warehouses`, "layout");
   return { status: "success" };
 }
 

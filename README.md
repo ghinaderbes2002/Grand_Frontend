@@ -80,7 +80,7 @@ not a restart. Left empty, images render unoptimized rather than breaking.
 Two things are being checked, and they are not the same thing.
 
 `npm test` (needs `npm run build` first) boots `tests/mock-api.mjs` and the
-production build against it, then runs 181 checks across eight suites: token
+production build against it, then runs 234 checks across eleven suites: token
 refresh under concurrency, catalog CRUD, product/variant/price flows, inventory,
 the admin filtering and bulk-pricing screens, and the customer journey from
 browsing through cart, checkout and order pages. It verifies **this frontend's
@@ -100,15 +100,6 @@ screen the UI opens but the API would refuse.
 It does **not** verify the backend. The mock encodes our reading of
 `API_CONTRACT.md`, so a misreading would be mirrored in both and the tests would
 still pass. That is what `npm run verify:contract` is for.
-
-> **Open contract question — order cancellation.** Line 398 documents
-> `PATCH /orders/:id/status` as requiring `orders.updateStatus`, while note 11
-> tells the frontend to use that same call to cancel — and a customer holds no
-> permissions. Compare `POST /orders/:id/pay`, which grants the order owner
-> access explicitly; nothing similar is written here. Read literally, a customer
-> cancelling gets a 403, and `customer-role.test.mjs` asserts that reading. The
-> button is deliberately kept and a 403 is mapped to its own message, so if the
-> backend does allow owners nothing needs changing beyond that expectation.
 
 > When asserting on markup, match rendered tags — never bare substrings. The RSC
 > payload embeds the entire dictionary, so `html.includes("Delete")` is true on
@@ -134,16 +125,16 @@ The open questions it answers, all of which the contract leaves unstated:
 
 | Assumption in the code | Why it matters |
 | --- | --- |
-| A new product starts as `DRAFT` | The admin list caveat and the post-create redirect depend on it |
+| A new product starts as `DRAFT` | The post-create redirect and the status filter default depend on it |
 | `POST /products` returns the record with an `id` | The create flow redirects to `created.id` |
 | `super_admin` gets a populated `permissions` array | If empty, the special case in `lib/auth/permissions.ts` is load-bearing |
 | `InventoryLevel` carries `variantId` / `warehouseId` | The contract names only the two quantity fields |
 | `InventoryMovement` field names | The contract names the movement *types*, not the shape |
-| The variants list embeds `prices` | The UI degrades cleanly either way, but it changes what a page shows |
+| `OrderItem` uses `unitPriceSnapshot` | The contract names the snapshot but not the field; `unitPrice` is read as a fallback |
+| The cart embeds `variant.product` | A customer cannot resolve a product themselves, so a cart line falls back to its SKU |
 
-Run it before trusting the `TODO`-marked types in `lib/api/types.ts` — those
-cover entities (`Order`, `Payment`, `Shipment`, `OrderItem`) the contract never
-spells out field-by-field.
+The script has not been extended to the modules added in the second contract
+revision — reports, coupons and customer price lists.
 
 ## How it is put together
 
@@ -287,11 +278,10 @@ Attribute inputs are named `attr__<attributeId>` and shaped by attribute type �
 `SELECT`/`COLOR_SELECT` submit the option's `value` (case-sensitive, never the
 label), the `*_UNIT` types render number inputs with the unit in the label.
 
-> **Contract gap:** there is no admin product listing endpoint. `GET /products`
-> is public and returns `PUBLISHED` only, so drafts and archived products cannot
-> be enumerated — `GET /products/:id` reads any status, but only if you already
-> know the id. The list screen says so, and creating a product redirects
-> straight to its detail page. Worth raising with the backend team.
+The admin list reads `GET /products/admin`, which returns every status and takes
+a `status` filter. The public `GET /products` is `PUBLISHED`-only and drives the
+storefront; using it for the admin screen used to make a freshly created draft
+unreachable from any listing.
 
 ### Inventory
 
@@ -344,11 +334,44 @@ shipment forms rather than the status dropdown.
 Order creation and payment both send an `Idempotency-Key`, so a double-click or a
 retry after a dropped connection cannot create a duplicate.
 
-> **Contract gap:** there is no endpoint to list an order's payments.
-> `POST /orders/:id/pay` returns a payment record and
-> `POST /payments/:paymentId/refund` needs an id, but nothing connects them. The
-> refund form therefore only appears when the order response happens to embed
-> `payments`. Worth raising alongside the missing admin product listing.
+`GET /orders/:id` embeds `items`, `payments`, `shipments` and `statusHistory`,
+so a refund takes its `paymentId` straight from `payments[]` and the customer's
+own order page can show a tracking number — the dedicated shipments endpoint is
+behind `orders.updateStatus`, which a customer does not have.
+
+Cancellation is the one transition the order's **owner** may drive without any
+permission; every other target status needs `orders.updateStatus` and returns
+403 for them.
+
+### Coupons
+
+Admin CRUD lives at `/admin/coupons` (`promotions.manage`). There is no delete
+endpoint — deactivating retires a code while keeping its usage history.
+
+At checkout, `POST /coupons/validate` previews the discount **without consuming
+the code**; consumption happens atomically inside `POST /orders` when
+`couponCode` is passed. So the preview can go stale between the two, and the
+server's answer is the one that counts — a 409 at order time means the coupon
+ran out in between, and the API's own message says which.
+
+That endpoint needs a session but no permission, deliberately: making it public
+would let anyone brute-force discover codes.
+
+### Warehouses and customer price lists
+
+Warehouses are edited, never deleted — the API only deactivates them, because
+removing one with stock movements against it would orphan that history. It also
+refuses to disable the last active warehouse, since orders fall back to it. The
+`code` is immutable once created.
+
+`/admin/customers` assigns a customer to a price list (wholesale instead of the
+retail default).
+
+> **Contract gap:** the customer id has to be pasted in. There is no endpoint
+> that lists customers, and an order does not say who placed it, so nothing in
+> the API lets an admin discover one. The screen says so. Worth raising —
+> "who placed this order" is also missing from the admin order screen for the
+> same reason.
 
 ### Storefront
 

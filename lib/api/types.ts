@@ -255,6 +255,12 @@ export type ProductVariant = {
   status: VariantStatus;
   attributeValues: ProductAttributeValue[];
   prices?: Price[];
+  /**
+   * Availability as a boolean only. Actual quantities are never exposed on the
+   * storefront — they live behind `inventory.read` on `/inventory` and
+   * `/reports/low-stock`.
+   */
+  inStock?: boolean;
 };
 
 /** Min/max retail price across a product's variants; null when unpriced. */
@@ -275,6 +281,8 @@ export type Product = {
   sellingUnit: SellingUnit;
   minOrderQuantity: number;
   displayPrice: DisplayPrice | null;
+  /** True when any variant has stock available in any warehouse. */
+  inStock: boolean;
   attributeValues: ProductAttributeValue[];
   variants?: ProductVariant[];
   brand?: Brand | null;
@@ -342,10 +350,17 @@ export type CreateVariantInput = {
 /** Seeded price lists; the API allows more. */
 export type PriceListKey = "retail" | "wholesale" | (string & {});
 
+/**
+ * The system is single-currency: every amount is USD with two decimals
+ * (`Decimal(12,2)`). The field is returned on every price but never varies yet.
+ */
+export const CURRENCY = "USD";
+
 export type Price = {
   variantId: Uuid;
   priceListKey: PriceListKey;
   amount: number;
+  currency?: string;
 };
 
 export type SetPriceInput = {
@@ -504,6 +519,99 @@ export type AdjustInventoryInput = {
 };
 
 // ---------------------------------------------------------------------------
+// Coupons
+// ---------------------------------------------------------------------------
+
+export type CouponType = "PERCENTAGE" | "FIXED_AMOUNT";
+
+export type Coupon = {
+  id: Uuid;
+  /** Uppercase letters, digits, `_` and `-`; unique. */
+  code: string;
+  type: CouponType;
+  /** A percentage for `PERCENTAGE`, an amount for `FIXED_AMOUNT`. */
+  value: number;
+  maxUses?: number | null;
+  usedCount?: number;
+  minOrderTotal?: number | null;
+  startsAt?: IsoDateString | null;
+  expiresAt?: IsoDateString | null;
+  isActive: boolean;
+};
+
+/**
+ * `POST /coupons/validate` — checks a code without consuming it, for showing
+ * the expected discount before checkout. Deliberately **not public**: making it
+ * so would let anyone brute-force discover codes.
+ *
+ * The response shape is not pinned down by the contract, so the discount is
+ * recomputed locally when the API does not return one.
+ */
+export type CouponValidation = {
+  valid?: boolean;
+  discountAmount?: number;
+  coupon?: Coupon;
+};
+
+export type CouponInput = {
+  code: string;
+  type: CouponType;
+  value: number;
+  maxUses?: number;
+  minOrderTotal?: number;
+  startsAt?: string;
+  expiresAt?: string;
+  isActive?: boolean;
+};
+
+/** Mirrors what the API applies, for previewing a discount client-side. */
+export function couponDiscount(coupon: Coupon, subtotal: number) {
+  const raw =
+    coupon.type === "PERCENTAGE" ? (subtotal * coupon.value) / 100 : coupon.value;
+
+  // Never more than the order is worth.
+  return Math.min(Math.max(raw, 0), subtotal);
+}
+
+// ---------------------------------------------------------------------------
+// Reports
+// ---------------------------------------------------------------------------
+
+/**
+ * `GET /reports/sales`. Counts only orders that actually reached `PAID` or
+ * beyond — pending, cancelled and failed orders are excluded.
+ */
+export type SalesReport = {
+  totalRevenue: number;
+  orderCount: number;
+  byDay: Array<{
+    date: IsoDateString;
+    revenue: number;
+    orderCount: number;
+  }>;
+};
+
+/**
+ * `GET /reports/low-stock` — one row per variant × warehouse where
+ * `onHand - reserved` is at or below the threshold, least available first.
+ * This is the endpoint for a stock-alerts screen; `/inventory` takes a single
+ * variant and cannot answer it.
+ */
+export type LowStockRow = InventoryLevel & {
+  // TODO: confirm how much context the row carries; the UI falls back to ids.
+  sku?: string;
+  productId?: Uuid;
+  productName?: string;
+  warehouseCode?: string;
+  available?: number;
+};
+
+/** `GET /reports/stagnant-products` — published products with no recent orders. */
+export type StagnantProduct = Pick<Product, "id" | "name" | "slug"> & {
+  lastOrderedAt?: IsoDateString | null;
+};
+
+// ---------------------------------------------------------------------------
 // Cart
 // ---------------------------------------------------------------------------
 
@@ -573,31 +681,54 @@ export type OrderItem = {
   variantId: Uuid;
   sku: string;
   quantity: number;
-  unitPrice: number;
-  // TODO: confirm the exact order-item shape against a real response.
+  /**
+   * The price is frozen when the order is placed, from whichever price list
+   * applies to that customer, and does not follow later price changes. The
+   * contract names it `unitPriceSnapshot`; `unitPrice` is accepted as a
+   * fallback until a real response confirms which one ships.
+   */
+  unitPriceSnapshot?: number;
+  unitPrice?: number;
 };
 
+export type OrderStatusHistoryEntry = {
+  id: Uuid;
+  status: OrderStatus;
+  reason: string | null;
+  createdAt: IsoDateString;
+};
+
+/**
+ * `GET /orders/:id` embeds everything about an order — items, payments,
+ * shipments and the status history — so no separate call is needed to refund a
+ * payment or read a tracking number.
+ */
 export type Order = {
   id: Uuid;
   status: OrderStatus;
   total: number;
+  /** Present when a coupon was applied at creation. */
+  discountAmount?: number;
   shippingAddress: ShippingAddress;
   items: OrderItem[];
   createdAt: IsoDateString;
-  /**
-   * There is **no endpoint to list an order's payments** — the contract only
-   * returns a payment record from `POST /orders/:id/pay`, while
-   * `POST /payments/:paymentId/refund` needs an id. So refunding is only
-   * reachable if the order response embeds them. Optional until confirmed.
-   */
   payments?: Payment[];
-  // TODO: confirm whether the order response embeds shipments; there is a
-  // dedicated `GET /orders/:orderId/shipments` either way.
   shipments?: Shipment[];
+  statusHistory?: OrderStatusHistoryEntry[];
+};
+
+/** Query params for the admin `GET /orders` listing. */
+export type OrderListQuery = {
+  status?: OrderStatus;
+  cursor?: Uuid;
+  /** 1-100, defaults to 20. */
+  limit?: number;
 };
 
 export type CreateOrderInput = {
   shippingAddress: ShippingAddress;
+  /** Validated and consumed atomically while the order is created. */
+  couponCode?: string;
 };
 
 export type UpdateOrderStatusInput = {
@@ -616,6 +747,7 @@ export type Payment = {
   orderId: Uuid;
   status: PaymentStatus;
   amount: number;
+  currency?: string;
   provider: string;
   createdAt: IsoDateString;
 };

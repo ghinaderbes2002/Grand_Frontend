@@ -119,11 +119,28 @@ const body = async (p) => (await get(p)).text();
   );
 }
 
-// --- the contradiction the contract leaves open ----------------------------
+// --- cancellation: the owner may, but only to cancel -----------------------
 {
-  // Contract line 398: PATCH /orders/:id/status requires `orders.updateStatus`.
-  // Contract note 11: tells the frontend to use that very call to cancel.
-  // A customer has no permissions, so the two cannot both hold.
+  const detail = await body(`/ar/orders/${order.id}`);
+  const buttons = detail.match(/<button[^>]*>[^<]*</g)?.join("\n") ?? "";
+  check(
+    "the UI offers cancelling to the order's owner",
+    buttons.includes("إلغاء الطلب"),
+  );
+
+  // Any other target status is the admin's to make, and 403s for the owner.
+  const promote = await call(
+    "PATCH",
+    `/orders/${order.id}/status`,
+    { status: "CONFIRMED" },
+    customerToken,
+  );
+  check(
+    "the owner cannot drive any other transition",
+    promote.status === 403,
+    `status ${promote.status}`,
+  );
+
   const cancel = await call(
     "PATCH",
     `/orders/${order.id}/status`,
@@ -131,18 +148,9 @@ const body = async (p) => (await get(p)).text();
     customerToken,
   );
   check(
-    "customer cancelling an order — reading the contract literally, this 403s",
-    cancel.status === 403,
-    `status ${cancel.status}. If the real backend allows the owner to cancel, ` +
-      `this expectation flips and the UI is already correct.`,
-  );
-
-  const detail = await body(`/ar/orders/${order.id}`);
-  const buttons = detail.match(/<button[^>]*>[^<]*</g)?.join("\n") ?? "";
-  check(
-    "the UI still offers cancelling to the customer",
-    buttons.includes("إلغاء الطلب"),
-    "so a 403 would surface as an error message, not a missing button",
+    "the owner can cancel their own order without any permission",
+    cancel.status === 200,
+    `status ${cancel.status}`,
   );
 }
 

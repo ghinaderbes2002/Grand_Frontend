@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { ConfirmButton } from "@/components/admin/confirm-button";
 import { CartItemRow } from "@/components/shop/cart-item-row";
+import { PageShell, Panel, ShopPageHeader } from "@/components/shop/page-shell";
 import { Button } from "@/components/ui/button";
 import { getCart } from "@/lib/api/orders";
 import { requireSession } from "@/lib/auth/session";
@@ -21,25 +22,36 @@ export default async function CartPage({ params }: PageProps<"/[lang]/cart">) {
   const cart = await getCart();
 
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-8">
-      <h1 className="text-2xl font-semibold">{dict.cart.title}</h1>
+    <PageShell>
+      <ShopPageHeader
+        title={dict.cart.title}
+        action={
+          <Link href={`/${lang}/shop`} className="text-accent text-sm hover:underline">
+            {dict.cart.continueShopping}
+          </Link>
+        }
+      />
 
       {cart.items.length === 0 ? (
-        <div className="flex flex-col items-start gap-4">
+        <div className="border-border flex flex-col items-start gap-4 rounded-2xl border border-dashed p-8">
           <p className="text-muted text-sm">{dict.cart.empty}</p>
           <Link href={`/${lang}/shop`}>
             <Button>{dict.shop.title}</Button>
           </Link>
         </div>
       ) : (
-        <>
+        /* Lines on the left, a summary that stays put on the right — the
+           usual shape, and it keeps checkout reachable on a long cart. */
+        <div className="grid gap-6 lg:grid-cols-[1fr_320px] lg:items-start">
           <ul className="flex flex-col gap-3">
             {cart.items.map((item) => (
               <CartItemRow key={item.id} item={item} />
             ))}
           </ul>
 
-          <div className="border-border flex flex-col gap-4 border-t pt-4">
+          <Panel className="flex flex-col gap-4 lg:sticky lg:top-20">
+            <h2 className="font-medium">{dict.cart.summary}</h2>
+
             {/* `total` is null when any line has no retail price — the order
                 endpoint rejects such a cart, so checkout stays closed. */}
             {cart.total === null ? (
@@ -47,28 +59,26 @@ export default async function CartPage({ params }: PageProps<"/[lang]/cart">) {
                 {dict.cart.noTotal}
               </p>
             ) : (
-              <p className="flex justify-between text-lg">
-                <span className="text-muted">{dict.cart.total}</span>
+              <p className="border-border flex items-baseline justify-between border-t pt-4 text-lg">
+                <span className="text-muted text-sm">{dict.cart.total}</span>
                 <span className="font-semibold">{formatAmount(cart.total, lang)}</span>
               </p>
             )}
 
-            <div className="flex flex-wrap items-center gap-3">
-              {cart.total !== null ? (
-                <Link href={`/${lang}/checkout`}>
-                  <Button>{dict.cart.checkout}</Button>
-                </Link>
-              ) : null}
+            {cart.total !== null ? (
+              <Link href={`/${lang}/checkout`}>
+                <Button className="w-full">{dict.cart.checkout}</Button>
+              </Link>
+            ) : null}
 
-              <ConfirmButton
-                action={clearCartAction.bind(null, lang)}
-                label={dict.cart.clear}
-                pendingLabel={dict.admin.actions.deleting}
-              />
-            </div>
-          </div>
-        </>
+            <ConfirmButton
+              action={clearCartAction.bind(null, lang)}
+              label={dict.cart.clear}
+              pendingLabel={dict.admin.actions.deleting}
+            />
+          </Panel>
+        </div>
       )}
-    </div>
+    </PageShell>
   );
 }

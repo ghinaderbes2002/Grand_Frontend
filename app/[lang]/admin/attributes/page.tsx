@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { AttributeForm } from "@/components/admin/attribute-form";
 import { NoAccess } from "@/components/admin/no-access";
+import { Card, PageHeader } from "@/components/admin/page-header";
 import { listAttributes } from "@/lib/api/catalog";
 import { PERMISSIONS, can } from "@/lib/auth/permissions";
 import { requireSession } from "@/lib/auth/session";
@@ -23,17 +24,18 @@ export default async function AttributesPage({ params }: PageProps<"/[lang]/admi
   const attributes = await listAttributes();
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
-      <section className="flex flex-col gap-4">
-        <header className="flex flex-col gap-1">
-          <h2 className="text-lg font-medium">{dict.admin.attributes.title}</h2>
-          <p className="text-muted text-sm">{dict.admin.attributes.subtitle}</p>
-        </header>
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        title={dict.admin.attributes.title}
+        subtitle={dict.admin.attributes.subtitle}
+      />
 
-        {attributes.length === 0 ? (
-          <p className="text-muted text-sm">{dict.admin.empty}</p>
-        ) : (
-          <ul className="border-border divide-border divide-y rounded-xl border">
+      <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
+        <section>
+          {attributes.length === 0 ? (
+            <p className="text-muted text-sm">{dict.admin.empty}</p>
+          ) : (
+            <ul className="border-border divide-border divide-y rounded-2xl border">
             {attributes.map((attribute) => (
               <li key={attribute.id}>
                 <Link
@@ -57,14 +59,15 @@ export default async function AttributesPage({ params }: PageProps<"/[lang]/admi
                 </Link>
               </li>
             ))}
-          </ul>
-        )}
-      </section>
+            </ul>
+          )}
+        </section>
 
-      <section className="border-border h-fit rounded-xl border p-5">
-        <h2 className="mb-4 text-lg font-medium">{dict.admin.attributes.newTitle}</h2>
-        <AttributeForm />
-      </section>
+        <Card className="h-fit">
+          <h2 className="mb-4 font-medium">{dict.admin.attributes.newTitle}</h2>
+          <AttributeForm />
+        </Card>
+      </div>
     </div>
   );
 }

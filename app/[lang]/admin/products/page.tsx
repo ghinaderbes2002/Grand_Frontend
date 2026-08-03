@@ -1,10 +1,16 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { PlusIcon } from "@/components/admin/icons";
 import { NoAccess } from "@/components/admin/no-access";
+import { PageHeader } from "@/components/admin/page-header";
 import { Button } from "@/components/ui/button";
 import { listCategories } from "@/lib/api/catalog";
-import { listProducts } from "@/lib/api/products";
+import { categoryOptions } from "@/lib/catalog/category-labels";
+import { listAdminProducts } from "@/lib/api/products";
+import type { ProductStatus } from "@/lib/api/types";
+
+const PRODUCT_STATUSES: ProductStatus[] = ["DRAFT", "PUBLISHED", "ARCHIVED"];
 import { PERMISSIONS, can } from "@/lib/auth/permissions";
 import { requireSession } from "@/lib/auth/session";
 import { formatAmount } from "@/lib/format";
@@ -30,42 +36,52 @@ export default async function ProductsPage({
   }
 
   const query = await searchParams;
+  const rawStatus = one(query.status);
   const filters = {
     q: one(query.q),
     categoryId: one(query.categoryId),
+    status: PRODUCT_STATUSES.includes(rawStatus as ProductStatus)
+      ? (rawStatus as ProductStatus)
+      : undefined,
     cursor: one(query.cursor),
     limit: 30,
   };
 
-  const [page, categories] = await Promise.all([listProducts(filters), listCategories()]);
+  // `/products/admin` returns every status. The public `/products` is
+  // PUBLISHED-only, which used to make a freshly created draft unreachable.
+  const [page, categories] = await Promise.all([
+    listAdminProducts(filters),
+    listCategories(),
+  ]);
 
   // Carry the active filters into the next-page link alongside the cursor.
   const nextParams = new URLSearchParams();
   if (filters.q) nextParams.set("q", filters.q);
   if (filters.categoryId) nextParams.set("categoryId", filters.categoryId);
+  if (filters.status) nextParams.set("status", filters.status);
   if (page.nextCursor) nextParams.set("cursor", page.nextCursor);
 
   return (
     <div className="flex flex-col gap-6">
-      <header className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex flex-col gap-1">
-          <h2 className="text-lg font-medium">{dict.admin.products.title}</h2>
-          <p className="text-muted max-w-xl text-sm">{dict.admin.products.subtitle}</p>
-        </div>
-        {can(session, PERMISSIONS.productsCreate) ? (
-          <Link href={`/${lang}/admin/products/new`}>
-            <Button>{dict.admin.products.newTitle}</Button>
-          </Link>
-        ) : null}
-      </header>
+      <PageHeader
+        title={dict.admin.products.title}
+        subtitle={dict.admin.products.subtitle}
+        action={
+          can(session, PERMISSIONS.productsCreate) ? (
+            <Link href={`/${lang}/admin/products/new`}>
+              <Button className="gap-2">
+                <PlusIcon className="size-4" />
+                {dict.admin.products.newTitle}
+              </Button>
+            </Link>
+          ) : null
+        }
+      />
 
-      {/* The contract exposes no admin listing endpoint — `GET /products` is the
-          public one and filters to PUBLISHED. Drafts are unreachable from here. */}
-      <p className="border-border bg-surface/40 text-muted rounded-lg border px-3 py-2 text-sm">
-        {dict.admin.products.listOnlyPublished}
-      </p>
-
-      <form method="get" className="flex flex-wrap items-end gap-3">
+      <form
+        method="get"
+        className="border-border bg-surface/30 flex flex-wrap items-end gap-3 rounded-2xl border p-4"
+      >
         <label className="flex flex-col gap-1.5 text-sm">
           {dict.admin.filters.search}
           <input
@@ -84,9 +100,25 @@ export default async function ProductsPage({
             className="border-border bg-background h-10 rounded-lg border px-3 text-sm outline-none focus:ring-2 focus:ring-accent/40"
           >
             <option value="">{dict.shop.allCategories}</option>
-            {categories.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.path || category.name}
+            {categoryOptions(categories).map((option) => (
+              <option key={option.id} value={option.id}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="flex flex-col gap-1.5 text-sm">
+          {dict.admin.products.status}
+          <select
+            name="status"
+            defaultValue={filters.status ?? ""}
+            className="border-border bg-background h-10 rounded-lg border px-3 text-sm outline-none focus:ring-2 focus:ring-accent/40"
+          >
+            <option value="">{dict.admin.filters.allStatuses}</option>
+            {PRODUCT_STATUSES.map((value) => (
+              <option key={value} value={value}>
+                {dict.admin.products.statuses[value]}
               </option>
             ))}
           </select>
@@ -95,7 +127,7 @@ export default async function ProductsPage({
         <Button type="submit" className="h-10">
           {dict.admin.filters.apply}
         </Button>
-        {filters.q || filters.categoryId ? (
+        {filters.q || filters.categoryId || filters.status ? (
           <Link href={`/${lang}/admin/products`}>
             <Button type="button" variant="ghost" className="h-10">
               {dict.admin.filters.clear}
@@ -107,7 +139,7 @@ export default async function ProductsPage({
       {page.items.length === 0 ? (
         <p className="text-muted text-sm">{dict.admin.empty}</p>
       ) : (
-        <ul className="border-border divide-border divide-y rounded-xl border">
+        <ul className="border-border divide-border divide-y rounded-2xl border">
           {page.items.map((product) => (
             <li key={product.id}>
               <Link
@@ -117,6 +149,9 @@ export default async function ProductsPage({
                 <span className="flex flex-col gap-0.5">
                   <span className="text-sm font-medium">{product.name}</span>
                   <span className="text-muted font-mono text-xs">{product.slug}</span>
+                </span>
+                <span className="border-border text-muted rounded-md border px-2 py-0.5 text-xs whitespace-nowrap">
+                  {dict.admin.products.statuses[product.status]}
                 </span>
                 <span className="text-muted text-xs">
                   {product.displayPrice

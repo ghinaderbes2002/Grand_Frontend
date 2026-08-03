@@ -1,13 +1,16 @@
+import { CURRENCY } from "@/lib/api/types";
 import type { Locale } from "@/lib/i18n/config";
 
 /**
- * The contract never names a currency, so amounts are formatted as plain
- * numbers rather than guessing a symbol. Swap in `style: "currency"` here once
- * the backend confirms one.
+ * Single currency, USD, two decimals — the contract pins all three. The
+ * `currency` field on price responses exists but never varies yet, so it is not
+ * threaded through; change this one function if that stops being true.
  */
 export function formatAmount(amount: number, locale: Locale) {
   return new Intl.NumberFormat(locale, {
-    minimumFractionDigits: 0,
+    style: "currency",
+    currency: CURRENCY,
+    minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(amount);
 }

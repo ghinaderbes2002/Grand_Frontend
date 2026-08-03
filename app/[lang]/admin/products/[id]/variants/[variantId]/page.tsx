@@ -1,9 +1,9 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { AdjustStockForm, ReceiveStockForm } from "@/components/admin/inventory-forms";
 import { MediaManager } from "@/components/admin/media-manager";
 import { NoAccess } from "@/components/admin/no-access";
+import { PageHeader } from "@/components/admin/page-header";
 import { ApiError } from "@/lib/api/errors";
 import { listMedia } from "@/lib/api/media";
 import {
@@ -59,19 +59,13 @@ export default async function VariantInventoryPage({
 
   return (
     <div className="flex flex-col gap-8">
-      <div className="flex flex-col gap-1">
-        <Link
-          href={`/${lang}/admin/products/${id}`}
-          className="text-muted hover:text-foreground text-sm"
-        >
-          ← {product.name}
-        </Link>
-        <h2 className="text-lg font-medium">
-          {dict.admin.inventory.title} · <span className="font-mono">{variant.sku}</span>
-        </h2>
-      </div>
+      <PageHeader
+        back={{ href: `/${lang}/admin/products/${id}`, label: product.name }}
+        title={dict.admin.inventory.title}
+        subtitle={variant.sku}
+      />
 
-      <div className="grid gap-8 lg:grid-cols-[1fr_340px]">
+      <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
         <section className="flex flex-col gap-6">
           <div className="flex flex-col gap-3">
             {levels.length === 0 ? (

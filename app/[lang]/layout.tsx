@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Cairo, Geist, Geist_Mono } from "next/font/google";
 import { notFound } from "next/navigation";
 
-import { SiteHeader } from "@/components/site-header";
 import { getDirection, isLocale, locales } from "@/lib/i18n/config";
 import { I18nProvider } from "@/lib/i18n/context";
 import { getDictionary } from "@/lib/i18n/dictionaries";
@@ -43,11 +42,11 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[la
       dir={dir}
       className={`${latin.variable} ${monoLatin.variable} ${arabic.variable} h-full antialiased`}
     >
+      {/* Only the shell lives here. The storefront and the dashboard are
+          separate route groups with their own chrome — the admin has a sidebar
+          and no shop header. */}
       <body className="flex min-h-full flex-col">
-        <I18nProvider value={{ locale: lang, dir, dict }}>
-          <SiteHeader locale={lang} dict={dict} />
-          <main className="flex flex-1 flex-col">{children}</main>
-        </I18nProvider>
+        <I18nProvider value={{ locale: lang, dir, dict }}>{children}</I18nProvider>
       </body>
     </html>
   );

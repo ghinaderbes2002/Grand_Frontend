@@ -5,6 +5,7 @@ import { BulkPriceForm } from "@/components/admin/bulk-price-form";
 import { ConfirmButton } from "@/components/admin/confirm-button";
 import { MediaManager } from "@/components/admin/media-manager";
 import { NoAccess } from "@/components/admin/no-access";
+import { Card, PageHeader } from "@/components/admin/page-header";
 import { PriceForm } from "@/components/admin/price-form";
 import { ProductForm } from "@/components/admin/product-form";
 import { VariantForm } from "@/components/admin/variant-form";
@@ -79,57 +80,57 @@ export default async function ProductDetailPage({
 
   return (
     <div className="flex flex-col gap-8">
-      <Link
-        href={`/${lang}/admin/products`}
-        className="text-muted hover:text-foreground text-sm"
-      >
-        ← {dict.admin.products.title}
-      </Link>
+      <PageHeader
+        back={{ href: `/${lang}/admin/products`, label: dict.admin.products.title }}
+        title={product.name}
+        // Only this one category was fetched, so there is no chain to build a
+        // breadcrumb from — its own name is the honest answer.
+        subtitle={`${dict.admin.products.category}: ${category.name}`}
+        action={
+          <span className="border-border text-muted rounded-md border px-2 py-1 text-xs">
+            {dict.admin.products.statuses[product.status]}
+          </span>
+        }
+      />
 
-      <div className="grid gap-8 lg:grid-cols-[1fr_400px]">
+      <div className="grid gap-6 lg:grid-cols-[1fr_400px]">
         <section className="flex flex-col gap-4">
-          <header className="flex flex-wrap items-center gap-3">
-            <h2 className="text-lg font-medium">{dict.admin.products.editTitle}</h2>
-            <span className="border-border text-muted rounded-md border px-2 py-0.5 text-xs">
-              {dict.admin.products.statuses[product.status]}
-            </span>
-          </header>
-          <p className="text-muted text-sm">
-            {dict.admin.products.category}: {category.path || category.name}
-          </p>
+          <Card>
+            <h2 className="mb-4 font-medium">{dict.admin.products.editTitle}</h2>
 
-          {/* `products.read` is enough to view this page, but an editable form
-              the backend would only 403 is worse than none. */}
-          {canUpdate ? (
-            <ProductForm
-              product={product}
-              categoryId={product.categoryId}
-              type={product.type}
-              brands={brands}
-              attributeSpecs={informational}
-            />
-          ) : (
-            <ReadOnlyProduct
-              product={product}
-              dict={dict}
-              brandName={brands.find((brand) => brand.id === product.brandId)?.name}
-            />
-          )}
-
-          {can(session, PERMISSIONS.productsDelete) ? (
-            <div className="border-border mt-4 border-t pt-4">
-              <ConfirmButton
-                action={deleteProductAction.bind(null, lang, product.id)}
-                label={dict.admin.actions.delete}
-                pendingLabel={dict.admin.actions.deleting}
+            {/* `products.read` is enough to view this page, but an editable form
+                the backend would only 403 is worse than none. */}
+            {canUpdate ? (
+              <ProductForm
+                product={product}
+                categoryId={product.categoryId}
+                type={product.type}
+                brands={brands}
+                attributeSpecs={informational}
               />
-            </div>
-          ) : null}
+            ) : (
+              <ReadOnlyProduct
+                product={product}
+                dict={dict}
+                brandName={brands.find((brand) => brand.id === product.brandId)?.name}
+              />
+            )}
+
+            {can(session, PERMISSIONS.productsDelete) ? (
+              <div className="border-border mt-4 border-t pt-4">
+                <ConfirmButton
+                  action={deleteProductAction.bind(null, lang, product.id)}
+                  label={dict.admin.actions.delete}
+                  pendingLabel={dict.admin.actions.deleting}
+                />
+              </div>
+            ) : null}
+          </Card>
         </section>
 
         <section className="flex flex-col gap-6">
-          <div className="border-border rounded-xl border p-5">
-            <h2 className="mb-4 text-lg font-medium">{dict.admin.media.title}</h2>
+          <Card>
+            <h2 className="mb-4 font-medium">{dict.admin.media.title}</h2>
             <MediaManager
               entityType="product"
               entityId={product.id}
@@ -137,10 +138,10 @@ export default async function ProductDetailPage({
               revalidate={`/${lang}/admin/products/${product.id}`}
               canManage={can(session, PERMISSIONS.mediaManage)}
             />
-          </div>
+          </Card>
 
-          <div className="border-border rounded-xl border p-5">
-            <h2 className="mb-1 text-lg font-medium">{dict.admin.variants.title}</h2>
+          <Card>
+            <h2 className="mb-1 font-medium">{dict.admin.variants.title}</h2>
             <p className="text-muted mb-4 text-sm">{dict.admin.variants.subtitle}</p>
 
             {variants.length === 0 ? (
@@ -163,24 +164,24 @@ export default async function ProductDetailPage({
                 ))}
               </ul>
             )}
-          </div>
+          </Card>
 
           {can(session, PERMISSIONS.pricesUpdate) && variants.length > 1 ? (
-            <div className="border-border rounded-xl border p-5">
-              <h2 className="mb-4 text-lg font-medium">{dict.admin.prices.bulkTitle}</h2>
+            <Card>
+              <h2 className="mb-4 font-medium">{dict.admin.prices.bulkTitle}</h2>
               <BulkPriceForm productId={product.id} variants={variants} />
-            </div>
+            </Card>
           ) : null}
 
           {product.type === "VARIABLE" ? (
             canUpdate ? (
-              <div className="border-border rounded-xl border p-5">
-                <h2 className="mb-4 text-lg font-medium">{dict.admin.variants.newTitle}</h2>
+              <Card>
+                <h2 className="mb-4 font-medium">{dict.admin.variants.newTitle}</h2>
                 <VariantForm
                   productId={product.id}
                   variantAttributes={variantCreating}
                 />
-              </div>
+              </Card>
             ) : null
           ) : (
             <p className="text-muted text-sm">{dict.admin.variants.simpleNotice}</p>

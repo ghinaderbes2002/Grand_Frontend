@@ -68,7 +68,10 @@
     "invalidTransition": "That status change is not allowed from the current status",
     "notPreviewed": "This batch was already committed, or has not been previewed",
     "refundTooLarge": "That amount exceeds what is left to refund",
-    "cancelNotPermitted": "You cannot cancel this order yourself — please contact support."
+    "cancelNotPermitted": "You cannot cancel this order yourself — please contact support.",
+    "invalidCouponCode": "Codes use uppercase letters, digits, _ and - only",
+    "couponUnavailable": "That coupon has reached its limit or expired",
+    "lastActiveWarehouse": "At least one warehouse must stay active"
   },
   "auth": {
     "email": "Email",
@@ -128,13 +131,29 @@
     "customer": "Customer"
   },
   "home": {
-    "title": "Foundation is ready",
-    "subtitle": "Auth and internationalization are wired up. Products, cart and orders build on top of this layer.",
-    "signedInAs": "Signed in as"
+    "title": "Every printing supply in one place",
+    "subtitle": "Inks, paper, spare parts and accessories — retail and wholesale pricing, with your order tracked every step of the way.",
+    "browse": "Browse the shop",
+    "categories": "Shop by category",
+    "newArrivals": "New arrivals",
+    "viewAll": "View all",
+    "catalogEmpty": "The catalog is still empty. Check back soon.",
+    "signedInAs": "Signed in as",
+    "features": {
+      "catalogTitle": "An organised catalog",
+      "catalogBody": "Every product carries its attributes, so you can filter by size, type and colour.",
+      "pricingTitle": "Pricing for your account",
+      "pricingBody": "Wholesale customers see their own price list automatically once signed in.",
+      "trackingTitle": "Order tracking",
+      "trackingBody": "From checkout to delivery, the order status and tracking number stay in front of you."
+    }
   },
   "admin": {
     "title": "Admin",
     "overview": "Overview",
+    "greeting": "Hello,",
+    "greetingSubtitle": "Here is a quick look at the store today",
+    "backToStore": "Back to store",
     "noAccess": {
       "title": "No access",
       "body": "Your account does not have the permission this page requires. Ask an administrator.",
@@ -145,7 +164,10 @@
       "attributes": "Attributes",
       "brands": "Brands",
       "products": "Products",
-      "warehouses": "Warehouses"
+      "warehouses": "Warehouses",
+      "reports": "Reports",
+      "coupons": "Coupons",
+      "customers": "Customers"
     },
     "actions": {
       "create": "Add",
@@ -176,9 +198,7 @@
       "allStatuses": "All statuses",
       "apply": "Apply",
       "clear": "Clear",
-      "loadMore": "Load more",
-      "showing": "Showing",
-      "clientFiltered": "Filtering happens after fetching — the API has no status filter for orders."
+      "loadMore": "Load more"
     },
     "categories": {
       "title": "Categories",
@@ -236,7 +256,6 @@
       "subtitle": "Every product has at least one variant — that is what carries the SKU, price and stock.",
       "newTitle": "New product",
       "editTitle": "Edit product",
-      "listOnlyPublished": "This list comes from a public endpoint that returns published products only — drafts and archived products do not appear here. Keep the product link after creating one.",
       "chooseCategory": "Choose a category",
       "chooseCategoryHint": "The category decides the product type and which attributes get filled in. It cannot be changed afterwards.",
       "continue": "Continue",
@@ -308,7 +327,10 @@
       "newTitle": "New warehouse",
       "code": "Code",
       "codeHint": "e.g. MAIN — unique",
-      "inactive": "Inactive"
+      "inactive": "Inactive",
+      "editTitle": "Edit warehouse",
+      "codeImmutable": "immutable after creation",
+      "noDelete": "Warehouses are never deleted, only deactivated — deleting one would orphan its stock movements."
     },
     "inventory": {
       "title": "Inventory",
@@ -460,6 +482,63 @@
       "publishedProducts": "Published products",
       "totalOrders": "Total orders",
       "noAttention": "Nothing needs attention."
+    },
+    "reports": {
+      "title": "Reports",
+      "subtitle": "Sales figures, stock alerts and products nobody is buying.",
+      "sales": "Sales",
+      "salesSubtitle": "Counts orders that actually reached paid or beyond — not pending or cancelled ones.",
+      "from": "From",
+      "to": "To",
+      "totalRevenue": "Total revenue",
+      "orderCount": "Orders",
+      "byDay": "By day",
+      "date": "Date",
+      "revenue": "Revenue",
+      "noSales": "No sales in this period.",
+      "lowStock": "Low stock",
+      "lowStockSubtitle": "Every variant × warehouse at or below the threshold, least available first.",
+      "threshold": "Threshold",
+      "available": "Available",
+      "noLowStock": "Nothing below the threshold — stock is healthy.",
+      "stagnant": "Stagnant products",
+      "stagnantSubtitle": "Published products with no orders in the period.",
+      "days": "Days",
+      "lastOrdered": "Last ordered",
+      "never": "Never",
+      "noStagnant": "No stagnant products."
+    },
+    "coupons": {
+      "title": "Coupons",
+      "subtitle": "Discount codes by percentage or fixed amount, with use limits and validity dates.",
+      "newTitle": "New coupon",
+      "editTitle": "Edit coupon",
+      "code": "Code",
+      "codeHint": "uppercase letters, digits, _ and - only",
+      "type": "Type",
+      "value": "Value",
+      "valueHintPercentage": "a percentage — 10 means 10% off",
+      "valueHintFixed": "a fixed amount in the system currency",
+      "maxUses": "Maximum uses",
+      "usedCount": "Used",
+      "minOrderTotal": "Minimum order total",
+      "startsAt": "Starts",
+      "expiresAt": "Expires",
+      "unlimited": "unlimited",
+      "types": {
+        "PERCENTAGE": "Percentage",
+        "FIXED_AMOUNT": "Fixed amount"
+      }
+    },
+    "customers": {
+      "title": "Customer price lists",
+      "subtitle": "Put a customer on a specific price list (wholesale) instead of the retail default. It applies to their cart and future orders.",
+      "customerId": "Customer ID",
+      "customerIdHint": "UUID",
+      "priceList": "Price list",
+      "retailDefault": "Retail (default)",
+      "apply": "Assign",
+      "noLookup": "No endpoint lists customers, and orders do not say who placed them — so the id has to come from the backend or the database and be pasted here. Raised with the backend team."
     }
   },
   "shop": {
@@ -486,7 +565,12 @@
     "attributeFilters": "Category filters",
     "pickCategoryFirst": "Pick a category to reveal filters based on its attributes.",
     "noFilterableAttributes": "This category has no filterable attributes.",
-    "any": "Any"
+    "any": "Any",
+    "inStock": "In stock",
+    "loginToBuy": "Log in to add to cart",
+    "loginToBuyHint": "The cart is tied to your account, so your pricing and orders stay with you.",
+    "productDetails": "Product details",
+    "browseCategories": "Categories"
   },
   "cart": {
     "title": "Cart",
@@ -497,7 +581,10 @@
     "total": "Total",
     "noTotal": "We cannot total this cart — an item has no price.",
     "checkout": "Checkout",
-    "update": "Update"
+    "update": "Update",
+    "items": "Items",
+    "continueShopping": "Continue shopping",
+    "summary": "Order summary"
   },
   "checkout": {
     "title": "Checkout",
@@ -506,6 +593,16 @@
     "street": "Street",
     "placeOrder": "Place order",
     "placing": "Placing…",
-    "orderPlaced": "Your order has been received."
+    "orderPlaced": "Your order has been received.",
+    "coupon": {
+      "label": "Discount code",
+      "apply": "Apply",
+      "applying": "Checking…",
+      "discount": "Discount",
+      "afterDiscount": "Total after discount",
+      "invalid": "That code is invalid, expired, or does not apply to this order.",
+      "applied": "Code applied.",
+      "note": "The discount is calculated for real when the order is placed."
+    }
   }
 }

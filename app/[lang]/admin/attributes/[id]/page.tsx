@@ -1,10 +1,10 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { AttributeForm } from "@/components/admin/attribute-form";
 import { AttributeOptionForm } from "@/components/admin/attribute-option-form";
 import { ConfirmButton } from "@/components/admin/confirm-button";
 import { NoAccess } from "@/components/admin/no-access";
+import { Card, PageHeader } from "@/components/admin/page-header";
 import {
   deleteAttributeAction,
   deleteAttributeOptionAction,
@@ -41,32 +41,31 @@ export default async function AttributeDetailPage({
 
   return (
     <div className="flex flex-col gap-8">
-      <Link
-        href={`/${lang}/admin/attributes`}
-        className="text-muted hover:text-foreground text-sm"
-      >
-        ← {dict.admin.attributes.title}
-      </Link>
+      <PageHeader
+        back={{ href: `/${lang}/admin/attributes`, label: dict.admin.attributes.title }}
+        title={dict.admin.attributes.editTitle}
+      />
 
-      <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
+      <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
         <section className="flex flex-col gap-4">
-          <h2 className="text-lg font-medium">{dict.admin.attributes.editTitle}</h2>
-          <AttributeForm attribute={attribute} />
+          <Card>
+            <AttributeForm attribute={attribute} />
 
-          {can(session, PERMISSIONS.attributesDelete) ? (
-            <div className="border-border mt-4 border-t pt-4">
-              <ConfirmButton
-                action={deleteAttributeAction.bind(null, lang, attribute.id)}
-                label={dict.admin.actions.delete}
-                pendingLabel={dict.admin.actions.deleting}
-              />
-            </div>
-          ) : null}
+            {can(session, PERMISSIONS.attributesDelete) ? (
+              <div className="border-border mt-4 border-t pt-4">
+                <ConfirmButton
+                  action={deleteAttributeAction.bind(null, lang, attribute.id)}
+                  label={dict.admin.actions.delete}
+                  pendingLabel={dict.admin.actions.deleting}
+                />
+              </div>
+            ) : null}
+          </Card>
         </section>
 
         <section className="flex flex-col gap-6">
-          <div className="border-border rounded-xl border p-5">
-            <h2 className="mb-1 text-lg font-medium">{dict.admin.attributes.options}</h2>
+          <Card>
+            <h2 className="mb-1 font-medium">{dict.admin.attributes.options}</h2>
 
             {!takesOptions ? (
               <p className="text-muted text-sm">
@@ -99,15 +98,13 @@ export default async function AttributeDetailPage({
                 ))}
               </ul>
             )}
-          </div>
+          </Card>
 
           {takesOptions ? (
-            <div className="border-border rounded-xl border p-5">
-              <h2 className="mb-4 text-lg font-medium">
-                {dict.admin.attributes.addOption}
-              </h2>
+            <Card>
+              <h2 className="mb-4 font-medium">{dict.admin.attributes.addOption}</h2>
               <AttributeOptionForm attributeId={attribute.id} />
-            </div>
+            </Card>
           ) : null}
         </section>
       </div>

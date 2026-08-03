@@ -21,11 +21,11 @@ export function ProductCard({
   return (
     <Link
       href={`/${locale}/shop/${product.slug}`}
-      className="border-border hover:bg-surface flex h-full flex-col gap-3 rounded-xl border p-3 transition"
+      className="border-border bg-surface/30 hover:border-accent/50 group flex h-full flex-col gap-3 rounded-2xl border p-3 transition"
     >
-      {/* Decorative: the product name sits right below it, so an alt would
-          only repeat what a screen reader already reads out. */}
-      <div className="border-border bg-surface relative aspect-square w-full overflow-hidden rounded-lg border">
+      <div className="border-border bg-surface relative aspect-square w-full overflow-hidden rounded-xl border">
+        {/* Decorative: the product name sits right below it, so an alt would
+            only repeat what a screen reader already reads out. */}
         {image ? (
           <RemoteImage
             src={image.url}
@@ -33,21 +33,31 @@ export function ProductCard({
             sizes="(min-width: 1024px) 20rem, (min-width: 640px) 45vw, 90vw"
           />
         ) : null}
+
+        {/* Availability is a boolean on the listing — the API never exposes
+            real quantities to the storefront. */}
+        {/* `inset-s-2` is logical, so the badge flips side with the locale. */}
+        {!product.inStock ? (
+          <span className="bg-background/90 text-danger absolute top-2 inset-s-2 rounded-md px-2 py-1 text-xs font-medium backdrop-blur-sm">
+            {dict.shop.outOfStock}
+          </span>
+        ) : null}
       </div>
 
-      <span className="font-medium">{product.name}</span>
+      <span className="line-clamp-2 text-sm font-medium">{product.name}</span>
 
-      <span className="text-muted mt-auto text-sm">
+      <span className="mt-auto text-sm font-semibold">
         {price ? (
           price.min === price.max ? (
             formatAmount(price.min, locale)
           ) : (
             <>
-              {dict.shop.from} {formatAmount(price.min, locale)}
+              <span className="text-muted text-xs font-normal">{dict.shop.from} </span>
+              {formatAmount(price.min, locale)}
             </>
           )
         ) : (
-          dict.shop.unavailable
+          <span className="text-muted font-normal">{dict.shop.unavailable}</span>
         )}
       </span>
     </Link>

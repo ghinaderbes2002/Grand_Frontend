@@ -13,6 +13,7 @@ import {
   listCategories,
   listCategoryAttributes,
 } from "@/lib/api/catalog";
+import { categoryOptions } from "@/lib/catalog/category-labels";
 import { listMedia } from "@/lib/api/media";
 import { listProducts } from "@/lib/api/products";
 import type { Attribute, CategoryAttribute } from "@/lib/api/types";
@@ -123,21 +124,33 @@ export default async function ShopPage({
   if (filters.maxPrice !== undefined) navParams.set("maxPrice", String(filters.maxPrice));
 
   return (
-    <div className="mx-auto grid w-full max-w-6xl gap-8 px-4 py-8 lg:grid-cols-[220px_1fr]">
-      <aside className="flex flex-col gap-4">
-        <h1 className="text-2xl font-semibold">{dict.shop.title}</h1>
-        <CategoryNav
-          tree={tree}
-          locale={lang}
-          selectedId={filters.categoryId}
-          query={navParams}
-        />
-      </aside>
+    <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-8">
+      <h1 className="text-2xl font-semibold tracking-tight">{dict.shop.title}</h1>
 
-      <div className="flex flex-col gap-8">
+      <div className="grid gap-6 lg:grid-cols-[220px_1fr]">
+        {/* The category rail is a `<details>` so it collapses on phones
+            instead of pushing the products off the first screen. */}
+        <details className="border-border rounded-2xl border p-4 lg:border-0 lg:p-0" open>
+          <summary className="cursor-pointer text-sm font-medium lg:hidden">
+            {dict.shop.browseCategories}
+          </summary>
+          <div className="mt-3 lg:mt-0">
+            <CategoryNav
+              tree={tree}
+              locale={lang}
+              selectedId={filters.categoryId}
+              query={navParams}
+            />
+          </div>
+        </details>
+
+        <div className="flex min-w-0 flex-col gap-6">
       {/* A GET form: filters live in the URL, so results are shareable and the
           page keeps working without client-side JavaScript. */}
-      <form method="get" className="border-border grid gap-3 rounded-xl border p-4 sm:grid-cols-2">
+      <form
+        method="get"
+        className="border-border bg-surface/30 grid gap-3 rounded-2xl border p-4 sm:grid-cols-2"
+      >
         <label className="flex flex-col gap-1.5 text-sm">
           {dict.shop.search}
           <input
@@ -156,9 +169,9 @@ export default async function ShopPage({
             className="border-border bg-background h-10 rounded-lg border px-3 text-sm outline-none focus:ring-2 focus:ring-accent/40"
           >
             <option value="">{dict.shop.allCategories}</option>
-            {categories.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.path || category.name}
+            {categoryOptions(categories).map((option) => (
+              <option key={option.id} value={option.id}>
+                {option.label}
               </option>
             ))}
           </select>
@@ -230,9 +243,14 @@ export default async function ShopPage({
       </form>
 
       {page.items.length === 0 ? (
-        <p className="text-muted text-sm">{dict.shop.noResults}</p>
+        <div className="border-border flex flex-col items-start gap-4 rounded-2xl border border-dashed p-8">
+          <p className="text-muted text-sm">{dict.shop.noResults}</p>
+          <Link href={`/${lang}/shop`}>
+            <Button variant="ghost">{dict.shop.clear}</Button>
+          </Link>
+        </div>
       ) : (
-        <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {page.items.map((product) => (
             <li key={product.id}>
               <ProductCard
@@ -250,6 +268,7 @@ export default async function ShopPage({
           <Button variant="ghost">{dict.shop.loadMore}</Button>
         </Link>
       ) : null}
+        </div>
       </div>
     </div>
   );

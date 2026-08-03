@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { CategoryForm } from "@/components/admin/category-form";
@@ -6,8 +5,10 @@ import { ConfirmButton } from "@/components/admin/confirm-button";
 import { LinkAttributeForm } from "@/components/admin/link-attribute-form";
 import { MediaManager } from "@/components/admin/media-manager";
 import { NoAccess } from "@/components/admin/no-access";
+import { Card, PageHeader } from "@/components/admin/page-header";
 import { deleteCategoryAction, unlinkAttributeAction } from "@/lib/admin/categories";
 import { getCategory, listAttributes, listCategories } from "@/lib/api/catalog";
+import { categoryLabels, categoryOptions } from "@/lib/catalog/category-labels";
 import { ApiError } from "@/lib/api/errors";
 import { listMedia } from "@/lib/api/media";
 import { PERMISSIONS, can } from "@/lib/auth/permissions";
@@ -45,48 +46,41 @@ export default async function CategoryDetailPage({
 
   return (
     <div className="flex flex-col gap-8">
-      <Link
-        href={`/${lang}/admin/categories`}
-        className="text-muted hover:text-foreground text-sm"
-      >
-        ← {dict.admin.categories.title}
-      </Link>
+      <PageHeader
+        back={{ href: `/${lang}/admin/categories`, label: dict.admin.categories.title }}
+        title={dict.admin.categories.editTitle}
+        subtitle={`${dict.admin.categories.path}: ${
+          categoryLabels(flat).get(category.id) ?? category.name
+        }`}
+      />
 
-      <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
+      <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
         <section className="flex flex-col gap-4">
-          <header className="flex flex-col gap-1">
-            <h2 className="text-lg font-medium">{dict.admin.categories.editTitle}</h2>
-            <p className="text-muted font-mono text-xs">
-              {dict.admin.categories.path}: {category.path}
-            </p>
-          </header>
+          <Card>
+            <CategoryForm
+              category={category}
+              // A category cannot be its own parent; the API also rejects moving
+              // one under its own descendant, which it reports as a 409.
+              parentOptions={categoryOptions(
+                flat.filter((candidate) => candidate.id !== category.id),
+              )}
+            />
 
-          <CategoryForm
-            category={category}
-            // A category cannot be its own parent; the API also rejects moving
-            // one under its own descendant, which it reports as a 409.
-            parentOptions={flat
-              .filter((candidate) => candidate.id !== category.id)
-              .map((candidate) => ({
-                id: candidate.id,
-                label: candidate.path || candidate.name,
-              }))}
-          />
-
-          {can(session, PERMISSIONS.categoriesDelete) ? (
-            <div className="border-border mt-4 border-t pt-4">
-              <ConfirmButton
-                action={deleteCategoryAction.bind(null, lang, category.id)}
-                label={dict.admin.actions.delete}
-                pendingLabel={dict.admin.actions.deleting}
-              />
-            </div>
-          ) : null}
+            {can(session, PERMISSIONS.categoriesDelete) ? (
+              <div className="border-border mt-4 border-t pt-4">
+                <ConfirmButton
+                  action={deleteCategoryAction.bind(null, lang, category.id)}
+                  label={dict.admin.actions.delete}
+                  pendingLabel={dict.admin.actions.deleting}
+                />
+              </div>
+            ) : null}
+          </Card>
         </section>
 
         <section className="flex flex-col gap-6">
-          <div className="border-border rounded-xl border p-5">
-            <h2 className="mb-4 text-lg font-medium">{dict.admin.media.title}</h2>
+          <Card>
+            <h2 className="mb-4 font-medium">{dict.admin.media.title}</h2>
             <MediaManager
               entityType="category"
               entityId={category.id}
@@ -94,10 +88,10 @@ export default async function CategoryDetailPage({
               revalidate={`/${lang}/admin/categories/${category.id}`}
               canManage={can(session, PERMISSIONS.mediaManage)}
             />
-          </div>
+          </Card>
 
-          <div className="border-border rounded-xl border p-5">
-            <h2 className="mb-1 text-lg font-medium">
+          <Card>
+            <h2 className="mb-1 font-medium">
               {dict.admin.categories.linkedAttributes}
             </h2>
             <p className="text-muted mb-4 text-sm">
@@ -157,13 +151,11 @@ export default async function CategoryDetailPage({
                 })}
               </ul>
             )}
-          </div>
+          </Card>
 
           {can(session, PERMISSIONS.attributesUpdate) ? (
-            <div className="border-border rounded-xl border p-5">
-              <h2 className="mb-4 text-lg font-medium">
-                {dict.admin.categories.linkAttribute}
-              </h2>
+            <Card>
+              <h2 className="mb-4 font-medium">{dict.admin.categories.linkAttribute}</h2>
               <LinkAttributeForm
                 categoryId={category.id}
                 available={attributes
@@ -173,7 +165,7 @@ export default async function CategoryDetailPage({
                     label: `${attribute.name} (${attribute.key})`,
                   }))}
               />
-            </div>
+            </Card>
           ) : null}
         </section>
       </div>

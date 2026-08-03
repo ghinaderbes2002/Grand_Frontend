@@ -2,8 +2,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { NoAccess } from "@/components/admin/no-access";
+import { Card, PageHeader } from "@/components/admin/page-header";
 import { CategoryForm } from "@/components/admin/category-form";
 import { getCategoryTree, listCategories } from "@/lib/api/catalog";
+import { categoryOptions } from "@/lib/catalog/category-labels";
 import type { CategoryTreeNode } from "@/lib/api/types";
 import { PERMISSIONS, can } from "@/lib/auth/permissions";
 import { requireSession } from "@/lib/auth/session";
@@ -24,33 +26,30 @@ export default async function CategoriesPage({ params }: PageProps<"/[lang]/admi
   const [tree, flat] = await Promise.all([getCategoryTree(), listCategories()]);
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
-      <section className="flex flex-col gap-4">
-        <header className="flex flex-col gap-1">
-          <h2 className="text-lg font-medium">{dict.admin.categories.title}</h2>
-          <p className="text-muted text-sm">{dict.admin.categories.subtitle}</p>
-        </header>
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        title={dict.admin.categories.title}
+        subtitle={dict.admin.categories.subtitle}
+      />
 
-        {tree.length === 0 ? (
-          <p className="text-muted text-sm">{dict.admin.empty}</p>
-        ) : (
-          <ul className="border-border divide-border divide-y rounded-xl border">
-            {tree.map((node) => (
-              <CategoryBranch key={node.id} node={node} locale={lang} depth={0} />
-            ))}
-          </ul>
-        )}
-      </section>
+      <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
+        <section>
+          {tree.length === 0 ? (
+            <p className="text-muted text-sm">{dict.admin.empty}</p>
+          ) : (
+            <ul className="border-border divide-border divide-y rounded-2xl border">
+              {tree.map((node) => (
+                <CategoryBranch key={node.id} node={node} locale={lang} depth={0} />
+              ))}
+            </ul>
+          )}
+        </section>
 
-      <section className="border-border h-fit rounded-xl border p-5">
-        <h2 className="mb-4 text-lg font-medium">{dict.admin.categories.newTitle}</h2>
-        <CategoryForm
-          parentOptions={flat.map((category) => ({
-            id: category.id,
-            label: category.path || category.name,
-          }))}
-        />
-      </section>
+        <Card className="h-fit">
+          <h2 className="mb-4 font-medium">{dict.admin.categories.newTitle}</h2>
+          <CategoryForm parentOptions={categoryOptions(flat)} />
+        </Card>
+      </div>
     </div>
   );
 }

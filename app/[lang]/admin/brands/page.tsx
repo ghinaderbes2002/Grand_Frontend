@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { BrandForm } from "@/components/admin/brand-form";
 import { NoAccess } from "@/components/admin/no-access";
+import { Card, PageHeader } from "@/components/admin/page-header";
 import { listBrands } from "@/lib/api/catalog";
 import { PERMISSIONS, can } from "@/lib/auth/permissions";
 import { requireSession } from "@/lib/auth/session";
@@ -23,38 +24,39 @@ export default async function BrandsPage({ params }: PageProps<"/[lang]/admin/br
   const brands = await listBrands();
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
-      <section className="flex flex-col gap-4">
-        <header className="flex flex-col gap-1">
-          <h2 className="text-lg font-medium">{dict.admin.brands.title}</h2>
-          <p className="text-muted text-sm">{dict.admin.brands.subtitle}</p>
-        </header>
+    <div className="flex flex-col gap-6">
+      <PageHeader title={dict.admin.brands.title} subtitle={dict.admin.brands.subtitle} />
 
-        {brands.length === 0 ? (
-          <p className="text-muted text-sm">{dict.admin.empty}</p>
-        ) : (
-          <ul className="border-border divide-border divide-y rounded-xl border">
-            {brands.map((brand) => (
-              <li key={brand.id}>
-                <Link
-                  href={`/${lang}/admin/brands/${brand.id}`}
-                  className="hover:bg-surface flex items-center justify-between gap-3 px-4 py-3 transition"
-                >
-                  <span className={`text-sm ${brand.isActive ? "" : "text-muted line-through"}`}>
-                    {brand.name}
-                  </span>
-                  <span className="text-muted font-mono text-xs">{brand.slug}</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+      <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
+        <section>
+          {brands.length === 0 ? (
+            <p className="text-muted text-sm">{dict.admin.empty}</p>
+          ) : (
+            <ul className="border-border divide-border divide-y rounded-2xl border">
+              {brands.map((brand) => (
+                <li key={brand.id}>
+                  <Link
+                    href={`/${lang}/admin/brands/${brand.id}`}
+                    className="hover:bg-surface flex items-center justify-between gap-3 px-4 py-3 transition"
+                  >
+                    <span
+                      className={`text-sm ${brand.isActive ? "" : "text-muted line-through"}`}
+                    >
+                      {brand.name}
+                    </span>
+                    <span className="text-muted font-mono text-xs">{brand.slug}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
 
-      <section className="border-border h-fit rounded-xl border p-5">
-        <h2 className="mb-4 text-lg font-medium">{dict.admin.brands.newTitle}</h2>
-        <BrandForm />
-      </section>
+        <Card className="h-fit">
+          <h2 className="mb-4 font-medium">{dict.admin.brands.newTitle}</h2>
+          <BrandForm />
+        </Card>
+      </div>
     </div>
   );
 }

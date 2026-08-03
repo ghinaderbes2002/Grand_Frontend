@@ -23,6 +23,9 @@ const db = {
   prices: [],
   media: [],
   orders: [],
+  shipments: [],
+  coupons: [],
+  customerPriceLists: {},
   cart: { id: "cart-1", items: [], total: 0 },
   warehouses: [
     { id: randomUUID(), code: "MAIN", name: "المستودع الرئيسي", isActive: true },
@@ -42,6 +45,20 @@ function levelFor(variantId, warehouseId) {
     db.levels.push(level);
   }
   return level;
+}
+
+/** Returns the discount, or a reason string when the code cannot be used. */
+function evaluateCoupon(coupon, subtotal) {
+  const now = Date.now();
+  if (!coupon.isActive) return "inactive";
+  if (coupon.startsAt && new Date(coupon.startsAt).getTime() > now) return "early";
+  if (coupon.expiresAt && new Date(coupon.expiresAt).getTime() < now) return "expired";
+  if (coupon.minOrderTotal && subtotal < coupon.minOrderTotal) return "below-minimum";
+  if (coupon.maxUses !== null && coupon.usedCount >= coupon.maxUses) return "exhausted";
+
+  const raw =
+    coupon.type === "PERCENTAGE" ? (subtotal * coupon.value) / 100 : coupon.value;
+  return Math.min(Math.max(raw, 0), subtotal);
 }
 
 const refreshTokens = new Map();
@@ -106,7 +123,14 @@ function allowed(permission) {
   return USER.permissions.includes(permission);
 }
 
-/** Rebuilds `path` for a category and everything under it. */
+/**
+ * Rebuilds `path` for a category and everything under it.
+ *
+ * Built from **ids**, matching what the live backend returns. It used to use
+ * slugs here, which read like a breadcrumb and hid a bug: the UI rendered
+ * `path` as a label and showed customers raw UUIDs in production while every
+ * test passed.
+ */
 function rebuildPaths() {
   const byId = new Map(db.categories.map((c) => [c.id, c]));
   const pathOf = (c) => {
@@ -115,10 +139,10 @@ function rebuildPaths() {
     const seen = new Set();
     while (node && !seen.has(node.id)) {
       seen.add(node.id);
-      chain.unshift(node.slug);
+      chain.unshift(node.id);
       node = node.parentId ? byId.get(node.parentId) : null;
     }
-    return `/${chain.join("/")}`;
+    return `/${chain.join("/")}/`;
   };
   for (const c of db.categories) c.path = pathOf(c);
 }
@@ -417,7 +441,19 @@ const server = createServer(async (req, res) => {
     return { min: Math.min(...amounts), max: Math.max(...amounts) };
   };
 
-  const withDisplayPrice = (p) => ({ ...p, displayPrice: priceRange(p.id) });
+  const availableFor = (variantId) =>
+    db.levels
+      .filter((l) => l.variantId === variantId)
+      .reduce((sum, l) => sum + l.quantityOnHand - l.quantityReserved, 0);
+
+  const productInStock = (productId) =>
+    db.variants.some((v) => v.productId === productId && availableFor(v.id) > 0);
+
+  const withDisplayPrice = (p) => ({
+    ...p,
+    displayPrice: priceRange(p.id),
+    inStock: productInStock(p.id),
+  });
 
   if (path === "/products" && method === "GET") {
     const q = url.searchParams.get("q")?.toLowerCase();
@@ -464,6 +500,21 @@ const server = createServer(async (req, res) => {
     }
 
     return send(res, 200, { items, nextCursor: null });
+  }
+
+  // Admin listing: every status, unlike the PUBLISHED-only public one.
+  if (path === "/products/admin" && method === "GET") {
+    if (needs("products.read")) return;
+    const q = url.searchParams.get("q")?.toLowerCase();
+    const categoryId = url.searchParams.get("categoryId");
+    const status = url.searchParams.get("status");
+
+    let items = [...db.products];
+    if (q) items = items.filter((p) => p.name.toLowerCase().includes(q));
+    if (categoryId) items = items.filter((p) => p.categoryId === categoryId);
+    if (status) items = items.filter((p) => p.status === status);
+
+    return send(res, 200, { items: items.map(withDisplayPrice), nextCursor: null });
   }
 
   // --- media ---------------------------------------------------------------
@@ -563,7 +614,9 @@ const server = createServer(async (req, res) => {
   // --- orders --------------------------------------------------------------
   if (path === "/orders" && method === "GET") {
     if (needs("orders.read")) return;
-    return send(res, 200, db.orders);
+    const status = url.searchParams.get("status");
+    const items = status ? db.orders.filter((o) => o.status === status) : db.orders;
+    return send(res, 200, { items, nextCursor: null });
   }
   if (path === "/orders/my" && method === "GET") {
     if (needsAuth()) return;
@@ -592,10 +645,24 @@ const server = createServer(async (req, res) => {
       level.quantityReserved += item.quantity;
     }
 
+    let discountAmount = 0;
+    if (body.couponCode) {
+      const coupon = db.coupons.find((c) => c.code === body.couponCode);
+      if (!coupon) return err(res, 404, "Coupon not found", "Not Found");
+      const outcome = evaluateCoupon(coupon, cart.total);
+      if (typeof outcome === "string") {
+        return err(res, 409, "Coupon unavailable: " + outcome, "Conflict");
+      }
+      // Consumed here, atomically with the order — validation never does.
+      coupon.usedCount += 1;
+      discountAmount = outcome;
+    }
+
     const order = {
       id: randomUUID(),
       status: "PENDING_PAYMENT",
-      total: cart.total,
+      total: Math.max(cart.total - discountAmount, 0),
+      discountAmount,
       shippingAddress: body.shippingAddress,
       items: cart.items.map((item) => ({
         id: randomUUID(),
@@ -631,9 +698,16 @@ const server = createServer(async (req, res) => {
   }
   const orderStatusMatch = path.match(/^\/orders\/([^/]+)\/status$/);
   if (orderStatusMatch && method === "PATCH") {
-    if (needs("orders.updateStatus")) return;
+    if (needsAuth()) return;
     const order = db.orders.find((o) => o.id === orderStatusMatch[1]);
     if (!order) return err(res, 404, "Order not found", "Not Found");
+
+    // The owner may use this route, but only to cancel. Every other target
+    // status needs `orders.updateStatus`.
+    if (!allowed("orders.updateStatus") && body.status !== "CANCELLED") {
+      return err(res, 403, "Only cancellation is allowed", "Forbidden");
+    }
+
     order.status = body.status;
     return send(res, 200, order);
   }
@@ -642,7 +716,53 @@ const server = createServer(async (req, res) => {
     if (needsAuth()) return;
     const order = db.orders.find((o) => o.id === orderMatch[1]);
     if (!order) return err(res, 404, "Order not found", "Not Found");
-    return send(res, 200, order);
+    // The detail embeds everything — no follow-up call for payments or
+    // shipments, which is what makes refunds and tracking reachable.
+    return send(res, 200, {
+      ...order,
+      shipments: db.shipments.filter((s) => s.orderId === order.id),
+      statusHistory: order.statusHistory ?? [],
+    });
+  }
+
+  // --- shipments -----------------------------------------------------------
+  const shipmentsMatch = path.match(/^\/orders\/([^/]+)\/shipments$/);
+  if (shipmentsMatch) {
+    if (needs("orders.updateStatus")) return;
+    const order = db.orders.find((o) => o.id === shipmentsMatch[1]);
+    if (!order) return err(res, 404, "Order not found", "Not Found");
+
+    if (method === "GET") {
+      return send(res, 200, db.shipments.filter((s) => s.orderId === order.id));
+    }
+    if (method === "POST") {
+      if (order.status !== "READY_TO_SHIP") {
+        return err(res, 409, "Order is not ready to ship", "Conflict");
+      }
+      const shipment = {
+        id: randomUUID(),
+        orderId: order.id,
+        carrier: body.carrier,
+        trackingNumber: body.trackingNumber,
+        status: "PENDING",
+        createdAt: new Date().toISOString(),
+      };
+      db.shipments.push(shipment);
+      // Creating a shipment moves the order along by itself.
+      order.status = "SHIPPED";
+      return send(res, 201, shipment);
+    }
+  }
+
+  const deliverMatch = path.match(/^\/shipments\/([^/]+)\/deliver$/);
+  if (deliverMatch && method === "POST") {
+    if (needs("orders.updateStatus")) return;
+    const shipment = db.shipments.find((s) => s.id === deliverMatch[1]);
+    if (!shipment) return err(res, 404, "Shipment not found", "Not Found");
+    shipment.status = "DELIVERED";
+    const order = db.orders.find((o) => o.id === shipment.orderId);
+    if (order) order.status = "DELIVERED";
+    return send(res, 200, shipment);
   }
 
   // --- bulk prices ---------------------------------------------------------
@@ -835,7 +955,11 @@ const server = createServer(async (req, res) => {
       ...withDisplayPrice(product),
       variants: db.variants
         .filter((v) => v.productId === product.id)
-        .map((v) => ({ ...v, prices: db.prices.filter((p) => p.variantId === v.id) })),
+        .map((v) => ({
+          ...v,
+          prices: db.prices.filter((p) => p.variantId === v.id),
+          inStock: availableFor(v.id) > 0,
+        })),
     });
   }
 
@@ -896,6 +1020,40 @@ const server = createServer(async (req, res) => {
     if (needs("warehouses.manage")) return;
     return send(res, 200, db.warehouses);
   }
+  const warehouseMatch = path.match(/^\/warehouses\/([^/]+)$/);
+  if (warehouseMatch) {
+    if (needs("warehouses.manage")) return;
+    const warehouse = db.warehouses.find((w) => w.id === warehouseMatch[1]);
+    if (!warehouse) return err(res, 404, "Warehouse not found", "Not Found");
+
+    if (method === "GET") return send(res, 200, warehouse);
+    if (method === "PATCH") {
+      // Orders fall back to the first active warehouse, so one must remain.
+      const disabling = body.isActive === false && warehouse.isActive;
+      const othersActive = db.warehouses.filter(
+        (w) => w.isActive && w.id !== warehouse.id,
+      ).length;
+      if (disabling && othersActive === 0) {
+        return err(res, 409, "At least one warehouse must stay active", "Conflict");
+      }
+      // The code identifies the warehouse in stock movements and is immutable.
+      const { code: _immutable, ...rest } = body;
+      Object.assign(warehouse, rest);
+      return send(res, 200, warehouse);
+    }
+  }
+
+  // --- customers -----------------------------------------------------------
+  const priceListMatch = path.match(/^\/customers\/([^/]+)\/price-list$/);
+  if (priceListMatch && method === "PATCH") {
+    if (needs("prices.update")) return;
+    db.customerPriceLists[priceListMatch[1]] = body.priceListKey ?? null;
+    return send(res, 200, {
+      customerId: priceListMatch[1],
+      priceListKey: body.priceListKey ?? null,
+    });
+  }
+
   if (path === "/warehouses" && method === "POST") {
     if (needs("warehouses.manage")) return;
     if (db.warehouses.some((w) => w.code === body.code)) {
@@ -990,6 +1148,155 @@ const server = createServer(async (req, res) => {
     return send(res, 200, level);
   }
 
+  // --- coupons -------------------------------------------------------------
+  if (path === "/coupons" && method === "GET") {
+    if (needs("promotions.manage")) return;
+    return send(res, 200, db.coupons);
+  }
+  if (path === "/coupons" && method === "POST") {
+    if (needs("promotions.manage")) return;
+    if (db.coupons.some((c) => c.code === body.code)) {
+      return err(res, 409, "Coupon code already exists", "Conflict");
+    }
+    const coupon = {
+      id: randomUUID(),
+      code: body.code,
+      type: body.type,
+      value: body.value,
+      maxUses: body.maxUses ?? null,
+      usedCount: 0,
+      minOrderTotal: body.minOrderTotal ?? null,
+      startsAt: body.startsAt ?? null,
+      expiresAt: body.expiresAt ?? null,
+      isActive: body.isActive ?? true,
+    };
+    db.coupons.push(coupon);
+    return send(res, 201, coupon);
+  }
+  // Validation needs a session but no special permission — it is what the
+  // storefront calls to preview a discount.
+  if (path === "/coupons/validate" && method === "POST") {
+    if (needsAuth()) return;
+    const coupon = db.coupons.find((c) => c.code === body.code);
+    if (!coupon) return err(res, 404, "Coupon not found", "Not Found");
+
+    const outcome = evaluateCoupon(coupon, body.subtotal ?? 0);
+    if (typeof outcome === "string") {
+      return send(res, 200, { valid: false, reason: outcome });
+    }
+    return send(res, 200, { valid: true, discountAmount: outcome, coupon });
+  }
+  const couponMatch = path.match(/^\/coupons\/([^/]+)$/);
+  if (couponMatch) {
+    if (needs("promotions.manage")) return;
+    const coupon = db.coupons.find((c) => c.id === couponMatch[1]);
+    if (!coupon) return err(res, 404, "Coupon not found", "Not Found");
+    if (method === "GET") return send(res, 200, coupon);
+    if (method === "PATCH") {
+      if (
+        body.code &&
+        db.coupons.some((c) => c.code === body.code && c.id !== coupon.id)
+      ) {
+        return err(res, 409, "Coupon code already exists", "Conflict");
+      }
+      Object.assign(coupon, body);
+      return send(res, 200, coupon);
+    }
+  }
+
+  // --- reports -------------------------------------------------------------
+  // Everything from PAID onwards counts as revenue; pending, cancelled and
+  // failed orders do not.
+  const EARNED = new Set([
+    "PAID",
+    "CONFIRMED",
+    "PROCESSING",
+    "READY_TO_SHIP",
+    "SHIPPED",
+    "DELIVERED",
+    "RETURN_REQUESTED",
+    "RETURNED",
+    "REFUNDED",
+  ]);
+
+  if (path === "/reports/sales" && method === "GET") {
+    if (needs("reports.view")) return;
+    const from = url.searchParams.get("from");
+    const to = url.searchParams.get("to");
+
+    const earned = db.orders.filter((o) => {
+      if (!EARNED.has(o.status)) return false;
+      if (from && o.createdAt < from) return false;
+      if (to && o.createdAt > to) return false;
+      return true;
+    });
+
+    const byDay = new Map();
+    for (const order of earned) {
+      const day = `${order.createdAt.slice(0, 10)}T00:00:00.000Z`;
+      const entry = byDay.get(day) ?? { date: day, revenue: 0, orderCount: 0 };
+      entry.revenue += order.total;
+      entry.orderCount += 1;
+      byDay.set(day, entry);
+    }
+
+    return send(res, 200, {
+      totalRevenue: earned.reduce((sum, o) => sum + o.total, 0),
+      orderCount: earned.length,
+      byDay: [...byDay.values()].sort((a, b) => a.date.localeCompare(b.date)),
+    });
+  }
+
+  if (path === "/reports/low-stock" && method === "GET") {
+    if (needs("reports.view")) return;
+    const threshold = Number(url.searchParams.get("threshold") ?? 5);
+
+    const rows = db.levels
+      .map((level) => {
+        const variant = db.variants.find((v) => v.id === level.variantId);
+        const product = variant
+          ? db.products.find((p) => p.id === variant.productId)
+          : null;
+        const warehouse = db.warehouses.find((w) => w.id === level.warehouseId);
+        return {
+          ...level,
+          available: level.quantityOnHand - level.quantityReserved,
+          sku: variant?.sku,
+          productId: product?.id,
+          productName: product?.name,
+          warehouseCode: warehouse?.code,
+        };
+      })
+      .filter((row) => row.available <= threshold)
+      .sort((a, b) => a.available - b.available);
+
+    return send(res, 200, rows);
+  }
+
+  if (path === "/reports/stagnant-products" && method === "GET") {
+    if (needs("reports.view")) return;
+    const days = Number(url.searchParams.get("days") ?? 30);
+    const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
+
+    const orderedVariantIds = new Set(
+      db.orders
+        .filter((o) => new Date(o.createdAt).getTime() >= cutoff)
+        .flatMap((o) => o.items.map((i) => i.variantId)),
+    );
+
+    const stagnant = db.products
+      .filter((p) => p.status === "PUBLISHED")
+      .filter(
+        (p) =>
+          !db.variants.some(
+            (v) => v.productId === p.id && orderedVariantIds.has(v.id),
+          ),
+      )
+      .map((p) => ({ id: p.id, name: p.name, slug: p.slug, lastOrderedAt: null }));
+
+    return send(res, 200, stagnant);
+  }
+
   // --- test helpers --------------------------------------------------------
   if (path === "/__media" && method === "POST") {
     const media = {
@@ -1013,6 +1320,9 @@ const server = createServer(async (req, res) => {
     db.prices = [];
     db.media = [];
     db.orders = [];
+    db.shipments = [];
+    db.coupons = [];
+    db.customerPriceLists = {};
     db.cart = { id: "cart-1", items: [], total: 0 };
     db.levels = [];
     db.movements = [];

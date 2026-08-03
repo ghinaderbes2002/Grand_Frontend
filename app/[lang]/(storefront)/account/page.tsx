@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
 
+import { PageShell, ShopPageHeader } from "@/components/shop/page-shell";
 import { Button } from "@/components/ui/button";
-import { logoutAllAction } from "@/lib/auth/actions";
+import { logoutAction, logoutAllAction } from "@/lib/auth/actions";
 import { requireSession } from "@/lib/auth/session";
 import { isLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionaries";
@@ -16,10 +17,10 @@ export default async function AccountPage({ params }: PageProps<"/[lang]/account
   const session = await requireSession(lang, `/${lang}/account`);
 
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-8 px-4 py-12">
-      <h1 className="text-2xl font-semibold">{dict.account.title}</h1>
+    <PageShell width="narrow">
+      <ShopPageHeader title={dict.account.title} />
 
-      <dl className="border-border divide-border divide-y rounded-xl border">
+      <dl className="border-border divide-border bg-surface/30 divide-y rounded-2xl border">
         <Row label={dict.account.role} value={dict.roles[session.roleKey]} />
         <Row label={dict.account.userId} value={session.id} mono />
         <div className="flex flex-col gap-2 p-4">
@@ -29,7 +30,7 @@ export default async function AccountPage({ params }: PageProps<"/[lang]/account
               session.permissions.map((permission) => (
                 <span
                   key={permission}
-                  className="border-border bg-surface rounded-md border px-2 py-0.5 font-mono text-xs"
+                  className="border-border bg-background rounded-md border px-2 py-0.5 font-mono text-xs"
                 >
                   {permission}
                 </span>
@@ -41,12 +42,22 @@ export default async function AccountPage({ params }: PageProps<"/[lang]/account
         </div>
       </dl>
 
-      <form action={logoutAllAction.bind(null, lang)}>
-        <Button variant="ghost" type="submit">
-          {dict.account.logoutAll}
-        </Button>
-      </form>
-    </div>
+      <div className="flex flex-wrap gap-3">
+        {/* The header's log-out folds away below `md`, so this page carries
+            one of its own. */}
+        <form action={logoutAction.bind(null, lang)}>
+          <Button variant="ghost" type="submit">
+            {dict.nav.logout}
+          </Button>
+        </form>
+
+        <form action={logoutAllAction.bind(null, lang)}>
+          <Button variant="ghost" type="submit" className="text-danger">
+            {dict.account.logoutAll}
+          </Button>
+        </form>
+      </div>
+    </PageShell>
   );
 }
 

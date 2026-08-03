@@ -26,6 +26,8 @@ export const PERMISSIONS = {
   ordersRead: "orders.read",
   ordersUpdateStatus: "orders.updateStatus",
   ordersRefund: "orders.refund",
+  reportsView: "reports.view",
+  promotionsManage: "promotions.manage",
 } as const;
 
 export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];

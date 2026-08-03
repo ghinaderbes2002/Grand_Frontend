@@ -5,11 +5,12 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { apiFetch } from "@/lib/api/client";
-import type { Cart, Order, Uuid } from "@/lib/api/types";
+import type { Cart, CouponValidation, Order, Uuid } from "@/lib/api/types";
+import { couponDiscount } from "@/lib/api/types";
 import { requireSession } from "@/lib/auth/session";
 import { cartItemSchema, cartQuantitySchema, shippingAddressSchema } from "@/lib/admin/schemas";
 import { describeApiError } from "@/lib/forms/api-error";
-import { number } from "@/lib/forms/fields";
+import { compact, number, text } from "@/lib/forms/fields";
 import { errorState, fieldErrorState, type FormState } from "@/lib/forms/state";
 import type { Locale } from "@/lib/i18n/config";
 
@@ -125,6 +126,60 @@ export async function clearCartAction(
   return { status: "success" };
 }
 
+export type CouponPreview =
+  | { ok: true; discountAmount: number }
+  | { ok: false; state: FormState };
+
+/**
+ * Checks a code and reports the discount it would give, **without consuming
+ * it** — the real consumption happens atomically when the order is created.
+ *
+ * Requires a session on purpose: a public validate endpoint would let anyone
+ * brute-force discover codes.
+ */
+export async function previewCouponAction(
+  locale: Locale,
+  code: string,
+  subtotal: number,
+): Promise<CouponPreview> {
+  await requireSession(locale);
+
+  const trimmed = code.trim().toUpperCase();
+  if (!trimmed) return { ok: false, state: errorState("required") };
+
+  try {
+    const result = await apiFetch<CouponValidation>("/coupons/validate", {
+      method: "POST",
+      body: { code: trimmed, subtotal },
+      auth: true,
+      cache: "no-store",
+    });
+
+    if (result.valid === false) {
+      return { ok: false, state: errorState("couponUnavailable") };
+    }
+
+    // The response shape is not pinned down, so fall back to computing the
+    // discount from the coupon itself when the API does not return one.
+    const discountAmount =
+      result.discountAmount ??
+      (result.coupon ? couponDiscount(result.coupon, subtotal) : null);
+
+    if (discountAmount === null) {
+      return { ok: false, state: errorState("couponUnavailable") };
+    }
+
+    return { ok: true, discountAmount };
+  } catch (error) {
+    return {
+      ok: false,
+      state: errorState(
+        ...describeApiError(error, { 404: "couponUnavailable", 409: "couponUnavailable" }),
+      ),
+    };
+  }
+}
+
 export async function placeOrderAction(
   locale: Locale,
   _prevState: FormState,
@@ -141,18 +196,22 @@ export async function placeOrderAction(
     return fieldErrorState(z.flattenError(parsed.error).fieldErrors);
   }
 
+  const couponCode = text(formData, "couponCode")?.toUpperCase();
+
   let order: Order;
   try {
     order = await apiFetch<Order>("/orders", {
       method: "POST",
-      body: { shippingAddress: parsed.data },
+      body: compact({ shippingAddress: parsed.data, couponCode }),
       auth: true,
       cache: "no-store",
       // Survives a double submit or a retried request after a dropped connection.
       idempotencyKey: crypto.randomUUID(),
     });
   } catch (error) {
-    // 409 is the overselling guard: stock ran out between browsing and checkout.
+    // 409 covers two races here: stock running out between browsing and
+    // checkout, and a coupon hitting its limit at the same moment. The API's
+    // own message distinguishes them, so it is shown rather than guessed at.
     return errorState(...describeApiError(error, { 409: "insufficientStock" }));
   }
 
@@ -165,15 +224,13 @@ export async function placeOrderAction(
 /**
  * Cancels the customer's own order.
  *
- * The contract is self-contradictory here: `PATCH /orders/:id/status` is
- * documented as requiring `orders.updateStatus`, while note 11 tells the
- * frontend to use that exact call to cancel — and a `customer` holds no
- * permissions. Compare `POST /orders/:id/pay`, which grants access to the order
- * owner explicitly; nothing similar is said for this one.
+ * The owner may drive this one transition without any permission; every other
+ * target status returns 403 for them, and a non-owner without
+ * `orders.updateStatus` gets 404 rather than 403 — the API declines to confirm
+ * that someone else's order exists.
  *
- * The button is kept, since removing it would break the flow if the backend
- * does allow owners. A 403 is mapped to its own message rather than the generic
- * error, so the cause is legible if the other reading turns out to be right.
+ * Since this only ever sends `CANCELLED`, the 403 mapping below should not
+ * trigger in practice; it is kept so the cause stays legible if it ever does.
  */
 export async function cancelOrderAction(
   locale: Locale,

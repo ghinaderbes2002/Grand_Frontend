@@ -27,7 +27,7 @@ export function CartItemRow({ item }: { item: CartItem }) {
   );
 
   return (
-    <li className="border-border flex flex-col gap-3 rounded-xl border p-4">
+    <li className="border-border bg-surface/30 flex flex-col gap-3 rounded-2xl border p-4">
       <FormError state={updateState} />
       <FormError state={removeState} />
 

@@ -30,6 +30,9 @@ const SUITES = [
   "shop.test.mjs",
   "customer-role.test.mjs",
   "caching.test.mjs",
+  "reports.test.mjs",
+  "coupons.test.mjs",
+  "warehouses.test.mjs",
 ];
 
 const children = [];
@@ -88,6 +91,8 @@ process.on("SIGINT", () => {
 });
 
 let failed = 0;
+/** Named so a non-zero exit points at the suite instead of just a count. */
+const failures = [];
 
 try {
   start(process.execPath, [join(here, "mock-api.mjs")]);
@@ -109,7 +114,11 @@ try {
 
   for (const suite of SUITES) {
     console.log(`\n[36m── ${suite}[0m`);
-    if ((await run(suite)) !== 0) failed += 1;
+    const code = await run(suite);
+    if (code !== 0) {
+      failures.push(`${suite} (exit ${code})`);
+      failed += 1;
+    }
   }
 } catch (error) {
   console.error(`\n[31m${error.message}[0m`);
@@ -122,6 +131,6 @@ try {
 console.log(
   failed === 0
     ? "\n[32mall suites passed[0m"
-    : `\n[31m${failed} suite(s) failed[0m`,
+    : `\n[31m${failed} suite(s) failed:[0m ${failures.join(", ") || "setup"}`,
 );
 process.exit(failed === 0 ? 0 : 1);

@@ -37,7 +37,10 @@ export function OrderItemsTable({
             <tr key={item.id}>
               <td className="px-3 py-2 font-mono text-xs">{item.sku}</td>
               <td className="px-3 py-2">{item.quantity}</td>
-              <td className="px-3 py-2">{formatAmount(item.unitPrice, locale)}</td>
+              <td className="px-3 py-2">
+                {/* The frozen price the order was placed at. */}
+                {formatAmount(item.unitPriceSnapshot ?? item.unitPrice ?? 0, locale)}
+              </td>
             </tr>
           ))}
         </tbody>
