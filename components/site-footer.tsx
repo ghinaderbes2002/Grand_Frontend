@@ -8,18 +8,18 @@ import type { Dictionary } from "@/lib/i18n/dictionaries";
  * Storefront footer — the one deliberately dark surface on the page, in both
  * themes. It is what closes the site.
  *
- * Built only from routes that exist: a footer padded with dead links to
- * "About" and "Careers" is the clearest sign a site is a template. The social
- * links follow the same rule — each renders only when its URL is configured,
- * so an unset account leaves no icon pointing nowhere.
+ * Four columns: the brand, two link lists and the contact details. Every link
+ * points at a route that exists; a footer padded with dead "About"/"Careers"
+ * entries is the clearest sign a site is a template.
  *
- * Set them in `.env`:
- *   NEXT_PUBLIC_WHATSAPP_URL=https://wa.me/9627XXXXXXXX
- *   NEXT_PUBLIC_FACEBOOK_URL=https://facebook.com/your-page
- *   NEXT_PUBLIC_INSTAGRAM_URL=https://instagram.com/your-handle
+ * **The contact details are placeholders.** `info@example.com` sits in a domain
+ * IANA reserves for exactly this and can never belong to anyone, and the phone
+ * is all zeros — both are visibly not real, so nothing here misleads a visitor
+ * before launch. Replace them under `footer.address` / `footer.phone` /
+ * `footer.email` in the dictionaries.
  *
- * `NEXT_PUBLIC_` because they are inlined at build time; nothing here is
- * secret, and the alternative is threading three props through every page.
+ * Social links are env-driven and each renders only when its URL is set:
+ *   NEXT_PUBLIC_WHATSAPP_URL, NEXT_PUBLIC_FACEBOOK_URL, NEXT_PUBLIC_INSTAGRAM_URL
  *
  * The dashboard has no footer; it is a workspace, not a site.
  */
@@ -30,11 +30,13 @@ export function SiteFooter({ locale, dict }: { locale: Locale; dict: Dictionary 
       links: [
         { href: `/${locale}`, label: dict.nav.home },
         { href: `/${locale}/shop`, label: dict.shop.title },
+        { href: `/${locale}/categories`, label: dict.nav.categories },
       ],
     },
     {
-      title: dict.footer.account,
+      title: dict.footer.help,
       links: [
+        { href: `/${locale}/faq`, label: dict.nav.faq },
         { href: `/${locale}/orders`, label: dict.admin.orders.myOrders },
         { href: `/${locale}/cart`, label: dict.cart.title },
         { href: `/${locale}/account`, label: dict.nav.account },
@@ -60,16 +62,23 @@ export function SiteFooter({ locale, dict }: { locale: Locale; dict: Dictionary 
     },
   ].filter((social): social is typeof social & { href: string } => Boolean(social.href));
 
+  // `tel:` wants the raw digits; the display keeps its spacing.
+  const telHref = `tel:${dict.footer.phone.replace(/\s+/g, "")}`;
+
   return (
-    <footer className="bg-footer text-footer-foreground mt-20">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-4 py-14">
-        <div className="grid gap-10 sm:grid-cols-[1.5fr_1fr_1fr]">
+    // A diagonal run rather than a flat fill, so the panel has depth across its
+    // width instead of reading as one slab.
+    <footer className="text-footer-foreground mt-20 bg-linear-to-br from-[#16233a] via-[#1b2733] to-[#24405a]">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-12 px-4 py-16">
+        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.6fr_1fr_1fr_1.2fr]">
           <div className="flex flex-col gap-4">
             <Link href={`/${locale}`} className="flex items-center gap-2.5">
-              <LogoMark className="size-7" />
-              <span className="font-semibold tracking-tight">{dict.common.appName}</span>
+              <LogoMark className="size-8" />
+              <span className="text-lg font-semibold tracking-tight">
+                {dict.common.appName}
+              </span>
             </Link>
-            <p className="text-footer-foreground/65 max-w-xs text-sm">
+            <p className="text-footer-foreground/65 max-w-xs text-sm leading-relaxed">
               {dict.footer.tagline}
             </p>
 
@@ -85,7 +94,7 @@ export function SiteFooter({ locale, dict }: { locale: Locale; dict: Dictionary 
                       rel="noopener noreferrer"
                       aria-label={social.label}
                       title={social.label}
-                      className="border-footer-foreground/20 text-footer-foreground/70 hover:border-footer-foreground/50 hover:text-footer-foreground flex size-10 items-center justify-center rounded-full border transition hover:-translate-y-0.5"
+                      className="border-footer-foreground/20 text-footer-foreground/70 hover:border-footer-accent hover:text-footer-accent flex size-10 items-center justify-center rounded-full border transition hover:-translate-y-0.5"
                     >
                       {social.icon}
                     </a>
@@ -96,9 +105,9 @@ export function SiteFooter({ locale, dict }: { locale: Locale; dict: Dictionary 
           </div>
 
           {columns.map((column) => (
-            <nav key={column.title} className="flex flex-col gap-3">
-              <h2 className="text-sm font-medium">{column.title}</h2>
-              <ul className="flex flex-col gap-2">
+            <nav key={column.title} className="flex flex-col gap-4">
+              <h2 className="text-footer-accent text-sm font-semibold">{column.title}</h2>
+              <ul className="flex flex-col gap-2.5">
                 {column.links.map((link) => (
                   <li key={link.href}>
                     <Link
@@ -112,15 +121,103 @@ export function SiteFooter({ locale, dict }: { locale: Locale; dict: Dictionary 
               </ul>
             </nav>
           ))}
+
+          <div className="flex flex-col gap-4">
+            <h2 className="text-footer-accent text-sm font-semibold">
+              {dict.footer.contact}
+            </h2>
+            <ul className="flex flex-col gap-3 text-sm">
+              <li className="text-footer-foreground/65 flex items-start gap-3">
+                <PinIcon className="text-footer-accent mt-0.5 size-4 shrink-0" />
+                <span>{dict.footer.address}</span>
+              </li>
+              <li>
+                <a
+                  href={telHref}
+                  className="text-footer-foreground/65 hover:text-footer-foreground flex items-center gap-3 transition"
+                >
+                  <PhoneIcon className="text-footer-accent size-4 shrink-0" />
+                  {/* `dir="ltr"` so the leading + and the digits keep their
+                      order inside a right-to-left paragraph. */}
+                  <span dir="ltr">{dict.footer.phone}</span>
+                </a>
+              </li>
+              <li>
+                <a
+                  href={`mailto:${dict.footer.email}`}
+                  className="text-footer-foreground/65 hover:text-footer-foreground flex items-center gap-3 transition"
+                >
+                  <MailIcon className="text-footer-accent size-4 shrink-0" />
+                  <span dir="ltr">{dict.footer.email}</span>
+                </a>
+              </li>
+            </ul>
+          </div>
         </div>
 
-        <div className="border-footer-foreground/15 border-t pt-6">
+        <div className="border-footer-foreground/15 flex flex-wrap items-center justify-between gap-3 border-t pt-6">
           <p className="text-footer-foreground/55 text-xs">
             © {new Date().getFullYear()} {dict.common.appName}. {dict.footer.rights}
           </p>
+          <p className="text-footer-foreground/45 text-xs">{dict.home.badge}</p>
         </div>
       </div>
     </footer>
+  );
+}
+
+/* Contact glyphs, stroked to match the house style. */
+
+function PinIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.7}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={className}
+    >
+      <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+      <circle cx="12" cy="10" r="3" />
+    </svg>
+  );
+}
+
+function PhoneIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.7}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={className}
+    >
+      <path d="M21 16.9v2.5a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 1.1 3.6 2 2 0 0 1 3.1 1.4h2.5a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L6.7 9.2a16 16 0 0 0 6 6l1.2-1.1a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2Z" />
+    </svg>
+  );
+}
+
+function MailIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.7}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={className}
+    >
+      <rect x="3" y="5" width="18" height="14" rx="2" />
+      <path d="m3.5 7 8.5 6 8.5-6" />
+    </svg>
   );
 }
 

@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { CategoryCard } from "@/components/shop/category-card";
 import { ProductCard } from "@/components/shop/product-card";
 import { StoreHero } from "@/components/shop/store-hero";
+import { StoreSearch } from "@/components/shop/store-search";
 import { listCategories } from "@/lib/api/catalog";
 import { listMedia } from "@/lib/api/media";
 import { listProducts } from "@/lib/api/products";
@@ -12,6 +13,16 @@ import { getDictionary } from "@/lib/i18n/dictionaries";
 
 /** How many products the featured strip shows. */
 const FEATURED_LIMIT = 8;
+
+/**
+ * The three promises in the panel under the hero, as `[id, titleKey, bodyKey]`.
+ * The copy lives in the dictionary; only the order is decided here.
+ */
+const HERO_FEATURES = [
+  ["catalog", "catalogTitle", "catalogBody"],
+  ["pricing", "pricingTitle", "pricingBody"],
+  ["tracking", "trackingTitle", "trackingBody"],
+] as const;
 
 export default async function HomePage({ params }: PageProps<"/[lang]">) {
   const { lang } = await params;
@@ -65,26 +76,35 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
   return (
     <>
       <StoreHero
-        name={dict.common.appName}
-        tagline={dict.home.badge}
+        badge={dict.home.badge}
+        title={dict.home.title}
         description={dict.home.subtitle}
-        search={{
-          action: `/${lang}/shop`,
-          label: dict.home.searchLabel,
-          placeholder: dict.home.searchPlaceholder,
-          submit: dict.home.searchSubmit,
-        }}
         primaryCta={{ href: `/${lang}/shop`, label: dict.home.browse }}
-        scrollHint={{ href: "#featured", label: dict.home.scroll }}
+        secondaryCta={{ href: `/${lang}/categories`, label: dict.nav.categories }}
+        features={HERO_FEATURES.map(([id, title, body]) => ({
+          id,
+          title: dict.home.features[title],
+          body: dict.home.features[body],
+        }))}
       />
 
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-24 px-4 py-20">
+      {/* `pt-36` clears the panel the hero hangs over its own bottom edge. */}
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-24 px-4 pt-36 pb-20">
         {/* --- featured products --- */}
         <section id="featured" className="flex scroll-mt-24 flex-col gap-8">
           <SectionHeading
             eyebrow={dict.home.featured}
             title={dict.home.featuredTitle}
             subtitle={dict.home.featuredSubtitle}
+          />
+
+          {/* Directly above the grid: the shopper who knows what they want
+              types it here, everyone else scrolls into the products. */}
+          <StoreSearch
+            action={`/${lang}/shop`}
+            label={dict.home.searchLabel}
+            placeholder={dict.home.searchPlaceholder}
+            submit={dict.home.searchSubmit}
           />
 
           {page.items.length === 0 ? (

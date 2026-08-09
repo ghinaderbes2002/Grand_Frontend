@@ -116,17 +116,15 @@ await publish(paper.id);
   check("filter form is present", list.includes('name="q"') && list.includes('name="minPrice"'));
 
   // `Category.path` is a materialised path of ids on the live backend, so
-  // rendering it put raw UUIDs in the customer's category picker.
-  const categoryPicker =
-    list.match(/<select[^>]*name="categoryId"[\s\S]*?<\/select>/)?.[0] ?? "";
-  // Only the option *text* — `<option value="…">` carries the id by design.
-  const categoryLabels = [...categoryPicker.matchAll(/<option[^>]*>([^<]*)</g)]
+  // rendering it once put raw UUIDs in front of customers. The facets are pills
+  // now, but the guarantee is the same: names on screen, ids only in the href.
+  const pills = [...list.matchAll(/<a[^>]*href="[^"]*categoryId=[^"]*"[^>]*>([^<]*)</g)]
     .map((match) => match[1])
     .join(" | ");
   check(
-    "the category picker shows names, not id paths",
-    categoryLabels.includes("أحبار") && !/[0-9a-f]{8}-[0-9a-f]{4}-/.test(categoryLabels),
-    categoryLabels,
+    "category facets show names, not id paths",
+    pills.includes("أحبار") && !/[0-9a-f]{8}-[0-9a-f]{4}-/.test(pills),
+    pills,
   );
 
   const searched = await body("/ar/shop?q=" + encodeURIComponent("حبر"));
@@ -527,7 +525,13 @@ await publish(paper.id);
   const backdrop = await fetch(`${APP}/hero-backdrop.svg`);
   check("and actually exists", backdrop.status === 200, `status ${backdrop.status}`);
 
-  // The two anchors the header's nav and the hero's scroll hint point at.
+  // The panel straddling the hero's bottom edge states what the store offers.
+  check(
+    "the hero panel renders its three promises",
+    home.includes("كتالوج مرتّب") && home.includes("تتبّع للطلب"),
+  );
+
+  // The two anchors the header's nav points at.
   check(
     "the sections the nav and the scroll hint point at exist",
     home.includes('id="categories"') && home.includes('id="featured"'),
@@ -539,6 +543,89 @@ await publish(paper.id);
     'the hero search posts to the shop as ?q=',
     home.includes('action="/ar/shop"') && home.includes('name="q"'),
   );
+}
+
+// --- categories page -------------------------------------------------------
+// The header links here, and the drill-down is the only place the category
+// hierarchy is browsable at all.
+{
+  const index = await anon(`/ar/categories`).then((r) => r.text());
+  check(
+    "the categories page lists the roots",
+    index.includes("أحبار") && index.includes("ورق"),
+  );
+
+  // Both seeded categories are leaves, so each box should go straight to the
+  // filtered shop rather than to a drill-down with nothing in it.
+  check(
+    "a leaf category links straight to its products",
+    index.includes(`/ar/shop?categoryId=${cat.id}`),
+  );
+
+  // A child makes the parent a drill-down instead.
+  const child = await post("/categories", { name: "حبر سولفنت", parentId: cat.id }, at);
+  const withChild = await anon(`/ar/categories`).then((r) => r.text());
+  check(
+    "a category with children links to its own page",
+    withChild.includes(`/ar/categories/${cat.id}`),
+  );
+
+  const detail = await anon(`/ar/categories/${cat.id}`).then((r) => r.text());
+  check("the drill-down lists the subcategory", detail.includes("حبر سولفنت"));
+  check(
+    "and still offers the products of the parent",
+    detail.includes(`/ar/shop?categoryId=${cat.id}`),
+  );
+
+  const missing = await anon(`/ar/categories/00000000-0000-0000-0000-000000000000`);
+  check("an unknown category 404s", missing.status === 404, `status ${missing.status}`);
+
+  // Put the seed back the way the later blocks expect it.
+  await call("DELETE", `/categories/${child.id}`, undefined, at);
+}
+
+// --- FAQ -------------------------------------------------------------------
+{
+  const faq = await anon(`/ar/faq`);
+  const html = await faq.text();
+  check("the FAQ page is public", faq.status === 200, `status ${faq.status}`);
+  // `<details>`/`<summary>`, so it works without JavaScript.
+  check(
+    "questions render as native disclosures",
+    (html.match(/<summary/g) ?? []).length >= 5,
+    `${(html.match(/<summary/g) ?? []).length} found`,
+  );
+}
+
+// --- header navigation -----------------------------------------------------
+// The active tab is marked twice over: a filled pill for the eye, and
+// `aria-current` for a screen reader, which never sees the pill.
+{
+  const current = async (path) => {
+    const html = await anon(path).then((r) => r.text());
+    return [...html.matchAll(/<a[^>]*aria-current="page"[^>]*>([^<]*)</g)].map(
+      (match) => match[1],
+    );
+  };
+
+  const onHome = await current("/ar");
+  check(
+    "the current tab is marked",
+    onHome.length === 1 && onHome[0] === "الرئيسية",
+    JSON.stringify(onHome),
+  );
+
+  // Every route starts with "/", so a prefix test would leave home lit
+  // everywhere. This is the check that catches that.
+  const onShop = await current("/ar/shop");
+  check(
+    "and only that tab — home does not stay lit",
+    onShop.length === 1 && onShop[0] !== "الرئيسية",
+    JSON.stringify(onShop),
+  );
+
+  const onFaq = await current("/ar/faq");
+  check("the marking follows the route", onFaq.length === 1, JSON.stringify(onFaq));
 }
 
 // --- brand assets ----------------------------------------------------------

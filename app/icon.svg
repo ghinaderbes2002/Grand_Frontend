@@ -1,9 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
   <!--
-    Filled field rather than a bare glyph: a near-black drop on transparent
+    Kept in sync by hand with components/brand/logo.tsx — a metadata file
+    cannot import from a component.
+
+    Filled field rather than a bare glyph: a near-black mark on transparent
     disappears against a dark browser chrome, which is where a favicon most
-    often sits.
+    often sits. The sheets are drawn a little larger than in the component,
+    since the rounded field eats the outer margin.
   -->
-  <rect width="32" height="32" rx="7" fill="#111315"/>
-  <path d="M16 6c0 0 6.6 7.7 6.6 11.7A6.6 6.6 0 1 1 9.4 17.7C9.4 13.7 16 6 16 6z" fill="#ffffff"/>
+  <rect width="32" height="32" rx="7" fill="#2c5470"/>
+  <g fill="#ffffff">
+    <rect x="6" y="7" width="12" height="18" rx="2" opacity="0.45" transform="rotate(-14 12 16)"/>
+    <path d="M13 8h5.5l4.5 4.5V24a1.8 1.8 0 0 1-1.8 1.8h-8.4A1.8 1.8 0 0 1 11 24V9.8A1.8 1.8 0 0 1 12.8 8Z"/>
+    <path d="M18.5 8l4.5 4.5h-3.6a.9.9 0 0 1-.9-.9Z" opacity="0.5"/>
+  </g>
 </svg>

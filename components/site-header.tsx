@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { Logo } from "@/components/brand/logo";
 import { LocaleSwitcher } from "@/components/locale-switcher";
+import { SiteNav } from "@/components/site-nav";
 import { Button } from "@/components/ui/button";
 import { logoutAction } from "@/lib/auth/actions";
 import { PERMISSIONS, canAny } from "@/lib/auth/permissions";
@@ -40,18 +41,18 @@ export async function SiteHeader({
           <Logo name={dict.common.appName} markClassName="size-8" responsive />
         </Link>
 
-        {/* The main nav, centred. Every entry is a route or an anchor that
-            exists — no "About"/"Contact" placeholders pointing nowhere. */}
-        <nav
-          aria-label={dict.nav.home}
-          className="hidden flex-1 items-center justify-center gap-7 md:flex"
-        >
-          <NavLink href={`/${locale}`}>{dict.nav.home}</NavLink>
-          <NavLink href={`/${locale}/shop`}>{dict.shop.title}</NavLink>
-          {/* Absolute, so it still works from a product page: it navigates
-              home first, then scrolls. */}
-          <NavLink href={`/${locale}#categories`}>{dict.nav.categories}</NavLink>
-        </nav>
+        {/* The main nav, centred. Every entry is a route that exists — no
+            "About"/"Contact" placeholders pointing nowhere. */}
+        <SiteNav
+          label={dict.nav.home}
+          className="hidden flex-1 items-center justify-center gap-1 md:flex"
+          items={[
+            { href: `/${locale}`, label: dict.nav.home },
+            { href: `/${locale}/shop`, label: dict.shop.title },
+            { href: `/${locale}/categories`, label: dict.nav.categories },
+            { href: `/${locale}/faq`, label: dict.nav.faq },
+          ]}
+        />
 
         <div className="flex-1 md:hidden" />
 
@@ -77,10 +78,18 @@ export async function SiteHeader({
               <AccountIcon className="size-4.5" />
             </Link>
 
-            <form action={logoutAction.bind(null, locale)} className="hidden md:block">
-              <Button variant="ghost" size="sm" type="submit">
-                {dict.nav.logout}
-              </Button>
+            {/* Last in the DOM, so it lands at the far end of the bar — the
+                left in Arabic, the right in English. An icon, matching the
+                account button beside it. */}
+            <form action={logoutAction.bind(null, locale)}>
+              <button
+                type="submit"
+                aria-label={dict.nav.logout}
+                title={dict.nav.logout}
+                className="border-border text-muted hover:border-danger/50 hover:text-danger flex size-10 items-center justify-center rounded-full border transition"
+              >
+                <LogoutIcon className="size-4.5" />
+              </button>
             </form>
           </>
         ) : (
@@ -133,6 +142,25 @@ function AccountIcon({ className }: { className?: string }) {
     >
       <circle cx="12" cy="8" r="3.5" />
       <path d="M4.5 20a7.5 7.5 0 0 1 15 0" />
+    </svg>
+  );
+}
+
+/** An arrow leaving a doorway. Mirrored in RTL so it still points "out". */
+function LogoutIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.7}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={`${className} rtl:-scale-x-100`}
+    >
+      <path d="M15 17l5-5-5-5M20 12H9" />
+      <path d="M12 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h6" />
     </svg>
   );
 }

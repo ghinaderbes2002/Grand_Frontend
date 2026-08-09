@@ -137,9 +137,14 @@
   },
   "footer": {
     "tagline": "Printing supplies for professionals — wholesale and retail.",
-    "shop": "Shop",
-    "account": "Account",
-    "rights": "All rights reserved."
+    "shop": "Quick links",
+    "account": "My account",
+    "help": "Useful information",
+    "contact": "Contact",
+    "rights": "All rights reserved.",
+    "address": "Damascus, Syria",
+    "phone": "+963 000 000 000",
+    "email": "info@example.com"
   },
   "home": {
     "title": "Every printing supply in one place",
@@ -602,6 +607,7 @@
   },
   "shop": {
     "title": "Shop",
+    "subtitle": "Browse every product and filter by category, brand or price.",
     "search": "Search",
     "searchPlaceholder": "Search products…",
     "filters": "Filters",

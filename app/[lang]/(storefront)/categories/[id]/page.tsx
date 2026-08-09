@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { CategoryCard } from "@/components/shop/category-card";
+import { CategoryRow } from "@/components/shop/category-row";
 import { PageShell, ShopPageHeader } from "@/components/shop/page-shell";
 import { Button } from "@/components/ui/button";
 import { getCategoryTree, listCategories } from "@/lib/api/catalog";
@@ -61,9 +61,7 @@ export default async function CategoryPage({
           label: dict.categoriesPage.backToCategories,
         }}
         title={node.name}
-        subtitle={
-          children.length > 0 ? dict.categoriesPage.subcategories : undefined
-        }
+        subtitle={children.length > 0 ? dict.categoriesPage.subcategories : undefined}
         action={
           <Link href={`/${lang}/shop?categoryId=${node.id}`}>
             <Button size="sm">{dict.categoriesPage.viewProducts}</Button>
@@ -76,8 +74,8 @@ export default async function CategoryPage({
       {children.length === 0 ? (
         <p className="text-muted text-sm">{dict.categoriesPage.empty}</p>
       ) : (
-        <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {children.map((child) => {
+        <ul className="flex flex-col gap-8">
+          {children.map((child, index) => {
             const category = byId.get(child.id);
             if (!category) return null;
 
@@ -85,10 +83,11 @@ export default async function CategoryPage({
 
             return (
               <li key={child.id} className="reveal">
-                <CategoryCard
+                <CategoryRow
                   category={category}
-                  locale={lang}
                   imageUrl={images.get(child.id)}
+                  flipped={index % 2 === 1}
+                  label={dict.categoriesPage.viewProducts}
                   href={
                     grandchildren > 0
                       ? `/${lang}/categories/${child.id}`

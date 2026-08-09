@@ -36,6 +36,7 @@
      what closes the page. */
   --footer: #1b2733;
   --footer-foreground: #eef2f5;
+  --footer-accent: #8ec0dd;
 
   /* Elevation, deliberately shallow — the border draws the edge, the shadow
      only lifts it off the page. Tinted blue, since a neutral grey shadow over
@@ -62,6 +63,7 @@
 
     --footer: #0b1016;
     --footer-foreground: #eef2f5;
+    --footer-accent: #8ec0dd;
 
     /* Shadows barely register on a near-black page, so these stay faint
        rather than turning into halos; the border carries the edge. */
@@ -84,6 +86,7 @@
   --color-warning: var(--warning);
   --color-footer: var(--footer);
   --color-footer-foreground: var(--footer-foreground);
+  --color-footer-accent: var(--footer-accent);
 
   --shadow-card: var(--shadow-card);
   --shadow-raised: var(--shadow-raised);

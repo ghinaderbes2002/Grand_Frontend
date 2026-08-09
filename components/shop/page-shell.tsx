@@ -24,6 +24,63 @@ export function PageShell({
   );
 }
 
+/**
+ * The banner a storefront section opens with — the shop, the categories index.
+ *
+ * Colour only, no photograph: these are the pages the header points at, and
+ * they open dozens of times a session, so the opening has to be cheap and
+ * identical every time. The wash is built from `--footer`, the one token that
+ * is dark in *both* themes, with `--accent` blooming from the far edge; the
+ * copy therefore sits over the deepest part of the gradient and the white text
+ * never depends on which theme is active.
+ *
+ * The title is held to one side rather than centred, and the eyebrow carries a
+ * rule that runs back toward the middle of the page — the same device the
+ * masthead of a printed section page uses.
+ */
+export function PageBanner({
+  eyebrow,
+  title,
+  subtitle,
+}: {
+  /** Usually the store's name: it says which publication this page is from. */
+  eyebrow: string;
+  title: string;
+  subtitle?: string;
+}) {
+  return (
+    <section className="relative isolate w-full overflow-hidden">
+      <div aria-hidden="true" className="bg-footer absolute inset-0 -z-20" />
+
+      {/* Gradients do not mirror themselves, so the direction is flipped
+          explicitly: the dark end always lands under the copy. */}
+      <div
+        aria-hidden="true"
+        className="from-footer via-footer/85 to-accent/45 rtl:bg-linear-to-l absolute inset-0 -z-10 bg-linear-to-r"
+      />
+
+      {/* The dot screen, at the strength it is meant to be read at: a surface,
+          not a pattern. */}
+      <div aria-hidden="true" className="halftone absolute inset-0 -z-10 text-white" />
+
+      <div className="mx-auto flex w-full max-w-6xl flex-col items-start gap-4 px-6 py-24 text-start sm:py-32">
+        <span className="flex items-center gap-4">
+          {/* `.text-eyebrow` is coloured `--accent-strong`, which is near-black
+              on the light theme — over this wash it has to be white in both. */}
+          <span className="text-eyebrow text-white/70!">{eyebrow}</span>
+          <span aria-hidden="true" className="h-px w-14 bg-white/30 sm:w-24" />
+        </span>
+
+        {/* Fixed to white: this text is over a dark wash in both themes, so it
+            cannot follow `--foreground`. */}
+        <h1 className="text-display text-balance text-white">{title}</h1>
+
+        {subtitle ? <p className="text-lede max-w-xl text-white/70">{subtitle}</p> : null}
+      </div>
+    </section>
+  );
+}
+
 export function ShopPageHeader({
   title,
   subtitle,
