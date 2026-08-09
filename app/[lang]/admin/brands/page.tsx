@@ -2,7 +2,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { BrandForm } from "@/components/admin/brand-form";
+import { DataTable, Td, Th, Tr } from "@/components/admin/data-table";
 import { NewItemDialog } from "@/components/admin/new-item-dialog";
+import { Badge } from "@/components/ui/badge";
 import { NoAccess } from "@/components/admin/no-access";
 import { PageHeader } from "@/components/admin/page-header";
 import { listBrands } from "@/lib/api/catalog";
@@ -40,23 +42,40 @@ export default async function BrandsPage({ params }: PageProps<"/[lang]/admin/br
         {brands.length === 0 ? (
           <p className="text-muted text-sm">{dict.admin.empty}</p>
         ) : (
-          <ul className="border-border divide-border divide-y rounded-2xl border">
+          <DataTable
+            head={
+              <>
+                <Th>{dict.admin.fields.name}</Th>
+                <Th>{dict.admin.fields.slug}</Th>
+                <Th>{dict.admin.fields.isActive}</Th>
+              </>
+            }
+          >
             {brands.map((brand) => (
-              <li key={brand.id}>
-                <Link
-                  href={`/${lang}/admin/brands/${brand.id}`}
-                  className="hover:bg-surface flex items-center justify-between gap-3 px-4 py-3 transition"
-                >
-                  <span
-                    className={`text-sm ${brand.isActive ? "" : "text-muted line-through"}`}
+              <Tr key={brand.id}>
+                <Td>
+                  <Link
+                    href={`/${lang}/admin/brands/${brand.id}`}
+                    className={`font-medium hover:underline ${
+                      brand.isActive ? "" : "text-muted line-through"
+                    }`}
                   >
                     {brand.name}
-                  </span>
-                  <span className="text-muted font-mono text-xs">{brand.slug}</span>
-                </Link>
-              </li>
+                  </Link>
+                </Td>
+                <Td className="text-muted font-mono text-xs">{brand.slug}</Td>
+                <Td>
+                  {/* The badge only appears for the exception, so a long list of
+                      active brands stays quiet. */}
+                  {brand.isActive ? (
+                    <span className="text-muted text-xs">{dict.common.yes}</span>
+                  ) : (
+                    <Badge tone="danger">{dict.common.no}</Badge>
+                  )}
+                </Td>
+              </Tr>
             ))}
-          </ul>
+          </DataTable>
         )}
       </section>
     </div>

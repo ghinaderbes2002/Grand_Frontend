@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { DataTable, Td, Th, Tr } from "@/components/admin/data-table";
 import { NewItemDialog } from "@/components/admin/new-item-dialog";
 import { NoAccess } from "@/components/admin/no-access";
 import { Badge } from "@/components/ui/badge";
@@ -43,24 +44,36 @@ export default async function WarehousesPage({
         {warehouses.length === 0 ? (
           <p className="text-muted text-sm">{dict.admin.empty}</p>
         ) : (
-          <ul className="border-border divide-border divide-y rounded-2xl border">
+          <DataTable
+            head={
+              <>
+                <Th>{dict.admin.fields.name}</Th>
+                <Th>{dict.admin.warehouses.code}</Th>
+                <Th>{dict.admin.fields.isActive}</Th>
+              </>
+            }
+          >
             {warehouses.map((warehouse) => (
-              <li key={warehouse.id}>
-                <Link
-                  href={`/${lang}/admin/warehouses/${warehouse.id}`}
-                  className="hover:bg-surface flex items-center justify-between gap-3 px-4 py-3 transition"
-                >
-                  <span className="flex flex-col gap-0.5">
-                    <span className="text-sm font-medium">{warehouse.name}</span>
-                    <span className="text-muted font-mono text-xs">{warehouse.code}</span>
-                  </span>
-                  {!warehouse.isActive ? (
+              <Tr key={warehouse.id}>
+                <Td>
+                  <Link
+                    href={`/${lang}/admin/warehouses/${warehouse.id}`}
+                    className="font-medium hover:underline"
+                  >
+                    {warehouse.name}
+                  </Link>
+                </Td>
+                <Td className="text-muted font-mono text-xs">{warehouse.code}</Td>
+                <Td>
+                  {warehouse.isActive ? (
+                    <span className="text-muted text-xs">{dict.common.yes}</span>
+                  ) : (
                     <Badge tone="danger">{dict.admin.warehouses.inactive}</Badge>
-                  ) : null}
-                </Link>
-              </li>
+                  )}
+                </Td>
+              </Tr>
             ))}
-          </ul>
+          </DataTable>
         )}
       </section>
     </div>

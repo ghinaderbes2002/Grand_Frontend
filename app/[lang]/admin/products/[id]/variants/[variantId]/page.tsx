@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 
+import { Th } from "@/components/admin/data-table";
 import { AdjustStockForm, ReceiveStockForm } from "@/components/admin/inventory-forms";
 import { MediaManager } from "@/components/admin/media-manager";
 import { NoAccess } from "@/components/admin/no-access";
@@ -208,9 +209,6 @@ function Stat({
   );
 }
 
-function Th({ children }: { children: React.ReactNode }) {
-  return <th className="text-muted px-3 py-2 text-start text-xs font-medium">{children}</th>;
-}
 
 function Td({ children }: { children: React.ReactNode }) {
   return <td className="px-3 py-2 text-start">{children}</td>;

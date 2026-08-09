@@ -149,14 +149,14 @@ const agent = await post(
     "a self-demotion would lock the last admin out",
   );
   check("your own account offers no status form", !self.includes('name="status"'));
-  check("it explains why", self.includes("ما بتقدر تغيّر دورك"));
+  check("it explains why", self.includes("لا يمكنك تغيير دورك"));
 }
 
 // --- permissions -----------------------------------------------------------
 await post("/__role", { roleKey: "catalog_manager", permissions: ["products.read"] });
 {
   const page = await body("/ar/admin/users");
-  check("users need users.manage", page.includes("ما عندك صلاحية"));
+  check("users need users.manage", page.includes("ليست لديك صلاحية"));
 
   const denied = await call("GET", "/users", undefined, at);
   check("the API refuses it too", denied.status === 403, `status ${denied.status}`);

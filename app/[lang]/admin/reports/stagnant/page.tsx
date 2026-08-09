@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { DataTable, Td, Th, Tr } from "@/components/admin/data-table";
 import { NoAccess } from "@/components/admin/no-access";
 import { PageHeader } from "@/components/admin/page-header";
 import { Button } from "@/components/ui/button";
@@ -62,27 +63,34 @@ export default async function StagnantProductsPage({
       {products.length === 0 ? (
         <p className="text-muted text-sm">{dict.admin.reports.noStagnant}</p>
       ) : (
-        <ul className="border-border divide-border divide-y rounded-2xl border">
+        <DataTable
+          head={
+            <>
+              <Th>{dict.admin.fields.name}</Th>
+              <Th>{dict.admin.fields.slug}</Th>
+              <Th>{dict.admin.reports.lastOrdered}</Th>
+            </>
+          }
+        >
           {products.map((product) => (
-            <li key={product.id}>
-              <Link
-                href={`/${lang}/admin/products/${product.id}`}
-                className="hover:bg-surface flex items-center justify-between gap-3 px-4 py-3 transition"
-              >
-                <span className="flex flex-col gap-0.5">
-                  <span className="text-sm font-medium">{product.name}</span>
-                  <span className="text-muted font-mono text-xs">{product.slug}</span>
-                </span>
-                <span className="text-muted text-xs">
-                  {dict.admin.reports.lastOrdered}:{" "}
-                  {product.lastOrderedAt
-                    ? formatDateTime(product.lastOrderedAt, lang)
-                    : dict.admin.reports.never}
-                </span>
-              </Link>
-            </li>
+            <Tr key={product.id}>
+              <Td>
+                <Link
+                  href={`/${lang}/admin/products/${product.id}`}
+                  className="font-medium hover:underline"
+                >
+                  {product.name}
+                </Link>
+              </Td>
+              <Td className="text-muted font-mono text-xs">{product.slug}</Td>
+              <Td className="text-muted text-xs whitespace-nowrap">
+                {product.lastOrderedAt
+                  ? formatDateTime(product.lastOrderedAt, lang)
+                  : dict.admin.reports.never}
+              </Td>
+            </Tr>
           ))}
-        </ul>
+        </DataTable>
       )}
     </div>
   );

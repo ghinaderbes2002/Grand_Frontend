@@ -237,7 +237,7 @@ await publish(paper.id);
   check(
     "attribute filters stay hidden until a category is chosen",
     !noCategory.includes('name="attr_color"') &&
-      noCategory.includes("اختر صنف عشان تظهر فلاتر"),
+      noCategory.includes("اختر صنفًا لتظهر خيارات تصفية"),
   );
 
   const withCategory = await body(`/ar/shop?categoryId=${cat.id}`);
@@ -259,7 +259,7 @@ await publish(paper.id);
   const green = await body(`/ar/shop?categoryId=${cat.id}&attr_color=green`);
   check(
     "an unmatched attribute value returns nothing",
-    !green.includes(">حبر إيكو<") && green.includes("ما في نتائج"),
+    !green.includes(">حبر إيكو<") && green.includes("لا توجد نتائج"),
   );
 
   const selected = await body(`/ar/shop?categoryId=${cat.id}&attr_color=blue`);
@@ -274,7 +274,7 @@ await publish(paper.id);
   const otherCategory = await body(`/ar/shop?categoryId=${otherCat.id}`);
   check(
     "a category with no filterable attributes says so",
-    otherCategory.includes("ما في صفات قابلة للفلترة"),
+    otherCategory.includes("لا توجد خصائص قابلة للتصفية"),
   );
 }
 
@@ -359,14 +359,14 @@ await publish(paper.id);
   const unpriced = await body("/ar/cart");
   check(
     "an unpriced line blocks checkout",
-    unpriced.includes("ما بنقدر نحسب الإجمالي") &&
+    unpriced.includes("تعذّر حساب الإجمالي") &&
       !unpriced.includes('href="/ar/checkout"'),
   );
 
   const checkoutBlocked = await body("/ar/checkout");
   check(
     "checkout refuses an unpriceable cart",
-    checkoutBlocked.includes("ما بنقدر نحسب الإجمالي") &&
+    checkoutBlocked.includes("تعذّر حساب الإجمالي") &&
       !checkoutBlocked.includes('name="city"'),
   );
 
@@ -393,7 +393,7 @@ await publish(paper.id);
 // --- orders ----------------------------------------------------------------
 {
   const none = await body("/ar/orders");
-  check("empty order history says so", none.includes("ما عندك طلبات بعد"));
+  check("empty order history says so", none.includes("لا توجد طلبات بعد"));
 
   await post("/cart/items", { variantId: red.id, quantity: 4 }, at);
   const order = await post(
@@ -603,9 +603,15 @@ await publish(paper.id);
 {
   const current = async (path) => {
     const html = await anon(path).then((r) => r.text());
-    return [...html.matchAll(/<a[^>]*aria-current="page"[^>]*>([^<]*)</g)].map(
-      (match) => match[1],
-    );
+    // Deduped: the bar and the mobile menu both render the nav, so the same
+    // link is legitimately marked twice in one document.
+    return [
+      ...new Set(
+        [...html.matchAll(/<a[^>]*aria-current="page"[^>]*>([^<]*)</g)].map(
+          (match) => match[1],
+        ),
+      ),
+    ];
   };
 
   const onHome = await current("/ar");

@@ -47,7 +47,7 @@ const main = warehouses[0];
     codeField.includes("disabled"),
     codeField.slice(0, 120),
   );
-  check("the page explains there is no delete", detail.includes("ما في حذف للمستودعات"));
+  check("the page explains there is no delete", detail.includes("لا يمكن حذف المستودعات"));
 
   const renamed = await call(
     "PATCH",
@@ -98,7 +98,7 @@ const main = warehouses[0];
   check("wholesale is offered", page.includes('value="wholesale"'));
   check(
     "the missing customer directory is called out",
-    page.includes("ما في endpoint بيرجّع قائمة الزبائن"),
+    page.includes("لا يوفّر النظام مسارًا يُرجع قائمة العملاء"),
   );
 
   const assigned = await call(
@@ -114,10 +114,10 @@ const main = warehouses[0];
 await post("/__role", { roleKey: "catalog_manager", permissions: ["products.read"] });
 {
   const warehouses = await body("/ar/admin/warehouses");
-  check("warehouses need warehouses.manage", warehouses.includes("ما عندك صلاحية"));
+  check("warehouses need warehouses.manage", warehouses.includes("ليست لديك صلاحية"));
 
   const customers = await body("/ar/admin/customers");
-  check("price lists need prices.update", customers.includes("ما عندك صلاحية"));
+  check("price lists need prices.update", customers.includes("ليست لديك صلاحية"));
 
   const denied = await call(
     "PATCH",

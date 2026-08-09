@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef } from "react";
+import { useCallback, useRef, type ReactNode } from "react";
 
 import { SiteNav, type SiteNavItem } from "@/components/site-nav";
 import { useI18n } from "@/lib/i18n/context";
@@ -17,7 +17,14 @@ import { useI18n } from "@/lib/i18n/context";
  * sticky header's `z-index` cannot beat — and at this width a panel would cover
  * the screen anyway.
  */
-export function SiteMenu({ items }: { items: SiteNavItem[] }) {
+export function SiteMenu({
+  items,
+  children,
+}: {
+  items: SiteNavItem[];
+  /** Anything that belongs under the nav — the signed-out account actions. */
+  children?: ReactNode;
+}) {
   const { dict } = useI18n();
   const ref = useRef<HTMLDialogElement>(null);
 
@@ -58,13 +65,14 @@ export function SiteMenu({ items }: { items: SiteNavItem[] }) {
           {/* Closing on the way out: the links navigate client-side, and the
               dialog would otherwise stay open over the page it moved to. The
               handler sits on the wrapper so it catches every link at once. */}
-          <div onClick={close}>
+          <div onClick={close} className="flex flex-col gap-4">
             <SiteNav
               items={items}
               label={dict.nav.menu}
               size="lg"
               className="flex flex-col gap-1"
             />
+            {children}
           </div>
         </div>
       </dialog>

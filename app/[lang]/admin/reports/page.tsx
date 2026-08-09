@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { Th } from "@/components/admin/data-table";
 import { NoAccess } from "@/components/admin/no-access";
 import { PageHeader } from "@/components/admin/page-header";
 import { Button } from "@/components/ui/button";
@@ -132,8 +133,4 @@ export default async function ReportsPage({
       </section>
     </div>
   );
-}
-
-function Th({ children }: { children: React.ReactNode }) {
-  return <th className="text-muted px-3 py-2 text-start text-xs font-medium">{children}</th>;
 }

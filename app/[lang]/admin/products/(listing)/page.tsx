@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { DataTable, Td, Th, Tr } from "@/components/admin/data-table";
 import { PlusIcon } from "@/components/admin/icons";
 import { Badge } from "@/components/ui/badge";
 import { NoAccess } from "@/components/admin/no-access";
@@ -141,31 +142,42 @@ export default async function ProductsPage({
       {page.items.length === 0 ? (
         <p className="text-muted text-sm">{dict.admin.empty}</p>
       ) : (
-        <ul className="border-border divide-border divide-y rounded-2xl border">
+        <DataTable
+          head={
+            <>
+              <Th>{dict.admin.fields.name}</Th>
+              <Th>{dict.admin.fields.slug}</Th>
+              <Th>{dict.admin.products.status}</Th>
+              <Th>{dict.admin.prices.amount}</Th>
+            </>
+          }
+        >
           {page.items.map((product) => (
-            <li key={product.id}>
-              <Link
-                href={`/${lang}/admin/products/${product.id}`}
-                className="hover:bg-surface flex items-center justify-between gap-3 px-4 py-3 transition"
-              >
-                <span className="flex flex-col gap-0.5">
-                  <span className="text-sm font-medium">{product.name}</span>
-                  <span className="text-muted font-mono text-xs">{product.slug}</span>
-                </span>
+            <Tr key={product.id}>
+              <Td>
+                <Link
+                  href={`/${lang}/admin/products/${product.id}`}
+                  className="font-medium hover:underline"
+                >
+                  {product.name}
+                </Link>
+              </Td>
+              <Td className="text-muted font-mono text-xs">{product.slug}</Td>
+              <Td>
                 <Badge tone={product.status === "PUBLISHED" ? "success" : "neutral"}>
                   {dict.admin.products.statuses[product.status]}
                 </Badge>
-                <span className="text-muted text-xs">
-                  {product.displayPrice
-                    ? product.displayPrice.min === product.displayPrice.max
-                      ? formatAmount(product.displayPrice.min, lang)
-                      : `${formatAmount(product.displayPrice.min, lang)} – ${formatAmount(product.displayPrice.max, lang)}`
-                    : dict.admin.prices.noPrices}
-                </span>
-              </Link>
-            </li>
+              </Td>
+              <Td className="text-muted text-xs whitespace-nowrap">
+                {product.displayPrice
+                  ? product.displayPrice.min === product.displayPrice.max
+                    ? formatAmount(product.displayPrice.min, lang)
+                    : `${formatAmount(product.displayPrice.min, lang)} – ${formatAmount(product.displayPrice.max, lang)}`
+                  : "—"}
+              </Td>
+            </Tr>
           ))}
-        </ul>
+        </DataTable>
       )}
 
       {/* Cursor paging only moves forward: this replaces the list instead of

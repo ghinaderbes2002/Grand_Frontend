@@ -2,9 +2,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { CouponForm } from "@/components/admin/coupon-form";
+import { DataTable, Td, Th, Tr } from "@/components/admin/data-table";
 import { NewItemDialog } from "@/components/admin/new-item-dialog";
 import { NoAccess } from "@/components/admin/no-access";
 import { PageHeader } from "@/components/admin/page-header";
+import { Badge } from "@/components/ui/badge";
 import { listCoupons } from "@/lib/api/coupons";
 import { PERMISSIONS, can } from "@/lib/auth/permissions";
 import { requireSession } from "@/lib/auth/session";
@@ -41,38 +43,49 @@ export default async function CouponsPage({ params }: PageProps<"/[lang]/admin/c
         {coupons.length === 0 ? (
           <p className="text-muted text-sm">{dict.admin.empty}</p>
         ) : (
-          <ul className="border-border divide-border divide-y rounded-2xl border">
+          <DataTable
+            head={
+              <>
+                <Th>{dict.admin.coupons.code}</Th>
+                <Th>{dict.admin.coupons.value}</Th>
+                <Th>{dict.admin.coupons.usedCount}</Th>
+                <Th>{dict.admin.fields.isActive}</Th>
+              </>
+            }
+          >
             {coupons.map((coupon) => (
-              <li key={coupon.id}>
-                <Link
-                  href={`/${lang}/admin/coupons/${coupon.id}`}
-                  className="hover:bg-surface flex flex-wrap items-center justify-between gap-3 px-4 py-3 transition"
-                >
-                  <span className="flex flex-col gap-0.5">
-                    <span
-                      className={`font-mono text-sm ${
-                        coupon.isActive ? "" : "text-muted line-through"
-                      }`}
-                    >
-                      {coupon.code}
-                    </span>
-                    <span className="text-muted text-xs">
-                      {coupon.type === "PERCENTAGE"
-                        ? `${coupon.value}%`
-                        : formatAmount(coupon.value, lang)}
-                    </span>
-                  </span>
-
-                  <span className="text-muted text-xs">
-                    {dict.admin.coupons.usedCount}: {coupon.usedCount ?? 0}
-                    {coupon.maxUses
-                      ? ` / ${coupon.maxUses}`
-                      : ` (${dict.admin.coupons.unlimited})`}
-                  </span>
-                </Link>
-              </li>
+              <Tr key={coupon.id}>
+                <Td>
+                  <Link
+                    href={`/${lang}/admin/coupons/${coupon.id}`}
+                    className={`font-mono font-medium hover:underline ${
+                      coupon.isActive ? "" : "text-muted line-through"
+                    }`}
+                  >
+                    {coupon.code}
+                  </Link>
+                </Td>
+                <Td className="whitespace-nowrap">
+                  {coupon.type === "PERCENTAGE"
+                    ? `${coupon.value}%`
+                    : formatAmount(coupon.value, lang)}
+                </Td>
+                <Td className="text-muted text-xs whitespace-nowrap">
+                  {coupon.usedCount ?? 0}
+                  {coupon.maxUses
+                    ? ` / ${coupon.maxUses}`
+                    : ` (${dict.admin.coupons.unlimited})`}
+                </Td>
+                <Td>
+                  {coupon.isActive ? (
+                    <span className="text-muted text-xs">{dict.common.yes}</span>
+                  ) : (
+                    <Badge tone="danger">{dict.common.no}</Badge>
+                  )}
+                </Td>
+              </Tr>
             ))}
-          </ul>
+          </DataTable>
         )}
       </section>
     </div>

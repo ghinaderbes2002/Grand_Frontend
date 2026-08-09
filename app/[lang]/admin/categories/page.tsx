@@ -1,17 +1,19 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { DataTable, Td, Th, Tr } from "@/components/admin/data-table";
 import { NewItemDialog } from "@/components/admin/new-item-dialog";
 import { NoAccess } from "@/components/admin/no-access";
 import { PageHeader } from "@/components/admin/page-header";
 import { CategoryForm } from "@/components/admin/category-form";
+import { Badge } from "@/components/ui/badge";
 import { getCategoryTree, listCategories } from "@/lib/api/catalog";
 import { categoryOptions } from "@/lib/catalog/category-labels";
 import type { CategoryTreeNode } from "@/lib/api/types";
 import { PERMISSIONS, can } from "@/lib/auth/permissions";
 import { requireSession } from "@/lib/auth/session";
 import { isLocale, type Locale } from "@/lib/i18n/config";
-import { getDictionary } from "@/lib/i18n/dictionaries";
+import { getDictionary, type Dictionary } from "@/lib/i18n/dictionaries";
 
 export default async function CategoriesPage({ params }: PageProps<"/[lang]/admin/categories">) {
   const { lang } = await params;
@@ -42,46 +44,83 @@ export default async function CategoriesPage({ params }: PageProps<"/[lang]/admi
         {tree.length === 0 ? (
           <p className="text-muted text-sm">{dict.admin.empty}</p>
         ) : (
-          <ul className="border-border divide-border divide-y rounded-2xl border">
+          <DataTable
+            head={
+              <>
+                <Th>{dict.admin.fields.name}</Th>
+                <Th>{dict.admin.fields.slug}</Th>
+                <Th>{dict.admin.fields.isActive}</Th>
+              </>
+            }
+          >
             {tree.map((node) => (
-              <CategoryBranch key={node.id} node={node} locale={lang} depth={0} />
+              <CategoryBranch key={node.id} node={node} locale={lang} depth={0} dict={dict} />
             ))}
-          </ul>
+          </DataTable>
         )}
       </section>
     </div>
   );
 }
 
+/**
+ * One row per category, children directly under their parent. The hierarchy is
+ * carried by an indent on the name cell rather than by nesting, because a table
+ * has no place to nest a table — and a flat set of rows is what makes the slug
+ * and status columns line up down the page.
+ */
 function CategoryBranch({
   node,
   locale,
   depth,
+  dict,
 }: {
   node: CategoryTreeNode;
   locale: Locale;
   depth: number;
+  dict: Dictionary;
 }) {
   return (
     <>
-      <li>
-        <Link
-          href={`/${locale}/admin/categories/${node.id}`}
-          className="hover:bg-surface flex items-center justify-between gap-3 px-4 py-2.5 transition"
-          // Logical padding so the indent flips with the writing direction.
-          style={{ paddingInlineStart: `${16 + depth * 20}px` }}
-        >
-          <span className="flex items-center gap-2 text-sm">
-            {depth > 0 ? <span className="text-muted">└</span> : null}
-            <span className={node.isActive ? "" : "text-muted line-through"}>
+      <Tr>
+        <Td>
+          <span
+            className="flex items-center gap-2"
+            // Logical padding so the indent flips with the writing direction.
+            style={{ paddingInlineStart: `${depth * 20}px` }}
+          >
+            {depth > 0 ? (
+              <span aria-hidden="true" className="text-muted">
+                └
+              </span>
+            ) : null}
+            <Link
+              href={`/${locale}/admin/categories/${node.id}`}
+              className={`font-medium hover:underline ${
+                node.isActive ? "" : "text-muted line-through"
+              }`}
+            >
               {node.name}
-            </span>
+            </Link>
           </span>
-          <span className="text-muted font-mono text-xs">{node.slug}</span>
-        </Link>
-      </li>
+        </Td>
+        <Td className="text-muted font-mono text-xs">{node.slug}</Td>
+        <Td>
+          {node.isActive ? (
+            <span className="text-muted text-xs">{dict.common.yes}</span>
+          ) : (
+            <Badge tone="danger">{dict.common.no}</Badge>
+          )}
+        </Td>
+      </Tr>
       {node.children.map((child) => (
-        <CategoryBranch key={child.id} node={child} locale={locale} depth={depth + 1} />
+        <CategoryBranch
+          key={child.id}
+          node={child}
+          locale={locale}
+          depth={depth + 1}
+          dict={dict}
+        />
       ))}
     </>
   );

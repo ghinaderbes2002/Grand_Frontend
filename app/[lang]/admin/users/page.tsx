@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { DataTable, Td, Th, Tr } from "@/components/admin/data-table";
 import { NewItemDialog } from "@/components/admin/new-item-dialog";
 import { NoAccess } from "@/components/admin/no-access";
 import { PageHeader } from "@/components/admin/page-header";
@@ -89,32 +90,45 @@ export default async function UsersPage({
         {shown.length === 0 ? (
           <p className="text-muted text-sm">{dict.admin.empty}</p>
         ) : (
-          <ul className="border-border divide-border divide-y rounded-2xl border">
+          <DataTable
+            head={
+              <>
+                <Th>{dict.auth.email}</Th>
+                <Th>{dict.admin.fields.name}</Th>
+                <Th>{dict.admin.users.role}</Th>
+                <Th>{dict.admin.users.status}</Th>
+              </>
+            }
+          >
             {shown.map((user) => (
-              <li key={user.id}>
-                <Link
-                  href={`/${lang}/admin/users/${user.id}`}
-                  className="hover:bg-surface flex flex-wrap items-center justify-between gap-3 px-4 py-3 transition"
-                >
-                  <span className="flex min-w-0 flex-col gap-0.5">
-                    <span className="truncate text-sm font-medium">{user.email}</span>
-                    <span className="text-muted truncate text-xs">
-                      {fullName(user.firstName, user.lastName) ?? dict.admin.users.noName}
-                    </span>
-                  </span>
+              <Tr key={user.id}>
+                <Td>
                   <span className="flex items-center gap-2">
-                    <Badge>{roleLabel(dict, user.roleKey)}</Badge>
-                    <Badge tone={userStatusTone(user.status)}>
-                      {dict.admin.users.statuses[user.status]}
-                    </Badge>
+                    <Link
+                      href={`/${lang}/admin/users/${user.id}`}
+                      className="font-medium hover:underline"
+                    >
+                      {user.email}
+                    </Link>
                     {user.id === session.id ? (
                       <Badge tone="accent">{dict.admin.users.you}</Badge>
                     ) : null}
                   </span>
-                </Link>
-              </li>
+                </Td>
+                <Td className="text-muted text-xs">
+                  {fullName(user.firstName, user.lastName) ?? dict.admin.users.noName}
+                </Td>
+                <Td>
+                  <Badge>{roleLabel(dict, user.roleKey)}</Badge>
+                </Td>
+                <Td>
+                  <Badge tone={userStatusTone(user.status)}>
+                    {dict.admin.users.statuses[user.status]}
+                  </Badge>
+                </Td>
+              </Tr>
             ))}
-          </ul>
+          </DataTable>
         )}
       </div>
     </div>

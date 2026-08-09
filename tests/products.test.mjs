@@ -75,7 +75,7 @@ const brand = await post("/brands", { name: "Roland" }, at);
   check(
     "a category without variant attributes yields a SIMPLE product",
     simpleForm.includes("بسيط (متغيّر واحد)") &&
-      simpleForm.includes("ما في صفات بتُنشئ متغيرات"),
+      simpleForm.includes("لا توجد خصائص تُنشئ متغيّرات"),
   );
   check("SIMPLE form asks for a SKU up front", simpleForm.includes('name="sku"'));
   // React does not preserve JSX attribute order, so match the tag as a whole.
@@ -200,7 +200,7 @@ await post(`/variants/${redVariant.id}/prices`, { priceListKey: "retail", amount
 await post("/__role", { roleKey: "catalog_manager", permissions: ["categories.create"] });
 {
   const list = await body("/ar/admin/products");
-  check("products need products.read", list.includes("ما عندك صلاحية"));
+  check("products need products.read", list.includes("ليست لديك صلاحية"));
 }
 await post("/__role", { roleKey: "catalog_manager", permissions: ["products.read"] });
 {

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { Th } from "@/components/admin/data-table";
 import { ImportUploadForm } from "@/components/admin/import-forms";
 import { Badge } from "@/components/ui/badge";
 import { NoAccess } from "@/components/admin/no-access";
@@ -126,8 +127,4 @@ export default async function ImportsPage({ params }: PageProps<"/[lang]/admin/i
       </div>
     </div>
   );
-}
-
-function Th({ children }: { children: React.ReactNode }) {
-  return <th className="text-muted px-3 py-2 text-start text-xs font-medium">{children}</th>;
 }

@@ -60,8 +60,8 @@ const invPath = `/ar/admin/products/${product.id}/variants/${variant.id}`;
 {
   const html = await body(invPath);
   check("variant inventory page renders", html.includes("A4-100"), invPath);
-  check("empty stock is stated", html.includes("ما في رصيد مسجّل"));
-  check("empty movement log is stated", html.includes("ما في حركات بعد"));
+  check("empty stock is stated", html.includes("لا يوجد رصيد مسجّل"));
+  check("empty movement log is stated", html.includes("لا توجد حركات بعد"));
   check("receive and adjust forms are offered", html.includes('name="quantityDelta"') &&
     html.includes('name="quantity"'));
 }
@@ -132,7 +132,7 @@ await post("/__role", { roleKey: "inventory_manager", permissions: ["inventory.r
   const denied = await body(invPath);
   check(
     "inventory.read without products.read is refused up front",
-    denied.includes("ما عندك صلاحية"),
+    denied.includes("ليست لديك صلاحية"),
     "rather than admitting the role and failing on the first product fetch",
   );
 }
@@ -149,13 +149,13 @@ await post("/__role", {
     !html.includes('name="quantityDelta"'),
   );
   const warehouses = await body("/ar/admin/warehouses");
-  check("warehouses need warehouses.manage", warehouses.includes("ما عندك صلاحية"));
+  check("warehouses need warehouses.manage", warehouses.includes("ليست لديك صلاحية"));
 }
 
 await post("/__role", { roleKey: "catalog_manager", permissions: ["products.read"] });
 {
   const html = await body(invPath);
-  check("inventory needs inventory.read", html.includes("ما عندك صلاحية"));
+  check("inventory needs inventory.read", html.includes("ليست لديك صلاحية"));
   const card = await body(`/ar/admin/products/${product.id}`);
   check(
     "the product page omits stock without inventory.read",

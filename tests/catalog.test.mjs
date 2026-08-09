@@ -89,7 +89,7 @@ await setRole("super_admin", []);
   );
   check(
     "child category is indented",
-    /padding-inline-start:\s*36px/.test(categories),
+    /padding-inline-start:\s*20px/.test(categories),
     categories.match(/padding-inline-start:[^;"]*/g)?.join(" | "),
   );
 
@@ -165,14 +165,14 @@ await setRole("catalog_manager", ["categories.create", "categories.update"]);
   check("permitted section still renders", categories.status === 200);
 
   const brands = await body("/ar/admin/brands");
-  check("forbidden section shows the no-access screen", brands.includes("ما عندك صلاحية"));
+  check("forbidden section shows the no-access screen", brands.includes("ليست لديك صلاحية"));
 }
 
 // --- no permissions -------------------------------------------------------
 await setRole("customer", []);
 {
   const html = await body("/ar/admin");
-  check("a customer gets the no-access screen", html.includes("ما عندك صلاحية"));
+  check("a customer gets the no-access screen", html.includes("ليست لديك صلاحية"));
 }
 
 // --- locale ---------------------------------------------------------------

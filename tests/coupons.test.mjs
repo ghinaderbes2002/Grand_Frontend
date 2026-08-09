@@ -184,7 +184,7 @@ await post(
 await post("/__role", { roleKey: "customer", permissions: [] });
 {
   const admin = await body("/ar/admin/coupons");
-  check("managing coupons needs promotions.manage", admin.includes("ما عندك صلاحية"));
+  check("managing coupons needs promotions.manage", admin.includes("ليست لديك صلاحية"));
 
   const list = await call("GET", "/coupons", undefined, at);
   check("the API refuses the listing too", list.status === 403, `status ${list.status}`);

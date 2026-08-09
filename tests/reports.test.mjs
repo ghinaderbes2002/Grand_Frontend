@@ -76,7 +76,7 @@ await makeProduct("حبر نادر", "INK-FEW", 30, 3);
   const narrow = await body("/ar/admin/reports/low-stock?threshold=0");
   check(
     "a threshold nothing falls under reports healthy stock",
-    narrow.includes("المخزون بخير"),
+    narrow.includes("المخزون بحالة جيدة"),
   );
 }
 
@@ -92,7 +92,7 @@ await makeProduct("حبر نادر", "INK-FEW", 30, 3);
 // --- sales -----------------------------------------------------------------
 {
   const empty = await body("/ar/admin/reports");
-  check("with no paid orders the report is empty", empty.includes("ما في مبيعات"));
+  check("with no paid orders the report is empty", empty.includes("لا توجد مبيعات"));
 
   // An order left at PENDING_PAYMENT must not count as revenue.
   await post("/cart/items", { variantId: plenty.variant.id, quantity: 2 }, at);
@@ -101,7 +101,7 @@ await makeProduct("حبر نادر", "INK-FEW", 30, 3);
   const pending = await body("/ar/admin/reports");
   check(
     "a pending order is not counted as revenue",
-    pending.includes("ما في مبيعات"),
+    pending.includes("لا توجد مبيعات"),
     "only PAID and beyond count",
   );
 
@@ -143,10 +143,10 @@ await makeProduct("حبر نادر", "INK-FEW", 30, 3);
 await post("/__role", { roleKey: "order_manager", permissions: ["orders.read"] });
 {
   const html = await body("/ar/admin/reports");
-  check("reports need reports.view", html.includes("ما عندك صلاحية"));
+  check("reports need reports.view", html.includes("ليست لديك صلاحية"));
 
   const lowStock = await body("/ar/admin/reports/low-stock");
-  check("so does the low-stock screen", lowStock.includes("ما عندك صلاحية"));
+  check("so does the low-stock screen", lowStock.includes("ليست لديك صلاحية"));
 
   const denied = await call("GET", "/reports/low-stock", undefined, at);
   check(

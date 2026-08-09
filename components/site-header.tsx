@@ -5,7 +5,7 @@ import { Logo } from "@/components/brand/logo";
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { SiteMenu } from "@/components/site-menu";
 import { SiteNav } from "@/components/site-nav";
-import { Button } from "@/components/ui/button";
+import { Button, buttonClass } from "@/components/ui/button";
 import { PERMISSIONS, canAny } from "@/lib/auth/permissions";
 import { getSessionOrNull } from "@/lib/auth/session";
 import type { Locale } from "@/lib/i18n/config";
@@ -94,8 +94,13 @@ export async function SiteHeader({
           </>
         ) : (
           <>
-            <NavLink href={`/${locale}/login`}>{dict.nav.login}</NavLink>
-            <Link href={`/${locale}/register`}>
+            {/* Both fold away on a phone: a link plus a filled button beside
+                the language switch overflowed the bar. They reappear at the
+                foot of the menu. */}
+            <NavLink href={`/${locale}/login`} hideOnMobile>
+              {dict.nav.login}
+            </NavLink>
+            <Link href={`/${locale}/register`} className="hidden md:inline">
               <Button size="sm">{dict.nav.register}</Button>
             </Link>
           </>
@@ -109,7 +114,24 @@ export async function SiteHeader({
               ? [...navItems, { href: `/${locale}/admin`, label: dict.nav.admin }]
               : navItems
           }
-        />
+        >
+          {session ? null : (
+            <div className="border-border flex flex-col gap-2 border-t pt-4">
+              <Link
+                href={`/${locale}/login`}
+                className={buttonClass({ variant: "ghost", className: "w-full" })}
+              >
+                {dict.nav.login}
+              </Link>
+              <Link
+                href={`/${locale}/register`}
+                className={buttonClass({ className: "w-full" })}
+              >
+                {dict.nav.register}
+              </Link>
+            </div>
+          )}
+        </SiteMenu>
       </div>
     </header>
   );

@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 
+import { Th } from "@/components/admin/data-table";
 import { CommitImportButton } from "@/components/admin/import-forms";
 import { Badge, type BadgeTone } from "@/components/ui/badge";
 import { NoAccess } from "@/components/admin/no-access";
@@ -108,8 +109,4 @@ export default async function ImportBatchPage({
       )}
     </div>
   );
-}
-
-function Th({ children }: { children: React.ReactNode }) {
-  return <th className="text-muted px-3 py-2 text-start text-xs font-medium">{children}</th>;
 }

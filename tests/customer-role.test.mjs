@@ -157,13 +157,13 @@ const body = async (p) => (await get(p)).text();
 // --- what a customer must not reach ----------------------------------------
 {
   const admin = await get("/ar/admin");
-  check("customer gets no-access on the admin overview", (await body("/ar/admin")).includes("ما عندك صلاحية"), `status ${admin.status}`);
+  check("customer gets no-access on the admin overview", (await body("/ar/admin")).includes("ليست لديك صلاحية"), `status ${admin.status}`);
 
   const products = await body("/ar/admin/products");
-  check("customer cannot read the admin product list", products.includes("ما عندك صلاحية"));
+  check("customer cannot read the admin product list", products.includes("ليست لديك صلاحية"));
 
   const orders = await body("/ar/admin/orders");
-  check("customer cannot read all orders", orders.includes("ما عندك صلاحية"));
+  check("customer cannot read all orders", orders.includes("ليست لديك صلاحية"));
 
   const createCategory = await call("POST", "/categories", { name: "x" }, customerToken);
   check(
