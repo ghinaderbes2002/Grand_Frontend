@@ -1,9 +1,9 @@
 import { notFound } from "next/navigation";
 
+import { LogoutButton } from "@/components/auth/logout-button";
 import { PageShell, ShopPageHeader } from "@/components/shop/page-shell";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { logoutAction, logoutAllAction } from "@/lib/auth/actions";
+import { buttonClass } from "@/components/ui/button";
 import { requireSession } from "@/lib/auth/session";
 import { isLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionaries";
@@ -43,17 +43,18 @@ export default async function AccountPage({ params }: PageProps<"/[lang]/account
       <div className="flex flex-wrap gap-3">
         {/* The header's log-out folds away below `md`, so this page carries
             one of its own. */}
-        <form action={logoutAction.bind(null, lang)}>
-          <Button variant="ghost" type="submit">
-            {dict.nav.logout}
-          </Button>
-        </form>
+        {/* `buttonClass` rather than `<Button>`: the trigger is the logout
+            component's own `<button>`, so it takes classes, not a wrapper. */}
+        <LogoutButton className={buttonClass({ variant: "ghost" })}>
+          {dict.nav.logout}
+        </LogoutButton>
 
-        <form action={logoutAllAction.bind(null, lang)}>
-          <Button variant="ghost" type="submit" className="text-danger">
-            {dict.account.logoutAll}
-          </Button>
-        </form>
+        <LogoutButton
+          scope="all"
+          className={buttonClass({ variant: "ghost", className: "text-danger" })}
+        >
+          {dict.account.logoutAll}
+        </LogoutButton>
       </div>
     </PageShell>
   );

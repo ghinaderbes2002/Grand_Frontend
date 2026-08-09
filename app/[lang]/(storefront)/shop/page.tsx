@@ -286,9 +286,9 @@ export default async function ShopPage({
             </Link>
           </div>
         ) : (
-          <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          <ul className="reveal-grid grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {page.items.map((product) => (
-              <li key={product.id} className="reveal">
+              <li key={product.id}>
                 <ProductCard
                   product={product}
                   image={images.get(product.id) ?? null}

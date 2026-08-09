@@ -85,6 +85,9 @@
     "firstName": "الاسم الأول",
     "lastName": "اسم العائلة",
     "optional": "اختياري",
+    "logoutConfirm": "بدك تسجّل خروج؟",
+    "logoutAllConfirm": "بدك تسجّل خروج من كل الأجهزة؟",
+    "loggingOut": "جارٍ تسجيل الخروج…",
     "login": {
       "title": "تسجيل الدخول",
       "subtitle": "أدخل بياناتك للمتابعة",

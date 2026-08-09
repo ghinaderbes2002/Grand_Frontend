@@ -1,8 +1,8 @@
 "use client";
 
 import { LogoutIcon } from "@/components/admin/icons";
+import { LogoutButton } from "@/components/auth/logout-button";
 import type { CurrentUser } from "@/lib/api/types";
-import { logoutAction } from "@/lib/auth/actions";
 import { useI18n } from "@/lib/i18n/context";
 
 /** The signed-in account, pinned to the bottom of the sidebar. */
@@ -36,21 +36,17 @@ export function AdminSidebarUser({ session }: { session: CurrentUser }) {
  * the sidebar is hidden and there is no room for a full row.
  */
 export function AdminLogoutButton({ compact = false }: { compact?: boolean }) {
-  const { locale, dict } = useI18n();
+  const { dict } = useI18n();
 
   return (
-    <form action={logoutAction.bind(null, locale)}>
-      <button
-        type="submit"
-        aria-label={compact ? dict.nav.logout : undefined}
-        title={compact ? dict.nav.logout : undefined}
-        className={`text-danger hover:bg-danger/10 flex items-center gap-2.5 rounded-xl text-sm transition ${
-          compact ? "p-2" : "w-full px-3 py-2.5"
-        }`}
-      >
-        <LogoutIcon />
-        {compact ? null : dict.nav.logout}
-      </button>
-    </form>
+    <LogoutButton
+      label={compact ? dict.nav.logout : undefined}
+      className={`text-danger hover:bg-danger/10 flex items-center gap-2.5 rounded-xl text-sm transition ${
+        compact ? "p-2" : "w-full px-3 py-2.5"
+      }`}
+    >
+      <LogoutIcon />
+      {compact ? null : dict.nav.logout}
+    </LogoutButton>
   );
 }

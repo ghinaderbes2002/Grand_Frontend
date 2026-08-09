@@ -111,9 +111,9 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
             <p className="text-muted text-center text-sm">{dict.home.catalogEmpty}</p>
           ) : (
             <>
-              <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+              <ul className="reveal-grid grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
                 {page.items.map((product) => (
-                  <li key={product.id} className="reveal">
+                  <li key={product.id}>
                     <ProductCard
                       product={product}
                       image={productImages.get(product.id) ?? null}
@@ -143,9 +143,9 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
               subtitle={dict.home.categoriesSubtitle}
             />
 
-            <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            <ul className="reveal-grid grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
               {rootCategories.map((category) => (
-                <li key={category.id} className="reveal">
+                <li key={category.id}>
                   <CategoryCard
                     category={category}
                     locale={lang}

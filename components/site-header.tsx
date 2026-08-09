@@ -1,10 +1,10 @@
 import Link from "next/link";
 
+import { LogoutButton } from "@/components/auth/logout-button";
 import { Logo } from "@/components/brand/logo";
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { SiteNav } from "@/components/site-nav";
 import { Button } from "@/components/ui/button";
-import { logoutAction } from "@/lib/auth/actions";
 import { PERMISSIONS, canAny } from "@/lib/auth/permissions";
 import { getSessionOrNull } from "@/lib/auth/session";
 import type { Locale } from "@/lib/i18n/config";
@@ -81,16 +81,12 @@ export async function SiteHeader({
             {/* Last in the DOM, so it lands at the far end of the bar — the
                 left in Arabic, the right in English. An icon, matching the
                 account button beside it. */}
-            <form action={logoutAction.bind(null, locale)}>
-              <button
-                type="submit"
-                aria-label={dict.nav.logout}
-                title={dict.nav.logout}
-                className="border-border text-muted hover:border-danger/50 hover:text-danger flex size-10 items-center justify-center rounded-full border transition"
-              >
-                <LogoutIcon className="size-4.5" />
-              </button>
-            </form>
+            <LogoutButton
+              label={dict.nav.logout}
+              className="border-border text-muted hover:border-danger/50 hover:text-danger flex size-10 items-center justify-center rounded-full border transition"
+            >
+              <LogoutIcon className="size-4.5" />
+            </LogoutButton>
           </>
         ) : (
           <>

@@ -85,6 +85,9 @@
     "firstName": "First name",
     "lastName": "Last name",
     "optional": "optional",
+    "logoutConfirm": "Log out of this browser?",
+    "logoutAllConfirm": "Log out of every device?",
+    "loggingOut": "Logging out…",
     "login": {
       "title": "Log in",
       "subtitle": "Enter your details to continue",
