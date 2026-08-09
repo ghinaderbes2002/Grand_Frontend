@@ -610,7 +610,7 @@
     }
   },
   "shop": {
-    "title": "المتجر",
+    "title": "المنتجات",
     "subtitle": "تصفّح كل المنتجات وفلتر حسب الصنف أو العلامة أو السعر.",
     "search": "بحث",
     "searchPlaceholder": "ابحث عن منتج…",
@@ -632,7 +632,7 @@
     "minOrder": "الحد الأدنى للطلب",
     "chooseVariant": "اختر الخيار",
     "outOfStock": "غير متوفر بالمخزون",
-    "backToShop": "رجوع للمتجر",
+    "backToShop": "رجوع للمنتجات",
     "attributeFilters": "فلاتر الصنف",
     "pickCategoryFirst": "اختر صنفًا لتظهر خيارات تصفية إضافية حسب خصائصه.",
     "noFilterableAttributes": "لا توجد خصائص قابلة للتصفية في هذا الصنف.",

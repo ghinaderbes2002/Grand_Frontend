@@ -64,7 +64,7 @@ export function PageBanner({
       <div aria-hidden="true" className="halftone absolute inset-0 -z-10 text-white" />
 
       <div className="mx-auto flex w-full max-w-6xl flex-col items-start gap-4 px-6 py-24 text-start sm:py-32">
-        <span className="flex items-center gap-4">
+        <span className="animate-fade-in flex items-center gap-4 [animation-delay:100ms]">
           {/* `.text-eyebrow` is coloured `--accent-strong`, which is near-black
               on the light theme — over this wash it has to be white in both. */}
           <span className="text-eyebrow text-white/70!">{eyebrow}</span>
@@ -73,9 +73,15 @@ export function PageBanner({
 
         {/* Fixed to white: this text is over a dark wash in both themes, so it
             cannot follow `--foreground`. */}
-        <h1 className="text-display text-balance text-white">{title}</h1>
+        <h1 className="animate-fade-in text-display text-balance text-white [animation-delay:200ms]">
+          {title}
+        </h1>
 
-        {subtitle ? <p className="text-lede max-w-xl text-white/70">{subtitle}</p> : null}
+        {subtitle ? (
+          <p className="animate-fade-in text-lede max-w-xl text-white/70 [animation-delay:300ms]">
+            {subtitle}
+          </p>
+        ) : null}
       </div>
     </section>
   );
@@ -105,8 +111,12 @@ export function ShopPageHeader({
             {back.label}
           </Link>
         ) : null}
-        <h1 className="text-title">{title}</h1>
-        {subtitle ? <p className="text-muted text-sm">{subtitle}</p> : null}
+        <h1 className="animate-fade-in text-title [animation-delay:100ms]">{title}</h1>
+        {subtitle ? (
+          <p className="animate-fade-in text-muted text-sm [animation-delay:200ms]">
+            {subtitle}
+          </p>
+        ) : null}
       </div>
       {action ? <div className="flex shrink-0 items-center gap-2">{action}</div> : null}
     </header>

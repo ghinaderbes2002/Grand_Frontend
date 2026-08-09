@@ -102,9 +102,11 @@ export default async function ProductPage({ params }: PageProps<"/[lang]/shop/[s
 
         <div className="flex flex-col gap-5">
           <div className="flex flex-col gap-3">
-            <h1 className="text-title">{product.name}</h1>
+            <h1 className="animate-fade-in text-title [animation-delay:100ms]">
+              {product.name}
+            </h1>
 
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="animate-fade-in flex flex-wrap items-center gap-3 [animation-delay:200ms]">
               <p className="text-2xl font-semibold">
                 {product.displayPrice
                   ? product.displayPrice.min === product.displayPrice.max
@@ -119,7 +121,7 @@ export default async function ProductPage({ params }: PageProps<"/[lang]/shop/[s
             </div>
 
             {product.description ? (
-              <p className="text-muted text-sm whitespace-pre-line">
+              <p className="animate-fade-in text-muted text-sm whitespace-pre-line [animation-delay:300ms]">
                 {product.description}
               </p>
             ) : null}

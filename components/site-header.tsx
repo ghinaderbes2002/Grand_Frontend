@@ -6,10 +6,14 @@ import { LocaleSwitcher } from "@/components/locale-switcher";
 import { SiteMenu } from "@/components/site-menu";
 import { SiteNav } from "@/components/site-nav";
 import { Button, buttonClass } from "@/components/ui/button";
+import { listCategories } from "@/lib/api/catalog";
 import { PERMISSIONS, canAny } from "@/lib/auth/permissions";
 import { getSessionOrNull } from "@/lib/auth/session";
 import type { Locale } from "@/lib/i18n/config";
 import type { Dictionary } from "@/lib/i18n/dictionaries";
+
+/** How many categories the nav panel shows before it stops being a shortcut. */
+const NAV_CATEGORIES = 6;
 
 /** Any one of these means the account has something to do in the admin area. */
 const ADMIN_PERMISSIONS = [
@@ -32,14 +36,35 @@ export async function SiteHeader({
   dict: Dictionary;
 }) {
   // Chrome degrades to the logged-out state if the API is down, rather than
-  // taking every page with it.
-  const session = await getSessionOrNull();
+  // taking every page with it. The categories feed the nav panel and are
+  // cached by tag, so this is one shared request, not one per page view.
+  const [session, categories] = await Promise.all([
+    getSessionOrNull(),
+    listCategories().catch(() => []),
+  ]);
   const isAdmin = session !== null && canAny(session, ADMIN_PERMISSIONS);
+
+  // Top level only, and capped: the panel is a shortcut into the catalog, not
+  // a second copy of the categories page.
+  const categoryChildren = categories
+    .filter((category) => category.parentId === null && category.isActive)
+    .slice(0, NAV_CATEGORIES)
+    .map((category) => ({
+      id: category.id,
+      href: `/${locale}/shop?categoryId=${category.id}`,
+      label: category.name,
+      imageUrl: category.imageUrl,
+    }));
 
   const navItems = [
     { href: `/${locale}`, label: dict.nav.home },
     { href: `/${locale}/shop`, label: dict.shop.title },
-    { href: `/${locale}/categories`, label: dict.nav.categories },
+    {
+      href: `/${locale}/categories`,
+      label: dict.nav.categories,
+      children: categoryChildren,
+      allLabel: dict.shop.allCategories,
+    },
     { href: `/${locale}/faq`, label: dict.nav.faq },
   ];
 

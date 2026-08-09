@@ -610,7 +610,7 @@
     }
   },
   "shop": {
-    "title": "Shop",
+    "title": "Products",
     "subtitle": "Browse every product and filter by category, brand or price.",
     "search": "Search",
     "searchPlaceholder": "Search products…",
@@ -632,7 +632,7 @@
     "minOrder": "Minimum order",
     "chooseVariant": "Choose an option",
     "outOfStock": "Out of stock",
-    "backToShop": "Back to shop",
+    "backToShop": "Back to products",
     "attributeFilters": "Category filters",
     "pickCategoryFirst": "Pick a category to reveal filters based on its attributes.",
     "noFilterableAttributes": "This category has no filterable attributes.",
