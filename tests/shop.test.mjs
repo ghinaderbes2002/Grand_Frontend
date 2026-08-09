@@ -508,6 +508,81 @@ await publish(paper.id);
 
   const anonHome = await anon("/ar");
   check("an anonymous visitor gets it without a redirect", anonHome.status === 200);
+
+  // The stock hero this page was built from shipped with invented client
+  // logos and a made-up "98% satisfaction". Nothing on the page may assert
+  // anything the catalog did not supply.
+  check(
+    "the landing page invents no clients",
+    !/Acme Corp|Quantum|Phantom|Chipset|Command\+Z/.test(home),
+  );
+  check(
+    "and claims no unearned credentials",
+    !home.includes("98%") && !/150\+/.test(home),
+  );
+
+  // The hero backdrop is a local file, so it cannot break on a third-party
+  // host going away — the stock component pulled one from a random bucket.
+  check("the hero backdrop is served from this origin", home.includes("/hero-backdrop.svg"));
+  const backdrop = await fetch(`${APP}/hero-backdrop.svg`);
+  check("and actually exists", backdrop.status === 200, `status ${backdrop.status}`);
+
+  // The two anchors the header's nav and the hero's scroll hint point at.
+  check(
+    "the sections the nav and the scroll hint point at exist",
+    home.includes('id="categories"') && home.includes('id="featured"'),
+  );
+
+  // The hero's search is a plain GET form, so it has to name the param the
+  // shop actually filters on.
+  check(
+    'the hero search posts to the shop as ?q=',
+    home.includes('action="/ar/shop"') && home.includes('name="q"'),
+  );
+}
+
+// --- brand assets ----------------------------------------------------------
+// Generated at request time and reachable only by exact URL, so nothing else
+// in this suite would notice if one started 500ing or got swallowed by the
+// proxy's locale redirect.
+{
+  const asset = async (path) => {
+    const response = await fetch(APP + path, { redirect: "manual" });
+    const bytes = (await response.arrayBuffer()).byteLength;
+    return { status: response.status, type: response.headers.get("content-type"), bytes };
+  };
+
+  const icon = await asset("/icon.svg");
+  check("the favicon is served", icon.status === 200 && icon.bytes > 0);
+
+  const manifest = await asset("/manifest.webmanifest");
+  check("the web manifest is served", manifest.status === 200);
+
+  // Extensionless, so the proxy's "has a dot" rule does not exempt it.
+  const apple = await asset("/apple-icon");
+  check(
+    "the apple icon is not swallowed by locale routing",
+    apple.status === 200 && apple.type === "image/png",
+    `status ${apple.status}`,
+  );
+
+  // Arabic text here throws inside the image renderer, which 500s the route.
+  const og = await asset("/ar/opengraph-image");
+  check(
+    "the share card renders",
+    og.status === 200 && og.type === "image/png" && og.bytes > 1000,
+    `status ${og.status}, ${og.bytes} bytes`,
+  );
+
+  const home = await body("/ar");
+  check("the page declares its share card", home.includes('property="og:image"'));
+  check(
+    "and points search engines at both locales",
+    /hrefLang="ar"/i.test(home) && /hrefLang="en"/i.test(home),
+  );
+  // A rendered string, not a dictionary lookup: the whole dictionary ships in
+  // the RSC payload, so any key would "match" whether or not it was drawn.
+  check("the footer is rendered", home.includes("<footer"));
 }
 
 const failed = results.filter((r) => !r.pass);

@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Vendored agent tooling — CommonJS helper scripts that ship with the
+    // skill packs, not application source. Linting them with the app's
+    // TypeScript rules only produces noise nobody can act on.
+    ".agents/**",
   ]),
   {
     rules: {

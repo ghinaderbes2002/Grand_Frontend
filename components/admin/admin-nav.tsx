@@ -46,11 +46,11 @@ export function AdminNav({
               vertical ? "" : "shrink-0 whitespace-nowrap"
             } ${
               active
-                ? "bg-accent/10 text-accent font-medium"
+                ? "bg-accent/10 text-accent-strong font-medium"
                 : "text-muted hover:bg-surface hover:text-foreground"
             }`}
           >
-            <span className={active ? "text-accent" : ""}>{item.icon}</span>
+            <span className={active ? "text-accent-strong" : ""}>{item.icon}</span>
             {item.label}
           </Link>
         );

@@ -201,7 +201,7 @@ function Stat({
       <dt className="text-muted text-xs" title={hint}>
         {label}
       </dt>
-      <dd className={`text-lg ${emphasis ? "text-accent font-semibold" : "font-medium"}`}>
+      <dd className={`text-lg ${emphasis ? "text-accent-strong font-semibold" : "font-medium"}`}>
         {value}
       </dd>
     </div>

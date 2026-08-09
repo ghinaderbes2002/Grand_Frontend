@@ -66,7 +66,7 @@ export function RegisterForm({ next }: { next?: string }) {
 
       <p className="text-muted text-sm">
         {dict.auth.register.hasAccount}{" "}
-        <Link href={`/${locale}/login`} className="text-accent hover:underline">
+        <Link href={`/${locale}/login`} className="text-accent-strong hover:underline">
           {dict.auth.register.loginLink}
         </Link>
       </p>

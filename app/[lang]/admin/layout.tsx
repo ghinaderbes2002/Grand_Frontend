@@ -22,6 +22,7 @@ import {
   WarehousesIcon,
 } from "@/components/admin/icons";
 import { NoAccess } from "@/components/admin/no-access";
+import { Logo } from "@/components/brand/logo";
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { PERMISSIONS, canAny } from "@/lib/auth/permissions";
 import { requireSession } from "@/lib/auth/session";
@@ -169,11 +170,8 @@ export default async function AdminLayout({ children, params }: LayoutProps<"/[l
       {/* Sticky rather than fixed: it scrolls on its own without the main
           column needing a margin that would have to flip per direction. */}
       <aside className="border-border bg-surface/40 sticky top-0 hidden h-dvh w-64 shrink-0 flex-col gap-6 overflow-y-auto border-e p-5 lg:flex">
-        <Link href={`/${lang}/admin`} className="flex items-center gap-2.5 px-1">
-          <span className="bg-accent text-accent-foreground flex size-9 items-center justify-center rounded-xl text-sm font-bold">
-            {dict.common.appName.charAt(0)}
-          </span>
-          <span className="truncate font-semibold">{dict.common.appName}</span>
+        <Link href={`/${lang}/admin`} className="px-1">
+          <Logo name={dict.common.appName} markClassName="size-9" />
         </Link>
 
         <div className="flex-1">

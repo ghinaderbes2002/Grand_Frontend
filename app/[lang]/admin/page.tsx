@@ -175,7 +175,7 @@ export default async function AdminOverviewPage({ params }: PageProps<"/[lang]/a
                     href={item.href}
                     className="border-border bg-surface/40 shadow-card hover:border-accent/40 hover:shadow-raised flex flex-col gap-1 rounded-2xl border p-5 transition"
                   >
-                    <span className="text-accent text-3xl font-semibold">
+                    <span className="text-accent-strong text-3xl font-semibold">
                       {item.count}
                       {item.more ? "+" : ""}
                     </span>
@@ -195,7 +195,7 @@ export default async function AdminOverviewPage({ params }: PageProps<"/[lang]/a
             href={card.href}
             className="border-border bg-surface/40 shadow-card hover:border-accent/40 hover:shadow-raised flex flex-col gap-3 rounded-2xl border p-5 transition"
           >
-            <span className="bg-accent/10 text-accent flex size-10 items-center justify-center rounded-xl">
+            <span className="bg-accent/10 text-accent-strong flex size-10 items-center justify-center rounded-xl">
               {card.icon}
             </span>
             <span className="flex flex-col gap-1">

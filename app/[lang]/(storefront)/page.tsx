@@ -1,17 +1,16 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { PageShell } from "@/components/shop/page-shell";
+import { CategoryCard } from "@/components/shop/category-card";
 import { ProductCard } from "@/components/shop/product-card";
-import { Button } from "@/components/ui/button";
-import { getCategoryTree } from "@/lib/api/catalog";
+import { StoreHero } from "@/components/shop/store-hero";
+import { listCategories } from "@/lib/api/catalog";
 import { listMedia } from "@/lib/api/media";
 import { listProducts } from "@/lib/api/products";
-import { getSessionOrNull } from "@/lib/auth/session";
 import { isLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 
-/** How many products the "new arrivals" strip shows. */
+/** How many products the featured strip shows. */
 const FEATURED_LIMIT = 8;
 
 export default async function HomePage({ params }: PageProps<"/[lang]">) {
@@ -22,17 +21,26 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
 
   // The catalog is decorative on this page: an empty or failing API leaves the
   // hero and the copy standing rather than taking the landing page down.
-  const [session, page, tree] = await Promise.all([
-    getSessionOrNull(),
+  const [page, categories] = await Promise.all([
     listProducts({ limit: FEATURED_LIMIT }).catch(() => ({
       items: [],
       nextCursor: null,
     })),
-    getCategoryTree().catch(() => []),
+    listCategories().catch(() => []),
   ]);
 
-  const images = new Map(
-    await Promise.all(
+  // The flat listing, not the tree: only `Category` carries `imageUrl`, and the
+  // boxes below are built around the image.
+  const rootCategories = categories.filter(
+    (category) => category.parentId === null && category.isActive,
+  );
+
+  // One media call per product and per category — neither listing carries
+  // images. They run in parallel and both lists are capped, but a thumbnail on
+  // the list response would remove this entirely; it is on the list of asks
+  // for the backend.
+  const [productImages, categoryImages] = await Promise.all([
+    Promise.all(
       page.items.map(
         async (product) =>
           [
@@ -40,131 +48,113 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
             (await listMedia("product", product.id).catch(() => []))[0] ?? null,
           ] as const,
       ),
-    ),
-  );
+    ).then((entries) => new Map(entries)),
+    Promise.all(
+      rootCategories.map(
+        async (category) =>
+          [
+            category.id,
+            (await listMedia("category", category.id).catch(() => []))[0]?.url ?? null,
+          ] as const,
+      ),
+    ).then((entries) => new Map(entries)),
+  ]);
 
-  const features = [
-    { title: dict.home.features.catalogTitle, body: dict.home.features.catalogBody },
-    { title: dict.home.features.pricingTitle, body: dict.home.features.pricingBody },
-    { title: dict.home.features.trackingTitle, body: dict.home.features.trackingBody },
-  ];
+  const categoryNames = new Map(categories.map((c) => [c.id, c.name]));
 
   return (
-    <PageShell>
-      <section className="border-border from-accent/10 relative overflow-hidden rounded-3xl border bg-gradient-to-b to-transparent px-6 py-14 sm:px-10 sm:py-20">
-        <div className="flex max-w-2xl flex-col gap-5">
-          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-            {dict.home.title}
-          </h1>
-          <p className="text-muted text-lg">{dict.home.subtitle}</p>
+    <>
+      <StoreHero
+        name={dict.common.appName}
+        tagline={dict.home.badge}
+        description={dict.home.subtitle}
+        search={{
+          action: `/${lang}/shop`,
+          label: dict.home.searchLabel,
+          placeholder: dict.home.searchPlaceholder,
+          submit: dict.home.searchSubmit,
+        }}
+        primaryCta={{ href: `/${lang}/shop`, label: dict.home.browse }}
+        scrollHint={{ href: "#featured", label: dict.home.scroll }}
+      />
 
-          <div className="flex flex-wrap items-center gap-3">
-            <Link href={`/${lang}/shop`}>
-              <Button className="h-12 px-6">{dict.home.browse}</Button>
-            </Link>
-            {session ? (
-              <Link href={`/${lang}/orders`}>
-                <Button variant="ghost" className="h-12 px-6">
-                  {dict.admin.orders.myOrders}
-                </Button>
-              </Link>
-            ) : (
-              <Link href={`/${lang}/register`}>
-                <Button variant="ghost" className="h-12 px-6">
-                  {dict.nav.register}
-                </Button>
-              </Link>
-            )}
-          </div>
-
-          {session ? (
-            <p className="text-muted text-sm">
-              {dict.home.signedInAs}{" "}
-              <span className="text-foreground font-medium">
-                {dict.roles[session.roleKey]}
-              </span>
-            </p>
-          ) : null}
-        </div>
-      </section>
-
-      {tree.length > 0 ? (
-        <section className="flex flex-col gap-4">
-          <SectionHeader
-            title={dict.home.categories}
-            href={`/${lang}/shop`}
-            label={dict.home.viewAll}
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-24 px-4 py-20">
+        {/* --- featured products --- */}
+        <section id="featured" className="flex scroll-mt-24 flex-col gap-8">
+          <SectionHeading
+            eyebrow={dict.home.featured}
+            title={dict.home.featuredTitle}
+            subtitle={dict.home.featuredSubtitle}
           />
-          <ul className="flex flex-wrap gap-2">
-            {/* Top level only — the shop page has the full tree in its rail. */}
-            {tree.map((category) => (
-              <li key={category.id}>
-                <Link
-                  href={`/${lang}/shop?categoryId=${category.id}`}
-                  className="border-border hover:border-accent/50 hover:bg-surface inline-flex rounded-full border px-4 py-2 text-sm transition"
-                >
-                  {category.name}
-                </Link>
-              </li>
-            ))}
-          </ul>
+
+          {page.items.length === 0 ? (
+            <p className="text-muted text-center text-sm">{dict.home.catalogEmpty}</p>
+          ) : (
+            <>
+              <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                {page.items.map((product) => (
+                  <li key={product.id} className="reveal">
+                    <ProductCard
+                      product={product}
+                      image={productImages.get(product.id) ?? null}
+                      locale={lang}
+                      categoryName={categoryNames.get(product.categoryId)}
+                    />
+                  </li>
+                ))}
+              </ul>
+
+              <Link
+                href={`/${lang}/shop`}
+                className="border-border hover:border-accent hover:text-accent-strong mx-auto inline-flex rounded-full border px-7 py-3 text-sm font-medium transition"
+              >
+                {dict.home.viewAll}
+              </Link>
+            </>
+          )}
         </section>
-      ) : null}
 
-      <section className="flex flex-col gap-4">
-        <SectionHeader
-          title={dict.home.newArrivals}
-          href={`/${lang}/shop`}
-          label={dict.home.viewAll}
-        />
+        {/* --- categories --- */}
+        {rootCategories.length > 0 ? (
+          <section id="categories" className="flex scroll-mt-24 flex-col gap-8">
+            <SectionHeading
+              eyebrow={dict.home.categories}
+              title={dict.nav.categories}
+              subtitle={dict.home.categoriesSubtitle}
+            />
 
-        {page.items.length === 0 ? (
-          <p className="text-muted text-sm">{dict.home.catalogEmpty}</p>
-        ) : (
-          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {page.items.map((product) => (
-              <li key={product.id}>
-                <ProductCard
-                  product={product}
-                  image={images.get(product.id) ?? null}
-                  locale={lang}
-                />
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      <section className="grid gap-4 sm:grid-cols-3">
-        {features.map((feature) => (
-          <div
-            key={feature.title}
-            className="border-border bg-surface/40 flex flex-col gap-2 rounded-2xl border p-5"
-          >
-            <h2 className="font-medium">{feature.title}</h2>
-            <p className="text-muted text-sm">{feature.body}</p>
-          </div>
-        ))}
-      </section>
-    </PageShell>
+            <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+              {rootCategories.map((category) => (
+                <li key={category.id} className="reveal">
+                  <CategoryCard
+                    category={category}
+                    locale={lang}
+                    imageUrl={categoryImages.get(category.id)}
+                  />
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
+      </div>
+    </>
   );
 }
 
-function SectionHeader({
+function SectionHeading({
+  eyebrow,
   title,
-  href,
-  label,
+  subtitle,
 }: {
+  eyebrow: string;
   title: string;
-  href: string;
-  label: string;
+  subtitle: string;
 }) {
   return (
-    <div className="flex items-baseline justify-between gap-4">
-      <h2 className="text-xl font-semibold">{title}</h2>
-      <Link href={href} className="text-accent text-sm hover:underline">
-        {label}
-      </Link>
+    <div className="reveal mx-auto flex max-w-2xl flex-col items-center gap-3 text-center">
+      <span className="text-eyebrow">{eyebrow}</span>
+      <h2 className="text-title">{title}</h2>
+      <p className="text-muted text-sm">{subtitle}</p>
     </div>
   );
 }

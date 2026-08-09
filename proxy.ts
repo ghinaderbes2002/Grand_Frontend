@@ -176,5 +176,10 @@ function matchAcceptLanguage(header: string | null): Locale | null {
 export const config = {
   // Skip Next internals, Route Handlers (they manage their own auth) and any
   // path that looks like a static file.
-  matcher: ["/((?!_next/static|_next/image|api/|favicon.ico|.*\\..*).*)"],
+  //
+  // `apple-icon` is listed by name because it is the one generated metadata
+  // route with no file extension — the dot rule misses it, and locale routing
+  // was redirecting it to `/ar/apple-icon`, where nothing exists. iOS then had
+  // no home-screen icon at all.
+  matcher: ["/((?!_next/static|_next/image|api/|favicon.ico|apple-icon$|.*\\..*).*)"],
 };

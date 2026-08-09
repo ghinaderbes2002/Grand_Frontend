@@ -48,7 +48,7 @@ export function ShopPageHeader({
             {back.label}
           </Link>
         ) : null}
-        <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
+        <h1 className="text-title">{title}</h1>
         {subtitle ? <p className="text-muted text-sm">{subtitle}</p> : null}
       </div>
       {action ? <div className="flex shrink-0 items-center gap-2">{action}</div> : null}

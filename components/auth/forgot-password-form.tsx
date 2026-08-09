@@ -29,7 +29,7 @@ export function ForgotPasswordForm() {
         >
           {dict.auth.forgotPassword.sent}
         </p>
-        <Link href={`/${locale}/reset-password`} className="text-accent text-sm hover:underline">
+        <Link href={`/${locale}/reset-password`} className="text-accent-strong text-sm hover:underline">
           {dict.auth.resetPassword.title}
         </Link>
         <Link href={`/${locale}/login`} className="text-muted text-sm hover:underline">

@@ -4,7 +4,7 @@
     "loading": "Loading…",
     "save": "Save",
     "cancel": "Cancel",
-  "close": "Close",
+    "close": "Close",
     "retry": "Try again",
     "yes": "Yes",
     "no": "No",
@@ -15,11 +15,13 @@
   },
   "nav": {
     "home": "Home",
+    "categories": "Categories",
     "account": "Account",
     "admin": "Admin",
     "login": "Log in",
     "register": "Sign up",
-    "logout": "Log out"
+    "logout": "Log out",
+    "faq": "FAQ"
   },
   "errors": {
     "emailRequired": "Email is required",
@@ -133,6 +135,12 @@
     "sales_agent": "Sales agent",
     "customer": "Customer"
   },
+  "footer": {
+    "tagline": "Printing supplies for professionals — wholesale and retail.",
+    "shop": "Shop",
+    "account": "Account",
+    "rights": "All rights reserved."
+  },
   "home": {
     "title": "Every printing supply in one place",
     "subtitle": "Inks, paper, spare parts and accessories — retail and wholesale pricing, with your order tracked every step of the way.",
@@ -141,6 +149,27 @@
     "newArrivals": "New arrivals",
     "viewAll": "View all",
     "catalogEmpty": "The catalog is still empty. Check back soon.",
+    "allProducts": "All products",
+    "productsTitle": "Our products",
+    "productsSubtitle": "A selected range of printing supplies, each with its full specification.",
+    "categoriesSubtitle": "Pick the category you want to browse.",
+    "viewDetails": "View details",
+    "scroll": "Scroll",
+    "searchLabel": "Search for a product",
+    "searchPlaceholder": "Search for a product…",
+    "searchSubmit": "Search",
+    "featured": "Featured",
+    "featuredTitle": "Featured products",
+    "featuredSubtitle": "A selection from the catalog, refreshed as stock changes.",
+    "badge": "Printing supplies distributor",
+    "titleLead": "Every",
+    "titleAccent": "printing supply",
+    "titleTail": "in one place",
+    "productsInCatalog": "products in the catalog",
+    "brandsWeStock": "Brands we stock",
+    "categoriesCount": "Categories",
+    "brandsCount": "Brands",
+    "inStockShare": "In stock",
     "signedInAs": "Signed in as",
     "features": {
       "catalogTitle": "An organised catalog",
@@ -203,7 +232,7 @@
       "apply": "Apply",
       "clear": "Clear",
       "loadMore": "Next page",
-    "firstPage": "First page"
+      "firstPage": "First page"
     },
     "categories": {
       "title": "Categories",
@@ -636,5 +665,50 @@
       "applied": "Code applied.",
       "note": "The discount is calculated for real when the order is placed."
     }
+  },
+  "categoriesPage": {
+    "title": "Categories",
+    "subtitle": "Browse the catalog by category.",
+    "empty": "No categories yet.",
+    "subcategories": "Subcategories",
+    "viewProducts": "View products",
+    "productCount": "subcategory",
+    "backToCategories": "All categories"
+  },
+  "faq": {
+    "title": "Frequently asked questions",
+    "subtitle": "What you need to know about ordering, delivery and your account.",
+    "items": [
+      {
+        "q": "Do I need an account to order?",
+        "a": "Browsing and prices are open to everyone. Adding to the cart and checking out need an account, because the cart lives on the server against your login — that is what keeps your pricing and your orders with you across devices."
+      },
+      {
+        "q": "How do I track my order?",
+        "a": "The \"My orders\" page shows each order status step by step — payment, confirmation, processing, shipping. Once it ships, the carrier and tracking number appear there too."
+      },
+      {
+        "q": "Do you offer wholesale pricing?",
+        "a": "Yes. If your account is set to a wholesale price list, you see your own prices automatically once signed in — no code, no extra step."
+      },
+      {
+        "q": "Why do some products have a minimum order quantity?",
+        "a": "Some stock is sold in fixed units (reams of paper, ink cartridges). The minimum is shown on the product page under the quantity field, and an order below it is rejected."
+      },
+      {
+        "q": "Can I cancel my order?",
+        "a": "You can cancel it yourself while it has not shipped. Open the order and the cancel button appears when its status still allows it; after shipping, contact us instead."
+      },
+      {
+        "q": "Which currency do you use?",
+        "a": "All prices are in US dollars (USD), shown to two decimal places."
+      },
+      {
+        "q": "A product says \"out of stock\" — what does that mean?",
+        "a": "That particular option has run out in the warehouse. The button is disabled so you do not reach checkout only to be refused. Try another option of the same product, or check back later."
+      }
+    ],
+    "cta": "Still need help?",
+    "ctaAction": "Contact us"
   }
 }

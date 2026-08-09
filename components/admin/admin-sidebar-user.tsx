@@ -12,7 +12,7 @@ export function AdminSidebarUser({ session }: { session: CurrentUser }) {
   return (
     <div className="border-border flex flex-col gap-2 border-t pt-4">
       <div className="flex items-center gap-2.5 px-1">
-        <span className="bg-accent/10 text-accent flex size-9 shrink-0 items-center justify-center rounded-full text-sm font-semibold">
+        <span className="bg-accent/10 text-accent-strong flex size-9 shrink-0 items-center justify-center rounded-full text-sm font-semibold">
           {dict.roles[session.roleKey].charAt(0)}
         </span>
         <span className="flex min-w-0 flex-col">

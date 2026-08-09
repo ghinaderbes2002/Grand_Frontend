@@ -52,7 +52,7 @@ export function LoginForm({ next }: { next?: string }) {
         </Link>
         <span>
           {dict.auth.login.noAccount}{" "}
-          <Link href={`/${locale}/register`} className="text-accent hover:underline">
+          <Link href={`/${locale}/register`} className="text-accent-strong hover:underline">
             {dict.auth.login.registerLink}
           </Link>
         </span>

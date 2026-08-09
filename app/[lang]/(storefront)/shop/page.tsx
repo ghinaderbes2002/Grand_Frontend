@@ -117,6 +117,13 @@ export default async function ShopPage({
   }
   if (page.nextCursor) nextParams.set("cursor", page.nextCursor);
 
+  const hasAdvanced =
+    filters.minPrice !== undefined ||
+    filters.maxPrice !== undefined ||
+    Object.keys(attributes).length > 0;
+  const hasFilters =
+    hasAdvanced || Boolean(filters.q || filters.categoryId || filters.brandId);
+
   // Category links preserve whatever else is filtered.
   const navParams = new URLSearchParams();
   if (filters.q) navParams.set("q", filters.q);
@@ -126,7 +133,7 @@ export default async function ShopPage({
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-8">
-      <h1 className="text-2xl font-semibold tracking-tight">{dict.shop.title}</h1>
+      <h1 className="text-title">{dict.shop.title}</h1>
 
       <div className="grid gap-6 lg:grid-cols-[220px_1fr]">
         {/* The category rail is a `<details>` so it collapses on phones
@@ -146,28 +153,40 @@ export default async function ShopPage({
         </details>
 
         <div className="flex min-w-0 flex-col gap-6">
-      {/* A GET form: filters live in the URL, so results are shareable and the
-          page keeps working without client-side JavaScript. */}
-      <form
-        method="get"
-        className="border-border bg-surface/40 grid gap-3 rounded-2xl border p-4 sm:grid-cols-2"
-      >
-        <label className="flex flex-col gap-1.5 text-sm">
-          {dict.shop.search}
-          <input
-            name="q"
-            defaultValue={filters.q}
-            placeholder={dict.shop.searchPlaceholder}
-            className={controlClass()}
-          />
-        </label>
+      {/*
+        A GET form: filters live in the URL, so results are shareable and the
+        page keeps working without client-side JavaScript.
 
-        <label className="flex flex-col gap-1.5 text-sm">
-          {dict.admin.products.category}
+        One row, not a panel. Search plus the two filters people actually reach
+        for stay on the surface; price and per-category attributes fold into a
+        `<details>` so the form stops pushing the products below the fold. The
+        `<details>` opens on its own whenever one of the fields inside is
+        already set, so a shared URL never hides its own filters.
+      */}
+      <form method="get" className="flex flex-col gap-3">
+        <div className="border-border bg-surface/40 flex flex-wrap items-center gap-2 rounded-full border p-2">
+          <span className="flex min-w-[12rem] flex-1 items-center gap-2 px-3">
+            <SearchIcon className="text-muted size-4 shrink-0" />
+            <label htmlFor="shop-q" className="sr-only">
+              {dict.shop.search}
+            </label>
+            <input
+              id="shop-q"
+              name="q"
+              defaultValue={filters.q}
+              placeholder={dict.shop.searchPlaceholder}
+              className="min-w-0 flex-1 bg-transparent py-2 text-sm outline-none"
+            />
+          </span>
+
+          <label htmlFor="shop-category" className="sr-only">
+            {dict.admin.products.category}
+          </label>
           <select
+            id="shop-category"
             name="categoryId"
             defaultValue={filters.categoryId ?? ""}
-            className={controlClass()}
+            className="border-border bg-background h-10 rounded-full border px-4 text-sm outline-none"
           >
             <option value="">{dict.shop.allCategories}</option>
             {categoryOptions(categories).map((option) => (
@@ -176,14 +195,15 @@ export default async function ShopPage({
               </option>
             ))}
           </select>
-        </label>
 
-        <label className="flex flex-col gap-1.5 text-sm">
-          {dict.admin.products.brand}
+          <label htmlFor="shop-brand" className="sr-only">
+            {dict.admin.products.brand}
+          </label>
           <select
+            id="shop-brand"
             name="brandId"
             defaultValue={filters.brandId ?? ""}
-            className={controlClass()}
+            className="border-border bg-background h-10 rounded-full border px-4 text-sm outline-none"
           >
             <option value="">{dict.shop.allBrands}</option>
             {brands.map((brand) => (
@@ -192,55 +212,61 @@ export default async function ShopPage({
               </option>
             ))}
           </select>
-        </label>
 
-        <label className="flex flex-col gap-1.5 text-sm">
-          {dict.shop.minPrice}
-          <input
-            name="minPrice"
-            type="number"
-            min={0}
-            defaultValue={filters.minPrice}
-            className={controlClass()}
-          />
-        </label>
-
-        <label className="flex flex-col gap-1.5 text-sm">
-          {dict.shop.maxPrice}
-          <input
-            name="maxPrice"
-            type="number"
-            min={0}
-            defaultValue={filters.maxPrice}
-            className={controlClass()}
-          />
-        </label>
-
-        {/* Attribute filters sit in the same GET form, so they arrive as
-            `attr_<key>` params exactly as the products endpoint expects. */}
-        {filters.categoryId ? (
-          <>
-            <p className="text-muted col-span-full text-xs font-medium">
-              {dict.shop.attributeFilters}
-            </p>
-            <AttributeFilterFields filters={attributeFilters} locale={lang} />
-          </>
-        ) : (
-          <p className="text-muted col-span-full text-xs">
-            {dict.shop.pickCategoryFirst}
-          </p>
-        )}
-
-        <div className="col-span-full flex items-end gap-2">
-          <Button type="submit">
+          <Button type="submit" size="sm">
             {dict.shop.apply}
           </Button>
-          <Link href={`/${lang}/shop`}>
-            <Button type="button" variant="ghost">
-              {dict.shop.clear}
-            </Button>
-          </Link>
+          {hasFilters ? (
+            <Link href={`/${lang}/shop`}>
+              <Button type="button" variant="ghost" size="sm">
+                {dict.shop.clear}
+              </Button>
+            </Link>
+          ) : null}
         </div>
+
+        <details
+          className="border-border rounded-2xl border px-4 py-3"
+          open={hasAdvanced}
+        >
+          <summary className="text-muted hover:text-foreground cursor-pointer text-sm transition">
+            {dict.shop.filters}
+          </summary>
+
+          <div className="mt-4 grid gap-3 sm:grid-cols-3">
+            <label className="flex flex-col gap-1.5 text-sm">
+              {dict.shop.minPrice}
+              <input
+                name="minPrice"
+                type="number"
+                min={0}
+                defaultValue={filters.minPrice}
+                className={controlClass()}
+              />
+            </label>
+
+            <label className="flex flex-col gap-1.5 text-sm">
+              {dict.shop.maxPrice}
+              <input
+                name="maxPrice"
+                type="number"
+                min={0}
+                defaultValue={filters.maxPrice}
+                className={controlClass()}
+              />
+            </label>
+
+            {/* Attribute filters sit in the same GET form, so they arrive as
+                `attr_<key>` params exactly as the products endpoint expects. */}
+            {filters.categoryId ? (
+              <AttributeFilterFields filters={attributeFilters} locale={lang} />
+            ) : (
+              <p className="text-muted self-end pb-2 text-xs sm:col-span-1">
+                {dict.shop.pickCategoryFirst}
+              </p>
+            )}
+          </div>
+        </details>
       </form>
 
       {page.items.length === 0 ? (
@@ -284,5 +310,22 @@ export default async function ShopPage({
         </div>
       </div>
     </div>
+  );
+}
+
+function SearchIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.8}
+      strokeLinecap="round"
+      aria-hidden="true"
+      className={className}
+    >
+      <circle cx="11" cy="11" r="7" />
+      <path d="m20 20-3.5-3.5" />
+    </svg>
   );
 }

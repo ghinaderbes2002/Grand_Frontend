@@ -102,7 +102,7 @@ export default async function ProductPage({ params }: PageProps<"/[lang]/shop/[s
 
         <div className="flex flex-col gap-5">
           <div className="flex flex-col gap-3">
-            <h1 className="text-2xl font-semibold tracking-tight">{product.name}</h1>
+            <h1 className="text-title">{product.name}</h1>
 
             <div className="flex flex-wrap items-center gap-3">
               <p className="text-2xl font-semibold">

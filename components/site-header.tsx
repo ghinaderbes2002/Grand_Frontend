@@ -1,8 +1,8 @@
 import Link from "next/link";
 
+import { Logo } from "@/components/brand/logo";
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { Button } from "@/components/ui/button";
-import { getCart } from "@/lib/api/orders";
 import { logoutAction } from "@/lib/auth/actions";
 import { PERMISSIONS, canAny } from "@/lib/auth/permissions";
 import { getSessionOrNull } from "@/lib/auth/session";
@@ -33,24 +33,27 @@ export async function SiteHeader({
   // taking every page with it.
   const session = await getSessionOrNull();
 
-  // Only for the badge — a failure here just hides the count, it must not cost
-  // the visitor their header.
-  const cart = session ? await getCart().catch(() => null) : null;
-  const cartCount = cart?.items.length ?? 0;
-
   return (
     <header className="border-border bg-background/80 sticky top-0 z-30 border-b backdrop-blur">
       <div className="mx-auto flex w-full max-w-6xl items-center gap-3 px-4 py-3">
-        <Link href={`/${locale}`} className="flex items-center gap-2.5">
-          <span className="bg-accent text-accent-foreground flex size-8 items-center justify-center rounded-xl text-sm font-bold">
-            {dict.common.appName.charAt(0)}
-          </span>
-          <span className="hidden font-semibold sm:inline">{dict.common.appName}</span>
+        <Link href={`/${locale}`}>
+          <Logo name={dict.common.appName} markClassName="size-8" responsive />
         </Link>
 
-        <NavLink href={`/${locale}/shop`}>{dict.shop.title}</NavLink>
+        {/* The main nav, centred. Every entry is a route or an anchor that
+            exists — no "About"/"Contact" placeholders pointing nowhere. */}
+        <nav
+          aria-label={dict.nav.home}
+          className="hidden flex-1 items-center justify-center gap-7 md:flex"
+        >
+          <NavLink href={`/${locale}`}>{dict.nav.home}</NavLink>
+          <NavLink href={`/${locale}/shop`}>{dict.shop.title}</NavLink>
+          {/* Absolute, so it still works from a product page: it navigates
+              home first, then scrolls. */}
+          <NavLink href={`/${locale}#categories`}>{dict.nav.categories}</NavLink>
+        </nav>
 
-        <div className="flex-1" />
+        <div className="flex-1 md:hidden" />
 
         <LocaleSwitcher />
 
@@ -62,28 +65,20 @@ export async function SiteHeader({
               </NavLink>
             ) : null}
 
-            <NavLink href={`/${locale}/orders`} hideOnMobile>
-              {dict.admin.orders.myOrders}
-            </NavLink>
-
-            {/* Stays visible on mobile: it is the only way to reach
-                "log out everywhere" once the header folds. */}
-            <NavLink href={`/${locale}/account`}>{dict.nav.account}</NavLink>
-
+            {/* "My orders" and the cart are parked for now — reachable from
+                the account page, off the header. Restore them by putting the
+                links back here; nothing else depends on their absence. */}
             <Link
-              href={`/${locale}/cart`}
-              className="border-border hover:bg-surface flex h-9 items-center gap-2 rounded-lg border px-3 text-sm transition"
+              href={`/${locale}/account`}
+              aria-label={dict.nav.account}
+              title={dict.nav.account}
+              className="border-border hover:bg-surface flex size-10 items-center justify-center rounded-full border transition"
             >
-              {dict.cart.title}
-              {cartCount > 0 ? (
-                <span className="bg-accent text-accent-foreground flex size-5 items-center justify-center rounded-full text-xs font-semibold">
-                  {cartCount}
-                </span>
-              ) : null}
+              <AccountIcon className="size-4.5" />
             </Link>
 
             <form action={logoutAction.bind(null, locale)} className="hidden md:block">
-              <Button variant="ghost" type="submit" className="h-9">
+              <Button variant="ghost" size="sm" type="submit">
                 {dict.nav.logout}
               </Button>
             </form>
@@ -92,7 +87,7 @@ export async function SiteHeader({
           <>
             <NavLink href={`/${locale}/login`}>{dict.nav.login}</NavLink>
             <Link href={`/${locale}/register`}>
-              <Button className="h-9">{dict.nav.register}</Button>
+              <Button size="sm">{dict.nav.register}</Button>
             </Link>
           </>
         )}
@@ -120,5 +115,24 @@ function NavLink({
     >
       {children}
     </Link>
+  );
+}
+
+/** A person outline, matching the stroked house style of the other icons. */
+function AccountIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.7}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={className}
+    >
+      <circle cx="12" cy="8" r="3.5" />
+      <path d="M4.5 20a7.5 7.5 0 0 1 15 0" />
+    </svg>
   );
 }

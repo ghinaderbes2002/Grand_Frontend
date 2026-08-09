@@ -8,37 +8,60 @@
  * needs to know which one it is rendering in.
  */
 :root {
-  --background: #ffffff;
-  --foreground: #18181b;
-  --muted: #71717a;
-  --border: #e4e4e7;
-  /* One step off the background: panels, table headers, inputs. Dark mode
-     inverts the direction, not the meaning. */
-  --surface: #f7f7f8;
-  --accent: #4f46e5;
+  /* Off-white with a cool cast rather than pure white — a page that is not
+     glaring is the whole point of this palette. */
+  --background: #fcfcfb;
+  --foreground: #1b2733;
+  --muted: #5f6d7e;
+  --border: #e3e7ec;
+  /* One step off the page: section bands, panels, table headers, inputs. */
+  --surface: #f3f5f7;
+  /*
+   * Deep ink blue — the one hue, and a literal reference to what the store
+   * sells. Chosen because it holds up everywhere without needing a second
+   * token: 8.1:1 under white text on a filled button, and still 7.0:1 as a
+   * glyph on the tightest tinted background it ever lands on. `--accent-strong`
+   * therefore just mirrors it.
+   */
+  --accent: #2c5470;
   --accent-foreground: #ffffff;
-  --danger: #dc2626;
-  --success: #16a34a;
-  --warning: #d97706;
+  --accent-strong: #2c5470;
+  --danger: #b3261e;
+  /* Pulled toward the blue end so a status pill does not look pasted in from
+     another palette. */
+  --success: #197a4b;
+  --warning: #a1620a;
+
+  /* The footer is the one deliberately dark surface, in both themes — it is
+     what closes the page. */
+  --footer: #1b2733;
+  --footer-foreground: #eef2f5;
 
   /* Elevation, deliberately shallow — the border draws the edge, the shadow
-     only lifts it off the page. */
-  --shadow-card: 0 1px 2px 0 rgb(0 0 0 / 0.04), 0 1px 3px 0 rgb(0 0 0 / 0.06);
-  --shadow-raised: 0 4px 6px -2px rgb(0 0 0 / 0.05), 0 12px 20px -4px rgb(0 0 0 / 0.08);
+     only lifts it off the page. Tinted blue, since a neutral grey shadow over
+     a cool page goes muddy. */
+  --shadow-card: 0 1px 2px 0 rgb(27 39 51 / 0.05), 0 1px 3px 0 rgb(27 39 51 / 0.07);
+  --shadow-raised: 0 4px 6px -2px rgb(27 39 51 / 0.06), 0 12px 24px -4px rgb(27 39 51 / 0.12);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #09090b;
-    --foreground: #fafafa;
-    --muted: #a1a1aa;
-    --border: #27272a;
-    --surface: #161619;
-    --accent: #818cf8;
-    --accent-foreground: #10101a;
-    --danger: #f87171;
-    --success: #4ade80;
-    --warning: #fbbf24;
+    --background: #0e1319;
+    --foreground: #eef2f5;
+    --muted: #93a1b1;
+    --border: #232c36;
+    --surface: #151c23;
+    /* Lightened rather than reused: #2c5470 on this page is 1.6:1, invisible.
+       This clears 9.5:1 as a glyph and still takes dark text on top. */
+    --accent: #8ec0dd;
+    --accent-foreground: #0b1219;
+    --accent-strong: #8ec0dd;
+    --danger: #f08a7f;
+    --success: #6fc08c;
+    --warning: #e0a83c;
+
+    --footer: #0b1016;
+    --footer-foreground: #eef2f5;
 
     /* Shadows barely register on a near-black page, so these stay faint
        rather than turning into halos; the border carries the edge. */
@@ -55,20 +78,34 @@
   --color-surface: var(--surface);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
+  --color-accent-strong: var(--accent-strong);
   --color-danger: var(--danger);
   --color-success: var(--success);
   --color-warning: var(--warning);
+  --color-footer: var(--footer);
+  --color-footer-foreground: var(--footer-foreground);
 
   --shadow-card: var(--shadow-card);
   --shadow-raised: var(--shadow-raised);
 
   --font-sans: var(--font-latin), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-mono-latin), ui-monospace, monospace;
+  --font-display: var(--font-display-latin), Georgia, serif;
 }
 
-/* Arabic gets an Arabic-capable face first; Latin stays on the Latin one. */
+/*
+ * The two scripts are set differently on purpose.
+ *
+ * English gets a high-contrast serif for display against a sans body — the
+ * editorial pairing Latin typography is built on. Arabic does not inherit that
+ * convention: its serif tradition is Naskh calligraphy, which at headline size
+ * reads as classical or devotional rather than as a modern shopfront. So
+ * Arabic headings stay in the same family as the body and separate themselves
+ * by weight instead, which is how Arabic type actually signals hierarchy.
+ */
 html[lang="ar"] {
   --font-sans: var(--font-arabic), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-arabic), ui-sans-serif, system-ui, sans-serif;
 }
 
 body {
@@ -97,10 +134,176 @@ body {
   background: color-mix(in oklab, var(--accent) 25%, transparent);
 }
 
+/*
+ * Type scale.
+ *
+ * The hierarchy is carried by a *face* change, not just a size change: headings
+ * are a high-contrast serif against a sans body, which is what gives the page
+ * its editorial feel. Set as classes rather than element selectors so a heading
+ * can opt out.
+ */
+.text-display {
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 1.4rem + 4.4vw, 4.5rem);
+  /* A display serif needs the weight to hold its thin strokes at size; the
+     same 700 in the sans body would read as shouting. */
+  font-weight: 700;
+  line-height: 1.05;
+}
+
+/* The one word set apart in a headline.
+   The palette has no second colour to reach for, so the emphasis is the
+   serif's own italic. Left at `inherit` deliberately: in the hero this sits on
+   a dark photograph, where `--accent` would be near-white anyway on one theme
+   and near-black — invisible — on the other. */
+.text-display-accent {
+  font-style: italic;
+}
+
+/* Arabic has no italic. Asking for one makes the browser shear the glyphs,
+   which breaks the joins between letters; weight carries the emphasis here. */
+html[lang="ar"] .text-display-accent {
+  font-style: normal;
+  font-weight: 600;
+}
+
+.text-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.625rem, 1.2rem + 1.4vw, 2.25rem);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+/* The small caps label above a section heading. */
+.text-eyebrow {
+  color: var(--accent-strong);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* Arabic has no uppercase, so the letter-spaced caps trick does nothing but
+   break the joins between letters. It gets weight and colour instead. */
+html[lang="ar"] .text-eyebrow {
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+/* Long-form paragraphs want more air than the Tailwind default. */
+.text-lede {
+  font-size: clamp(1rem, 0.95rem + 0.35vw, 1.1875rem);
+  line-height: 1.75;
+}
+
 /* Default tracking reads loose at heading sizes. Arabic is left alone —
    letter-spacing breaks the joining between its letters. */
-html[lang="en"] :is(h1, h2, h3) {
-  letter-spacing: -0.015em;
+html[lang="en"] :is(h1, h2, h3, .text-display, .text-title) {
+  letter-spacing: -0.02em;
+}
+
+/* Set a step lighter and a shade smaller than the Latin serif: a geometric
+   sans at 700 and 4.5rem is far heavier on the page than Playfair is. */
+html[lang="ar"] .text-display {
+  font-size: clamp(2.25rem, 1.3rem + 3.8vw, 3.75rem);
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+html[lang="ar"] .text-title {
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+/*
+ * Hero animations.
+ *
+ * Defined here rather than in a `<style>` block inside the component: that
+ * block was global anyway, and its `.delay-100`…`.delay-500` helpers collide
+ * head-on with Tailwind's own `delay-*` transition utilities. Stagger is done
+ * with `[animation-delay:…]` at the call site instead.
+ *
+ * Both stop under `prefers-reduced-motion` via the rule at the end of this file.
+ */
+@keyframes fade-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-slide-in 0.8s ease-out forwards;
+  opacity: 0;
+}
+
+/*
+ * Scroll reveal.
+ *
+ * Driven by `animation-timeline: view()`, so the browser ties the animation to
+ * the element's own scroll position — no observer, no JavaScript, no library.
+ *
+ * The whole rule sits inside `@supports` on purpose. The opacity floor is what
+ * makes the effect work, and a browser without scroll-driven timelines would
+ * apply that floor and never animate it away, leaving the page blank. Where it
+ * is unsupported, content simply renders as normal.
+ */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal {
+      animation: fade-slide-in linear both;
+      animation-timeline: view();
+      /* Finishes well before the element is centred, so it reads as "settling
+         in" rather than as something still moving while being read. */
+      animation-range: entry 0% entry 55%;
+    }
+  }
+}
+
+/* The track is duplicated, so travelling exactly -50% loops seamlessly. */
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(calc(-50% * var(--marquee-direction, 1)));
+  }
+}
+
+.animate-marquee {
+  animation: marquee 40s linear infinite;
+  /* In RTL the row is laid out right-to-left, so the travel has to flip with
+     it or the strip scrolls into its own empty tail. */
+  --marquee-direction: 1;
+}
+
+[dir="rtl"] .animate-marquee {
+  --marquee-direction: -1;
+}
+
+/*
+ * Halftone — the dot screen every printed image is made of.
+ *
+ * Two offset dot grids at low opacity. It is the one texture this brand can
+ * claim outright, and at 3% it reads as a surface rather than a pattern.
+ */
+.halftone {
+  background-image:
+    radial-gradient(currentColor 1px, transparent 1px),
+    radial-gradient(currentColor 1px, transparent 1px);
+  background-size: 14px 14px;
+  background-position: 0 0, 7px 7px;
+  opacity: 0.06;
+}
+
+@media (prefers-color-scheme: dark) {
+  .halftone {
+    opacity: 0.09;
+  }
 }
 
 /* The scrollbar is part of the page on a dashboard that scrolls constantly. */

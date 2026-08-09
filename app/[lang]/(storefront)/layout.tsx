@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 
+import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { isLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionaries";
@@ -12,10 +13,13 @@ export default async function StorefrontLayout({
   const { lang } = await params;
   if (!isLocale(lang)) notFound();
 
+  const dict = getDictionary(lang);
+
   return (
     <>
-      <SiteHeader locale={lang} dict={getDictionary(lang)} />
+      <SiteHeader locale={lang} dict={dict} />
       <main className="flex flex-1 flex-col">{children}</main>
+      <SiteFooter locale={lang} dict={dict} />
     </>
   );
 }

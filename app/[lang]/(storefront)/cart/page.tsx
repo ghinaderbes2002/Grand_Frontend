@@ -26,7 +26,7 @@ export default async function CartPage({ params }: PageProps<"/[lang]/cart">) {
       <ShopPageHeader
         title={dict.cart.title}
         action={
-          <Link href={`/${lang}/shop`} className="text-accent text-sm hover:underline">
+          <Link href={`/${lang}/shop`} className="text-accent-strong text-sm hover:underline">
             {dict.cart.continueShopping}
           </Link>
         }

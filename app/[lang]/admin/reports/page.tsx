@@ -91,7 +91,7 @@ export default async function ReportsPage({
       <dl className="grid gap-4 sm:grid-cols-2">
         <div className="border-border bg-surface/40 flex flex-col gap-1 rounded-2xl border p-5">
           <dt className="text-muted text-sm">{dict.admin.reports.totalRevenue}</dt>
-          <dd className="text-accent text-2xl font-semibold">
+          <dd className="text-accent-strong text-2xl font-semibold">
             {formatAmount(report.totalRevenue, lang)}
           </dd>
         </div>

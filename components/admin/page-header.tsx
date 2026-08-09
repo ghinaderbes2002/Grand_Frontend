@@ -32,7 +32,7 @@ export function PageHeader({
             {back.label}
           </Link>
         ) : null}
-        <h1 className="text-xl font-semibold">{title}</h1>
+        <h1 className="text-title">{title}</h1>
         {subtitle ? <p className="text-muted max-w-2xl text-sm">{subtitle}</p> : null}
       </div>
       {action ? <div className="flex shrink-0 items-center gap-2">{action}</div> : null}
