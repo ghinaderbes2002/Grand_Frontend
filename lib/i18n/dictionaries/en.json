@@ -21,7 +21,8 @@
     "login": "Log in",
     "register": "Sign up",
     "logout": "Log out",
-    "faq": "FAQ"
+    "faq": "FAQ",
+    "menu": "Menu"
   },
   "errors": {
     "emailRequired": "Email is required",

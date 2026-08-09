@@ -3,6 +3,7 @@ import Link from "next/link";
 import { LogoutButton } from "@/components/auth/logout-button";
 import { Logo } from "@/components/brand/logo";
 import { LocaleSwitcher } from "@/components/locale-switcher";
+import { SiteMenu } from "@/components/site-menu";
 import { SiteNav } from "@/components/site-nav";
 import { Button } from "@/components/ui/button";
 import { PERMISSIONS, canAny } from "@/lib/auth/permissions";
@@ -33,6 +34,14 @@ export async function SiteHeader({
   // Chrome degrades to the logged-out state if the API is down, rather than
   // taking every page with it.
   const session = await getSessionOrNull();
+  const isAdmin = session !== null && canAny(session, ADMIN_PERMISSIONS);
+
+  const navItems = [
+    { href: `/${locale}`, label: dict.nav.home },
+    { href: `/${locale}/shop`, label: dict.shop.title },
+    { href: `/${locale}/categories`, label: dict.nav.categories },
+    { href: `/${locale}/faq`, label: dict.nav.faq },
+  ];
 
   return (
     <header className="border-border bg-background/80 sticky top-0 z-30 border-b backdrop-blur">
@@ -46,12 +55,7 @@ export async function SiteHeader({
         <SiteNav
           label={dict.nav.home}
           className="hidden flex-1 items-center justify-center gap-1 md:flex"
-          items={[
-            { href: `/${locale}`, label: dict.nav.home },
-            { href: `/${locale}/shop`, label: dict.shop.title },
-            { href: `/${locale}/categories`, label: dict.nav.categories },
-            { href: `/${locale}/faq`, label: dict.nav.faq },
-          ]}
+          items={navItems}
         />
 
         <div className="flex-1 md:hidden" />
@@ -60,7 +64,7 @@ export async function SiteHeader({
 
         {session ? (
           <>
-            {canAny(session, ADMIN_PERMISSIONS) ? (
+            {isAdmin ? (
               <NavLink href={`/${locale}/admin`} hideOnMobile>
                 {dict.nav.admin}
               </NavLink>
@@ -96,6 +100,16 @@ export async function SiteHeader({
             </Link>
           </>
         )}
+
+        {/* Last, so it sits at the thumb end of the bar. Carries the admin link
+            too, which is the other thing that folds away below `md`. */}
+        <SiteMenu
+          items={
+            isAdmin
+              ? [...navItems, { href: `/${locale}/admin`, label: dict.nav.admin }]
+              : navItems
+          }
+        />
       </div>
     </header>
   );
