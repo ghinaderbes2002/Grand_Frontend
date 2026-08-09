@@ -1,5 +1,7 @@
 import type { ComponentProps } from "react";
 
+import { controlClass, labelClass } from "./control";
+
 export function SelectField({
   name,
   label,
@@ -19,7 +21,7 @@ export function SelectField({
 
   return (
     <div className="flex flex-col gap-1.5">
-      <label htmlFor={name} className="text-sm font-medium">
+      <label htmlFor={name} className={labelClass}>
         {label}
         {hint ? <span className="text-muted font-normal"> ({hint})</span> : null}
       </label>
@@ -29,9 +31,7 @@ export function SelectField({
         name={name}
         aria-invalid={hasErrors || undefined}
         aria-describedby={hasErrors ? errorId : undefined}
-        className={`bg-background h-11 rounded-lg border px-3 text-sm outline-none transition focus:ring-2 focus:ring-accent/40 ${
-          hasErrors ? "border-danger" : "border-border"
-        }`}
+        className={controlClass({ invalid: hasErrors })}
       >
         {options.map((option) => (
           <option key={option.value} value={option.value}>

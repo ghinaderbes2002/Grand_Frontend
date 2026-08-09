@@ -5,6 +5,7 @@ import { NoAccess } from "@/components/admin/no-access";
 import { PageHeader } from "@/components/admin/page-header";
 import { OrderStatusBadge } from "@/components/orders/order-status-badge";
 import { Button } from "@/components/ui/button";
+import { controlClass } from "@/components/ui/control";
 import { ORDER_STATUSES } from "@/lib/admin/schemas";
 import { listOrders } from "@/lib/api/orders";
 import type { OrderStatus } from "@/lib/api/types";
@@ -50,20 +51,20 @@ export default async function OrdersPage({
     <div className="flex flex-col gap-6">
       <PageHeader title={dict.admin.orders.title} subtitle={dict.admin.orders.subtitle} />
 
-      <p className="border-border bg-surface/40 text-muted rounded-xl border px-4 py-2.5 text-sm">
+      <p className="border-border bg-surface/40 text-muted rounded-2xl border px-4 py-2.5 text-sm">
         {dict.admin.orders.paymentTimeout}
       </p>
 
       <form
         method="get"
-        className="border-border bg-surface/30 flex flex-wrap items-end gap-3 rounded-2xl border p-4"
+        className="border-border bg-surface/40 flex flex-wrap items-end gap-3 rounded-2xl border p-4"
       >
         <label className="flex flex-col gap-1.5 text-sm">
           {dict.admin.filters.status}
           <select
             name="status"
             defaultValue={selected ?? ""}
-            className="border-border bg-background h-10 rounded-lg border px-3 text-sm outline-none focus:ring-2 focus:ring-accent/40"
+            className={controlClass()}
           >
             <option value="">{dict.admin.filters.allStatuses}</option>
             {ORDER_STATUSES.map((value) => (
@@ -74,12 +75,12 @@ export default async function OrdersPage({
           </select>
         </label>
 
-        <Button type="submit" className="h-10">
+        <Button type="submit">
           {dict.admin.filters.apply}
         </Button>
         {selected ? (
           <Link href={`/${lang}/admin/orders`}>
-            <Button type="button" variant="ghost" className="h-10">
+            <Button type="button" variant="ghost">
               {dict.admin.filters.clear}
             </Button>
           </Link>

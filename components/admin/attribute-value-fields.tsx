@@ -56,7 +56,7 @@ export function AttributeValueFields({
                 // Optional attributes need a way to say "not set"; a required
                 // one still gets it so the form cannot silently pick the first.
                 { value: "", label: "—" },
-                ...attribute.options.map((option) => ({
+                ...(attribute.options ?? []).map((option) => ({
                   value: option.value,
                   label: option.label,
                 })),

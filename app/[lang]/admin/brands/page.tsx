@@ -2,8 +2,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { BrandForm } from "@/components/admin/brand-form";
+import { NewItemDialog } from "@/components/admin/new-item-dialog";
 import { NoAccess } from "@/components/admin/no-access";
-import { Card, PageHeader } from "@/components/admin/page-header";
+import { PageHeader } from "@/components/admin/page-header";
 import { listBrands } from "@/lib/api/catalog";
 import { PERMISSIONS, can } from "@/lib/auth/permissions";
 import { requireSession } from "@/lib/auth/session";
@@ -25,38 +26,39 @@ export default async function BrandsPage({ params }: PageProps<"/[lang]/admin/br
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title={dict.admin.brands.title} subtitle={dict.admin.brands.subtitle} />
+      <PageHeader
+        title={dict.admin.brands.title}
+        subtitle={dict.admin.brands.subtitle}
+        action={
+          <NewItemDialog label={dict.admin.brands.newTitle}>
+            <BrandForm />
+          </NewItemDialog>
+        }
+      />
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
-        <section>
-          {brands.length === 0 ? (
-            <p className="text-muted text-sm">{dict.admin.empty}</p>
-          ) : (
-            <ul className="border-border divide-border divide-y rounded-2xl border">
-              {brands.map((brand) => (
-                <li key={brand.id}>
-                  <Link
-                    href={`/${lang}/admin/brands/${brand.id}`}
-                    className="hover:bg-surface flex items-center justify-between gap-3 px-4 py-3 transition"
+      <section>
+        {brands.length === 0 ? (
+          <p className="text-muted text-sm">{dict.admin.empty}</p>
+        ) : (
+          <ul className="border-border divide-border divide-y rounded-2xl border">
+            {brands.map((brand) => (
+              <li key={brand.id}>
+                <Link
+                  href={`/${lang}/admin/brands/${brand.id}`}
+                  className="hover:bg-surface flex items-center justify-between gap-3 px-4 py-3 transition"
+                >
+                  <span
+                    className={`text-sm ${brand.isActive ? "" : "text-muted line-through"}`}
                   >
-                    <span
-                      className={`text-sm ${brand.isActive ? "" : "text-muted line-through"}`}
-                    >
-                      {brand.name}
-                    </span>
-                    <span className="text-muted font-mono text-xs">{brand.slug}</span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-
-        <Card className="h-fit">
-          <h2 className="mb-4 font-medium">{dict.admin.brands.newTitle}</h2>
-          <BrandForm />
-        </Card>
-      </div>
+                    {brand.name}
+                  </span>
+                  <span className="text-muted font-mono text-xs">{brand.slug}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
     </div>
   );
 }

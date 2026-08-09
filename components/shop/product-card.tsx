@@ -21,7 +21,7 @@ export function ProductCard({
   return (
     <Link
       href={`/${locale}/shop/${product.slug}`}
-      className="border-border bg-surface/30 hover:border-accent/50 group flex h-full flex-col gap-3 rounded-2xl border p-3 transition"
+      className="border-border bg-surface/40 hover:border-accent/50 hover:shadow-raised flex h-full flex-col gap-3 rounded-2xl border p-3 transition"
     >
       <div className="border-border bg-surface relative aspect-square w-full overflow-hidden rounded-xl border">
         {/* Decorative: the product name sits right below it, so an alt would

@@ -4,6 +4,7 @@ import { NoAccess } from "@/components/admin/no-access";
 import { Card, PageHeader } from "@/components/admin/page-header";
 import { ProductForm } from "@/components/admin/product-form";
 import { Button } from "@/components/ui/button";
+import { controlClass } from "@/components/ui/control";
 import { splitCategoryAttributes } from "@/lib/admin/attribute-specs";
 import { getCategory, listAttributes, listBrands, listCategories } from "@/lib/api/catalog";
 import { categoryOptions } from "@/lib/catalog/category-labels";
@@ -58,7 +59,7 @@ export default async function NewProductPage({
             <select
               name="categoryId"
               aria-label={dict.admin.products.category}
-              className="border-border bg-background h-11 rounded-lg border px-3 text-sm outline-none transition focus:ring-2 focus:ring-accent/40"
+              className={controlClass()}
             >
               {categoryOptions(categories).map((option) => (
                 <option key={option.id} value={option.id}>

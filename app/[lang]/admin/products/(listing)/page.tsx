@@ -2,9 +2,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { PlusIcon } from "@/components/admin/icons";
+import { Badge } from "@/components/ui/badge";
 import { NoAccess } from "@/components/admin/no-access";
 import { PageHeader } from "@/components/admin/page-header";
 import { Button } from "@/components/ui/button";
+import { controlClass } from "@/components/ui/control";
 import { listCategories } from "@/lib/api/catalog";
 import { categoryOptions } from "@/lib/catalog/category-labels";
 import { listAdminProducts } from "@/lib/api/products";
@@ -80,7 +82,7 @@ export default async function ProductsPage({
 
       <form
         method="get"
-        className="border-border bg-surface/30 flex flex-wrap items-end gap-3 rounded-2xl border p-4"
+        className="border-border bg-surface/40 flex flex-wrap items-end gap-3 rounded-2xl border p-4"
       >
         <label className="flex flex-col gap-1.5 text-sm">
           {dict.admin.filters.search}
@@ -88,7 +90,7 @@ export default async function ProductsPage({
             name="q"
             defaultValue={filters.q}
             placeholder={dict.admin.filters.searchPlaceholder}
-            className="border-border bg-background h-10 w-56 rounded-lg border px-3 text-sm outline-none focus:ring-2 focus:ring-accent/40"
+            className={controlClass({ className: "w-56" })}
           />
         </label>
 
@@ -97,7 +99,7 @@ export default async function ProductsPage({
           <select
             name="categoryId"
             defaultValue={filters.categoryId ?? ""}
-            className="border-border bg-background h-10 rounded-lg border px-3 text-sm outline-none focus:ring-2 focus:ring-accent/40"
+            className={controlClass()}
           >
             <option value="">{dict.shop.allCategories}</option>
             {categoryOptions(categories).map((option) => (
@@ -113,7 +115,7 @@ export default async function ProductsPage({
           <select
             name="status"
             defaultValue={filters.status ?? ""}
-            className="border-border bg-background h-10 rounded-lg border px-3 text-sm outline-none focus:ring-2 focus:ring-accent/40"
+            className={controlClass()}
           >
             <option value="">{dict.admin.filters.allStatuses}</option>
             {PRODUCT_STATUSES.map((value) => (
@@ -124,12 +126,12 @@ export default async function ProductsPage({
           </select>
         </label>
 
-        <Button type="submit" className="h-10">
+        <Button type="submit">
           {dict.admin.filters.apply}
         </Button>
         {filters.q || filters.categoryId || filters.status ? (
           <Link href={`/${lang}/admin/products`}>
-            <Button type="button" variant="ghost" className="h-10">
+            <Button type="button" variant="ghost">
               {dict.admin.filters.clear}
             </Button>
           </Link>
@@ -150,9 +152,9 @@ export default async function ProductsPage({
                   <span className="text-sm font-medium">{product.name}</span>
                   <span className="text-muted font-mono text-xs">{product.slug}</span>
                 </span>
-                <span className="border-border text-muted rounded-md border px-2 py-0.5 text-xs whitespace-nowrap">
+                <Badge tone={product.status === "PUBLISHED" ? "success" : "neutral"}>
                   {dict.admin.products.statuses[product.status]}
-                </span>
+                </Badge>
                 <span className="text-muted text-xs">
                   {product.displayPrice
                     ? product.displayPrice.min === product.displayPrice.max
@@ -166,13 +168,21 @@ export default async function ProductsPage({
         </ul>
       )}
 
-      {page.nextCursor ? (
-        <Link
-          href={`/${lang}/admin/products?${nextParams.toString()}`}
-          className="self-center"
-        >
-          <Button variant="ghost">{dict.admin.filters.loadMore}</Button>
-        </Link>
+      {/* Cursor paging only moves forward: this replaces the list instead of
+          appending, so it is labelled as a page move. */}
+      {page.nextCursor || filters.cursor ? (
+        <div className="flex items-center justify-center gap-2">
+          {filters.cursor ? (
+            <Link href={`/${lang}/admin/products`}>
+              <Button variant="ghost">{dict.admin.filters.firstPage}</Button>
+            </Link>
+          ) : null}
+          {page.nextCursor ? (
+            <Link href={`/${lang}/admin/products?${nextParams.toString()}`}>
+              <Button variant="ghost">{dict.admin.filters.loadMore}</Button>
+            </Link>
+          ) : null}
+        </div>
       ) : null}
     </div>
   );

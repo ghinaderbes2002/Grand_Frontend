@@ -107,7 +107,7 @@ export default async function OrderDetailPage({
 
         <section className="flex flex-col gap-6">
           {canUpdateStatus ? (
-            <div className="border-border rounded-xl border p-5">
+            <div className="border-border bg-surface/40 shadow-card rounded-2xl border p-5">
               <h3 className="mb-1 font-medium">{dict.admin.orders.changeStatus}</h3>
               <p className="text-muted mb-4 text-xs">{dict.admin.orders.stockNote}</p>
               <OrderStatusForm
@@ -118,7 +118,7 @@ export default async function OrderDetailPage({
           ) : null}
 
           {canUpdateStatus ? (
-            <div className="border-border rounded-xl border p-5">
+            <div className="border-border bg-surface/40 shadow-card rounded-2xl border p-5">
               <h3 className="mb-4 font-medium">{dict.admin.shipments.title}</h3>
 
               {shipments.length === 0 ? (

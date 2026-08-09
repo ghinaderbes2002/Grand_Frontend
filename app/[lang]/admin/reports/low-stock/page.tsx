@@ -10,6 +10,7 @@ import { PERMISSIONS, can } from "@/lib/auth/permissions";
 import { requireSession } from "@/lib/auth/session";
 import { isLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionaries";
+import { controlClass } from "@/components/ui/control";
 
 export default async function LowStockPage({
   params,
@@ -43,7 +44,7 @@ export default async function LowStockPage({
 
       <form
         method="get"
-        className="border-border bg-surface/30 flex flex-wrap items-end gap-3 rounded-2xl border p-4"
+        className="border-border bg-surface/40 flex flex-wrap items-end gap-3 rounded-2xl border p-4"
       >
         <label className="flex flex-col gap-1.5 text-sm">
           {dict.admin.reports.threshold}
@@ -52,10 +53,10 @@ export default async function LowStockPage({
             type="number"
             min={0}
             defaultValue={value ?? 5}
-            className="border-border bg-background h-10 w-28 rounded-lg border px-3 text-sm outline-none focus:ring-2 focus:ring-accent/40"
+            className={controlClass({ className: "w-28" })}
           />
         </label>
-        <Button type="submit" className="h-10">
+        <Button type="submit">
           {dict.admin.filters.apply}
         </Button>
       </form>

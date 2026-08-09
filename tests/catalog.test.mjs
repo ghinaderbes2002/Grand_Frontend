@@ -117,7 +117,10 @@ await setRole("super_admin", []);
   // whole category, so a substring check would always match. The parent picker
   // is where a customer would actually see it.
   const parents = detail.match(/<select[^>]*name="parentId"[\s\S]*?<\/select>/)?.[0] ?? "";
-  const parentLabels = parents.match(/<option[^>]*>([^<]*)</g)?.join(" | ") ?? "";
+  // Only the option *text* — `<option value="…">` carries the id by design.
+  const parentLabels = [...parents.matchAll(/<option[^>]*>([^<]*)</g)]
+    .map((match) => match[1])
+    .join(" | ");
   check(
     "the parent picker lists names, not id paths",
     parentLabels.includes("مواد الطباعة") &&

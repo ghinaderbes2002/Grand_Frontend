@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState } from "react";
 
 import { Field } from "@/components/ui/field";
@@ -37,7 +38,17 @@ export function AddToCartForm({
   return (
     <form action={formAction} className="flex flex-col gap-3" noValidate>
       <FormError state={state} />
-      <FormSuccess state={state} message={dict.shop.addToCart} />
+      {/* The item is now in a cart the customer cannot see from here, so the
+          confirmation carries the way to it. */}
+      <FormSuccess
+        state={state}
+        message={dict.shop.addedToCart}
+        action={
+          <Link href={`/${locale}/cart`} className="font-medium underline">
+            {dict.cart.title}
+          </Link>
+        }
+      />
 
       <Field
         name="quantity"

@@ -2,8 +2,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { AttributeForm } from "@/components/admin/attribute-form";
+import { Badge } from "@/components/ui/badge";
+import { NewItemDialog } from "@/components/admin/new-item-dialog";
 import { NoAccess } from "@/components/admin/no-access";
-import { Card, PageHeader } from "@/components/admin/page-header";
+import { PageHeader } from "@/components/admin/page-header";
 import { listAttributes } from "@/lib/api/catalog";
 import { PERMISSIONS, can } from "@/lib/auth/permissions";
 import { requireSession } from "@/lib/auth/session";
@@ -28,14 +30,18 @@ export default async function AttributesPage({ params }: PageProps<"/[lang]/admi
       <PageHeader
         title={dict.admin.attributes.title}
         subtitle={dict.admin.attributes.subtitle}
+        action={
+          <NewItemDialog label={dict.admin.attributes.newTitle}>
+            <AttributeForm />
+          </NewItemDialog>
+        }
       />
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
-        <section>
-          {attributes.length === 0 ? (
-            <p className="text-muted text-sm">{dict.admin.empty}</p>
-          ) : (
-            <ul className="border-border divide-border divide-y rounded-2xl border">
+      <section>
+        {attributes.length === 0 ? (
+          <p className="text-muted text-sm">{dict.admin.empty}</p>
+        ) : (
+          <ul className="border-border divide-border divide-y rounded-2xl border">
             {attributes.map((attribute) => (
               <li key={attribute.id}>
                 <Link
@@ -47,27 +53,19 @@ export default async function AttributesPage({ params }: PageProps<"/[lang]/admi
                     <span className="text-muted font-mono text-xs">{attribute.key}</span>
                   </span>
                   <span className="flex items-center gap-2 text-xs">
-                    {attribute.options.length > 0 ? (
+                    {attribute.options?.length ? (
                       <span className="text-muted">
                         {attribute.options.length} {dict.admin.attributes.options}
                       </span>
                     ) : null}
-                    <span className="border-border text-muted rounded-md border px-2 py-0.5">
-                      {dict.admin.attributes.types[attribute.type]}
-                    </span>
+                    <Badge>{dict.admin.attributes.types[attribute.type]}</Badge>
                   </span>
                 </Link>
               </li>
             ))}
-            </ul>
-          )}
-        </section>
-
-        <Card className="h-fit">
-          <h2 className="mb-4 font-medium">{dict.admin.attributes.newTitle}</h2>
-          <AttributeForm />
-        </Card>
-      </div>
+          </ul>
+        )}
+      </section>
     </div>
   );
 }

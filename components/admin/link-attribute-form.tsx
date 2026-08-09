@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 
+import { useCloseOnSuccess } from "@/components/admin/new-item-dialog";
 import { CheckboxField } from "@/components/ui/checkbox-field";
 import { Field } from "@/components/ui/field";
 import { FormError } from "@/components/ui/form-error";
@@ -27,6 +28,7 @@ export function LinkAttributeForm({
     linkAttributeAction.bind(null, locale, categoryId),
     idleFormState,
   );
+  useCloseOnSuccess(state);
 
   if (available.length === 0) {
     return <p className="text-muted text-sm">{dict.admin.categories.noAttributesLeft}</p>;

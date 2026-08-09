@@ -68,6 +68,43 @@ export type ResetPasswordInput = {
   newPassword: string;
 };
 
+/**
+ * `PENDING_VERIFICATION` is internal to the backend — an account can be in it,
+ * but `PATCH /users/:id/status` refuses to set it.
+ */
+export type UserStatus =
+  | "PENDING_VERIFICATION"
+  | "ACTIVE"
+  | "SUSPENDED"
+  | "DISABLED";
+
+/**
+ * An account as `/users` returns it. The contract is explicit that no response
+ * in that group ever carries `passwordHash`.
+ *
+ * TODO: the contract names the entity without spelling out the payload; the
+ * timestamp and name fields are inferred from every other module's shape.
+ */
+export type User = {
+  id: Uuid;
+  email: string;
+  firstName: string | null;
+  lastName: string | null;
+  roleKey: RoleKey;
+  status: UserStatus;
+  createdAt: IsoDateString;
+  updatedAt: IsoDateString;
+};
+
+export type CreateUserInput = {
+  email: string;
+  /** 10-128 chars; the API rejects very common passwords. */
+  password: string;
+  firstName?: string;
+  lastName?: string;
+  roleKey: RoleKey;
+};
+
 // ---------------------------------------------------------------------------
 // Categories
 // ---------------------------------------------------------------------------
@@ -141,7 +178,12 @@ export type Attribute = {
   type: AttributeType;
   unit: string | null;
   isFilterable: boolean;
-  options: AttributeOption[];
+  /**
+   * Only meaningful for `SELECT`/`COLOR_SELECT`. Optional because the API omits
+   * the key entirely on attributes that have none — treat a missing list as
+   * empty rather than trusting it to be there.
+   */
+  options?: AttributeOption[];
 };
 
 export type CreateAttributeInput = {

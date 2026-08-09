@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { ImportUploadForm } from "@/components/admin/import-forms";
+import { Badge } from "@/components/ui/badge";
 import { NoAccess } from "@/components/admin/no-access";
 import { Card, PageHeader } from "@/components/admin/page-header";
 import { listImportBatches } from "@/lib/api/imports";
@@ -65,7 +66,7 @@ export default async function ImportsPage({ params }: PageProps<"/[lang]/admin/i
         <div className="flex flex-col gap-2">
           <h3 className="font-medium">{dict.admin.imports.columns}</h3>
           <p className="text-muted text-xs">{dict.admin.imports.columnsHint}</p>
-          <div className="border-border overflow-x-auto rounded-xl border">
+          <div className="border-border overflow-x-auto rounded-2xl border">
             <table className="w-full text-sm">
               <thead className="border-border bg-surface/60 border-b">
                 <tr>
@@ -96,7 +97,7 @@ export default async function ImportsPage({ params }: PageProps<"/[lang]/admin/i
           {batches.length === 0 ? (
             <p className="text-muted text-sm">{dict.admin.imports.noBatches}</p>
           ) : (
-            <ul className="border-border divide-border divide-y rounded-xl border">
+            <ul className="border-border divide-border divide-y rounded-2xl border">
               {batches.map((batch) => (
                 <li key={batch.id}>
                   <Link
@@ -109,9 +110,7 @@ export default async function ImportsPage({ params }: PageProps<"/[lang]/admin/i
                         {shortId(batch.id)} · {formatDateTime(batch.createdAt, lang)}
                       </span>
                     </span>
-                    <span className="border-border text-muted rounded-md border px-2 py-0.5 text-xs">
-                      {dict.admin.imports.statuses[batch.status]}
-                    </span>
+                    <Badge>{dict.admin.imports.statuses[batch.status]}</Badge>
                   </Link>
                 </li>
               ))}

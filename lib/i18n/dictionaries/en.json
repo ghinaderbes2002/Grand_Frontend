@@ -4,6 +4,7 @@
     "loading": "Loading…",
     "save": "Save",
     "cancel": "Cancel",
+  "close": "Close",
     "retry": "Try again",
     "yes": "Yes",
     "no": "No",
@@ -71,7 +72,9 @@
     "cancelNotPermitted": "You cannot cancel this order yourself — please contact support.",
     "invalidCouponCode": "Codes use uppercase letters, digits, _ and - only",
     "couponUnavailable": "That coupon has reached its limit or expired",
-    "lastActiveWarehouse": "At least one warehouse must stay active"
+    "lastActiveWarehouse": "At least one warehouse must stay active",
+    "roleNotFound": "The backend does not know that role",
+    "cannotEditSelf": "You cannot edit your own account here"
   },
   "auth": {
     "email": "Email",
@@ -167,7 +170,8 @@
       "warehouses": "Warehouses",
       "reports": "Reports",
       "coupons": "Coupons",
-      "customers": "Customers"
+      "customers": "Customers",
+      "users": "Users"
     },
     "actions": {
       "create": "Add",
@@ -198,7 +202,8 @@
       "allStatuses": "All statuses",
       "apply": "Apply",
       "clear": "Clear",
-      "loadMore": "Load more"
+      "loadMore": "Next page",
+    "firstPage": "First page"
     },
     "categories": {
       "title": "Categories",
@@ -538,7 +543,32 @@
       "priceList": "Price list",
       "retailDefault": "Retail (default)",
       "apply": "Assign",
-      "noLookup": "No endpoint lists customers, and orders do not say who placed them — so the id has to come from the backend or the database and be pasted here. Raised with the backend team."
+      "noLookup": "The only endpoint that lists customers with their ids is `/users`, and that one needs users.manage. If you hold it, copy the id from the users page and paste it here."
+    },
+    "users": {
+      "title": "Users",
+      "subtitle": "Staff accounts and their roles. Customers show up here too — the API returns everyone in one list.",
+      "newTitle": "New user",
+      "newHint": "Created active straight away, unlike public sign-up.",
+      "created": "Account created",
+      "role": "Role",
+      "allRoles": "All roles",
+      "roleTitle": "Change role",
+      "roleDelay": "Applies immediately, but an already-issued token keeps its old permissions for up to 15 minutes",
+      "status": "Status",
+      "statusTitle": "Account status",
+      "statusHint": "Anything but active is refused at login",
+      "statuses": {
+        "PENDING_VERIFICATION": "Pending verification",
+        "ACTIVE": "Active",
+        "SUSPENDED": "Suspended",
+        "DISABLED": "Disabled"
+      },
+      "passwordHint": "At least 10 characters",
+      "noName": "No name",
+      "you": "You",
+      "selfNotice": "You cannot change your own role or status here — demoting or disabling yourself would lock you out with nothing left but a database edit.",
+      "noDelete": "Accounts are never deleted, only disabled: orders and stock movements reference whoever made them."
     }
   },
   "shop": {
@@ -553,10 +583,12 @@
     "apply": "Apply",
     "clear": "Clear",
     "noResults": "Nothing matched.",
-    "loadMore": "Load more",
+    "loadMore": "Next page",
+    "firstPage": "First page",
     "from": "from",
     "unavailable": "Unavailable",
     "addToCart": "Add to cart",
+    "addedToCart": "Added to your cart.",
     "adding": "Adding…",
     "minOrder": "Minimum order",
     "chooseVariant": "Choose an option",

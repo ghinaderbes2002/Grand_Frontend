@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useActionState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { controlClass } from "@/components/ui/control";
 import { FormError } from "@/components/ui/form-error";
 import type { CartItem } from "@/lib/api/types";
 import { formatAmount } from "@/lib/format";
@@ -27,7 +28,7 @@ export function CartItemRow({ item }: { item: CartItem }) {
   );
 
   return (
-    <li className="border-border bg-surface/30 flex flex-col gap-3 rounded-2xl border p-4">
+    <li className="border-border bg-surface/40 flex flex-col gap-3 rounded-2xl border p-4">
       <FormError state={updateState} />
       <FormError state={removeState} />
 
@@ -72,10 +73,10 @@ export function CartItemRow({ item }: { item: CartItem }) {
               min={0}
               step="any"
               defaultValue={item.quantity}
-              className="border-border bg-background h-10 w-24 rounded-lg border px-3 text-sm outline-none focus:ring-2 focus:ring-accent/40"
+              className={controlClass({ className: "w-24" })}
             />
           </div>
-          <Button type="submit" variant="ghost" className="h-10" disabled={updating}>
+          <Button type="submit" variant="ghost" disabled={updating}>
             {dict.cart.update}
           </Button>
         </form>

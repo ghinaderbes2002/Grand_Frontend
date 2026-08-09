@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 
 import { PageShell, ShopPageHeader } from "@/components/shop/page-shell";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { logoutAction, logoutAllAction } from "@/lib/auth/actions";
 import { requireSession } from "@/lib/auth/session";
@@ -20,7 +21,7 @@ export default async function AccountPage({ params }: PageProps<"/[lang]/account
     <PageShell width="narrow">
       <ShopPageHeader title={dict.account.title} />
 
-      <dl className="border-border divide-border bg-surface/30 divide-y rounded-2xl border">
+      <dl className="border-border divide-border bg-surface/40 divide-y rounded-2xl border">
         <Row label={dict.account.role} value={dict.roles[session.roleKey]} />
         <Row label={dict.account.userId} value={session.id} mono />
         <div className="flex flex-col gap-2 p-4">
@@ -28,12 +29,9 @@ export default async function AccountPage({ params }: PageProps<"/[lang]/account
           <dd className="flex flex-wrap gap-1.5">
             {session.permissions.length ? (
               session.permissions.map((permission) => (
-                <span
-                  key={permission}
-                  className="border-border bg-background rounded-md border px-2 py-0.5 font-mono text-xs"
-                >
+                <Badge key={permission} className="font-mono">
                   {permission}
-                </span>
+                </Badge>
               ))
             ) : (
               <span className="text-muted text-sm">{dict.account.noPermissions}</span>

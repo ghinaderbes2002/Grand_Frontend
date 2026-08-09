@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 
+import { useCloseOnSuccess } from "@/components/admin/new-item-dialog";
 import { CheckboxField } from "@/components/ui/checkbox-field";
 import { Field } from "@/components/ui/field";
 import { FormError } from "@/components/ui/form-error";
@@ -33,6 +34,7 @@ export function AttributeForm({ attribute }: { attribute?: Attribute }) {
       : createAttributeAction.bind(null, locale),
     idleFormState,
   );
+  useCloseOnSuccess(state);
 
   return (
     <form action={formAction} className="flex flex-col gap-4" noValidate>

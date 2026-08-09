@@ -28,6 +28,8 @@ export const PERMISSIONS = {
   ordersRefund: "orders.refund",
   reportsView: "reports.view",
   promotionsManage: "promotions.manage",
+  /** Contract: held by `super_admin` only, for now. */
+  usersManage: "users.manage",
 } as const;
 
 export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];

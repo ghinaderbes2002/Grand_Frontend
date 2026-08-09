@@ -2,8 +2,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { CouponForm } from "@/components/admin/coupon-form";
+import { NewItemDialog } from "@/components/admin/new-item-dialog";
 import { NoAccess } from "@/components/admin/no-access";
-import { Card, PageHeader } from "@/components/admin/page-header";
+import { PageHeader } from "@/components/admin/page-header";
 import { listCoupons } from "@/lib/api/coupons";
 import { PERMISSIONS, can } from "@/lib/auth/permissions";
 import { requireSession } from "@/lib/auth/session";
@@ -29,53 +30,51 @@ export default async function CouponsPage({ params }: PageProps<"/[lang]/admin/c
       <PageHeader
         title={dict.admin.coupons.title}
         subtitle={dict.admin.coupons.subtitle}
+        action={
+          <NewItemDialog label={dict.admin.coupons.newTitle}>
+            <CouponForm />
+          </NewItemDialog>
+        }
       />
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
-        <section>
-          {coupons.length === 0 ? (
-            <p className="text-muted text-sm">{dict.admin.empty}</p>
-          ) : (
-            <ul className="border-border divide-border divide-y rounded-2xl border">
-              {coupons.map((coupon) => (
-                <li key={coupon.id}>
-                  <Link
-                    href={`/${lang}/admin/coupons/${coupon.id}`}
-                    className="hover:bg-surface flex flex-wrap items-center justify-between gap-3 px-4 py-3 transition"
-                  >
-                    <span className="flex flex-col gap-0.5">
-                      <span
-                        className={`font-mono text-sm ${
-                          coupon.isActive ? "" : "text-muted line-through"
-                        }`}
-                      >
-                        {coupon.code}
-                      </span>
-                      <span className="text-muted text-xs">
-                        {coupon.type === "PERCENTAGE"
-                          ? `${coupon.value}%`
-                          : formatAmount(coupon.value, lang)}
-                      </span>
+      <section>
+        {coupons.length === 0 ? (
+          <p className="text-muted text-sm">{dict.admin.empty}</p>
+        ) : (
+          <ul className="border-border divide-border divide-y rounded-2xl border">
+            {coupons.map((coupon) => (
+              <li key={coupon.id}>
+                <Link
+                  href={`/${lang}/admin/coupons/${coupon.id}`}
+                  className="hover:bg-surface flex flex-wrap items-center justify-between gap-3 px-4 py-3 transition"
+                >
+                  <span className="flex flex-col gap-0.5">
+                    <span
+                      className={`font-mono text-sm ${
+                        coupon.isActive ? "" : "text-muted line-through"
+                      }`}
+                    >
+                      {coupon.code}
                     </span>
-
                     <span className="text-muted text-xs">
-                      {dict.admin.coupons.usedCount}: {coupon.usedCount ?? 0}
-                      {coupon.maxUses
-                        ? ` / ${coupon.maxUses}`
-                        : ` (${dict.admin.coupons.unlimited})`}
+                      {coupon.type === "PERCENTAGE"
+                        ? `${coupon.value}%`
+                        : formatAmount(coupon.value, lang)}
                     </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+                  </span>
 
-        <Card className="h-fit">
-          <h2 className="mb-4 font-medium">{dict.admin.coupons.newTitle}</h2>
-          <CouponForm />
-        </Card>
-      </div>
+                  <span className="text-muted text-xs">
+                    {dict.admin.coupons.usedCount}: {coupon.usedCount ?? 0}
+                    {coupon.maxUses
+                      ? ` / ${coupon.maxUses}`
+                      : ` (${dict.admin.coupons.unlimited})`}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
     </div>
   );
 }

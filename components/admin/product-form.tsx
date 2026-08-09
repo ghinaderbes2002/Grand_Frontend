@@ -23,6 +23,7 @@ import type {
 import { idleFormState } from "@/lib/forms/state";
 import { translateFieldErrors } from "@/lib/forms/translate";
 import { useI18n } from "@/lib/i18n/context";
+import { textareaClass } from "@/components/ui/control";
 
 const UNITS: SellingUnit[] = [
   "PIECE",
@@ -111,7 +112,7 @@ export function ProductForm({
           name="description"
           rows={4}
           defaultValue={product?.description ?? ""}
-          className="border-border bg-background rounded-lg border px-3 py-2 text-sm outline-none transition focus:ring-2 focus:ring-accent/40"
+          className={textareaClass()}
         />
       </div>
 

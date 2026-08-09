@@ -178,6 +178,60 @@ async function verifyAuth() {
   }
 }
 
+/**
+ * The `/users` payload is the least pinned-down in the contract — it names the
+ * entity and promises only that `passwordHash` never appears. Everything the
+ * admin panel renders from it is an inference, so it all gets checked here.
+ */
+async function verifyUsers() {
+  const users = await call("GET", "/users");
+
+  if (users.status === 403) {
+    record("users", "GET /users", "UNKNOWN", "this account lacks users.manage");
+    return;
+  }
+  record(
+    "users",
+    "GET /users returns an array",
+    Array.isArray(users.data) ? "MATCH" : "MISMATCH",
+    Array.isArray(users.data) ? `${users.data.length} accounts` : `status ${users.status}`,
+  );
+
+  const sample = users.data?.[0];
+  checkShape("users", "user shape", sample, [
+    "id",
+    "email",
+    "firstName",
+    "lastName",
+    "roleKey",
+    "status",
+  ]);
+
+  if (sample) {
+    // The contract states this flatly; a leak here would be a real problem, so
+    // it is worth confirming rather than trusting.
+    const leaked = Object.keys(sample).filter((key) => /password|hash/i.test(key));
+    record(
+      "users",
+      "no password material in the response",
+      leaked.length === 0 ? "MATCH" : "MISMATCH",
+      leaked.length === 0 ? "" : `leaked: ${leaked.join(", ")}`,
+    );
+
+    const statuses = [...new Set(users.data.map((user) => user.status))];
+    const known = ["PENDING_VERIFICATION", "ACTIVE", "SUSPENDED", "DISABLED"];
+    const unknown = statuses.filter((status) => !known.includes(status));
+    record(
+      "users",
+      "statuses are the four documented ones",
+      unknown.length === 0 ? "MATCH" : "MISMATCH",
+      unknown.length === 0
+        ? `seen: ${statuses.join(", ")}`
+        : `undocumented: ${unknown.join(", ")} — lib/i18n dictionaries have no label for these`,
+    );
+  }
+}
+
 async function verifyCatalogReads() {
   const categories = await call("GET", "/categories", { auth: false });
   record(
@@ -229,15 +283,21 @@ async function verifyCatalogReads() {
       "createsVariant",
       "sortOrder",
     ]);
-    // The UI falls back to a lookup when this is absent, so either is fine.
+    // The embedded copy is a trap: it exists but is stripped of `options`, so
+    // a SELECT field built from it silently has nothing to choose. Everything
+    // in the UI resolves against `/attributes` instead — this probe is here to
+    // catch the day that stops being necessary, not to license using it.
+    const embedded = links.data?.[0]?.attribute;
     if (links.data?.[0]) {
       record(
         "category-attributes",
-        "link embeds the full attribute",
-        has(links.data[0], "attribute") ? "MATCH" : "UNKNOWN",
-        has(links.data[0], "attribute")
-          ? "embedded"
-          : "not embedded — the UI already falls back to /attributes, no change needed",
+        "embedded attribute carries its options",
+        !embedded ? "UNKNOWN" : has(embedded, "options") ? "MATCH" : "MISMATCH",
+        !embedded
+          ? "not embedded at all — the UI resolves via /attributes, no change needed"
+          : has(embedded, "options")
+            ? "embedded with options"
+            : `stripped of options (keys: ${Object.keys(embedded).join(", ")}) — the UI must keep preferring /attributes`,
       );
     }
   }
@@ -528,6 +588,7 @@ console.log(
 
 try {
   await verifyAuth();
+  await verifyUsers();
   await verifyCatalogReads();
   if (WRITES) {
     console.log(`\n${C.cyan}write probes${C.reset}`);

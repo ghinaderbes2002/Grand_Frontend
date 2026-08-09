@@ -74,7 +74,7 @@ export default async function VariantInventoryPage({
               levels.map((level) => (
                 <div
                   key={level.warehouseId}
-                  className="border-border flex flex-col gap-3 rounded-xl border p-4"
+                  className="border-border bg-surface/40 flex flex-col gap-3 rounded-2xl border p-4"
                 >
                   <p className="text-sm font-medium">
                     {warehouseName(level.warehouseId)}
@@ -102,7 +102,7 @@ export default async function VariantInventoryPage({
             {movements.length === 0 ? (
               <p className="text-muted text-sm">{dict.admin.inventory.noMovements}</p>
             ) : (
-              <div className="border-border overflow-x-auto rounded-xl border">
+              <div className="border-border overflow-x-auto rounded-2xl border">
                 <table className="w-full text-sm">
                   <thead className="border-border bg-surface/60 border-b">
                     <tr className="text-start">
@@ -135,7 +135,7 @@ export default async function VariantInventoryPage({
         </section>
 
         <section className="flex flex-col gap-6">
-          <div className="border-border rounded-xl border p-5">
+          <div className="border-border bg-surface/40 shadow-card rounded-2xl border p-5">
             <h3 className="mb-4 font-medium">{dict.admin.media.title}</h3>
             <MediaManager
               entityType="product_variant"
@@ -148,7 +148,7 @@ export default async function VariantInventoryPage({
 
           {canAdjust ? (
             <>
-              <div className="border-border rounded-xl border p-5">
+              <div className="border-border bg-surface/40 shadow-card rounded-2xl border p-5">
                 <h3 className="mb-1 font-medium">{dict.admin.inventory.receiveTitle}</h3>
                 <p className="text-muted mb-4 text-xs">
                   {dict.admin.inventory.receiveHint}
@@ -156,7 +156,7 @@ export default async function VariantInventoryPage({
                 <ReceiveStockForm productId={id} variantId={variantId} />
               </div>
 
-              <div className="border-border rounded-xl border p-5">
+              <div className="border-border bg-surface/40 shadow-card rounded-2xl border p-5">
                 <h3 className="mb-1 font-medium">{dict.admin.inventory.adjustTitle}</h3>
                 <p className="text-muted mb-4 text-xs">
                   {dict.admin.inventory.adjustHint}

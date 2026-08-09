@@ -18,6 +18,7 @@ import {
   ProductsIcon,
   ReportsIcon,
   StoreIcon,
+  UsersIcon,
   WarehousesIcon,
 } from "@/components/admin/icons";
 import { NoAccess } from "@/components/admin/no-access";
@@ -140,6 +141,14 @@ export default async function AdminLayout({ children, params }: LayoutProps<"/[l
       },
       allowed: canAny(session, [PERMISSIONS.pricesUpdate]),
     },
+    {
+      item: {
+        href: `/${lang}/admin/users`,
+        label: dict.admin.nav.users,
+        icon: <UsersIcon />,
+      },
+      allowed: canAny(session, [PERMISSIONS.usersManage]),
+    },
   ];
 
   const visible = sections.filter((section) => section.allowed);
@@ -184,7 +193,7 @@ export default async function AdminLayout({ children, params }: LayoutProps<"/[l
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="border-border flex flex-wrap items-center justify-between gap-4 border-b px-5 py-4 lg:px-8">
+        <header className="border-border bg-background/80 sticky top-0 z-20 flex flex-wrap items-center justify-between gap-4 border-b px-5 py-4 backdrop-blur lg:px-8">
           <div className="flex min-w-0 flex-col">
             <p className="truncate text-lg font-semibold">
               {dict.admin.greeting} {dict.roles[session.roleKey]} 👋

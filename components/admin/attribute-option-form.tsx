@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 
+import { useCloseOnSuccess } from "@/components/admin/new-item-dialog";
 import { Field } from "@/components/ui/field";
 import { FormError } from "@/components/ui/form-error";
 import { FormSuccess } from "@/components/ui/form-success";
@@ -18,6 +19,7 @@ export function AttributeOptionForm({ attributeId }: { attributeId: Uuid }) {
     addAttributeOptionAction.bind(null, locale, attributeId),
     idleFormState,
   );
+  useCloseOnSuccess(state);
 
   return (
     <form action={formAction} className="flex flex-col gap-4" noValidate>

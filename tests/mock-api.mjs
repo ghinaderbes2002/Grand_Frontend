@@ -13,7 +13,32 @@ const USER = {
   permissions: [],
 };
 
+/** Exactly the list the contract gives for `roleKey`. */
+const ROLE_KEYS = [
+  "super_admin",
+  "catalog_manager",
+  "inventory_manager",
+  "order_manager",
+  "sales_agent",
+  "customer",
+];
+
+/** The signed-in account, as `/users` would report it. */
+const seedUsers = () => [
+  {
+    id: USER.id,
+    email: USER.email,
+    firstName: "مدير",
+    lastName: "عام",
+    roleKey: "super_admin",
+    status: "ACTIVE",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+];
+
 const db = {
+  users: seedUsers(),
   categories: [],
   attributes: [],
   categoryAttributes: [],
@@ -206,6 +231,61 @@ const server = createServer(async (req, res) => {
     return send(res, 204);
   }
 
+  // --- users ---------------------------------------------------------------
+  if (path === "/users" && method === "GET") {
+    if (needs("users.manage")) return;
+    return send(res, 200, db.users);
+  }
+  if (path === "/users" && method === "POST") {
+    if (needs("users.manage")) return;
+    if (db.users.some((u) => u.email === body.email)) {
+      return err(res, 409, "Email already registered", "Conflict");
+    }
+    if (!ROLE_KEYS.includes(body.roleKey)) {
+      return err(res, 404, "Role not found", "Not Found");
+    }
+    const user = {
+      id: randomUUID(),
+      email: body.email,
+      firstName: body.firstName ?? null,
+      lastName: body.lastName ?? null,
+      roleKey: body.roleKey,
+      // Staff created here skip verification, unlike `/auth/register`.
+      status: "ACTIVE",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    db.users.push(user);
+    return send(res, 201, user);
+  }
+  const userMatch = path.match(/^\/users\/([^/]+)(\/role|\/status)?$/);
+  if (userMatch) {
+    if (needs("users.manage")) return;
+    const user = db.users.find((u) => u.id === userMatch[1]);
+    if (!user) return err(res, 404, "User not found", "Not Found");
+
+    if (!userMatch[2] && method === "GET") return send(res, 200, user);
+
+    if (userMatch[2] === "/role" && method === "PATCH") {
+      if (!ROLE_KEYS.includes(body.roleKey)) {
+        return err(res, 404, "Role not found", "Not Found");
+      }
+      user.roleKey = body.roleKey;
+      user.updatedAt = new Date().toISOString();
+      return send(res, 200, user);
+    }
+
+    if (userMatch[2] === "/status" && method === "PATCH") {
+      // PENDING_VERIFICATION is internal — the API refuses to be put back into it.
+      if (!["ACTIVE", "SUSPENDED", "DISABLED"].includes(body.status)) {
+        return err(res, 400, "Invalid status", "Bad Request");
+      }
+      user.status = body.status;
+      user.updatedAt = new Date().toISOString();
+      return send(res, 200, user);
+    }
+  }
+
   // --- categories ---------------------------------------------------------
   if (path === "/categories" && method === "GET") {
     return send(res, 200, [...db.categories].sort((a, b) => a.path.localeCompare(b.path)));
@@ -259,9 +339,17 @@ const server = createServer(async (req, res) => {
     if (method === "GET") {
       return send(res, 200, {
         ...category,
-        categoryAttributes: db.categoryAttributes.filter(
-          (l) => l.categoryId === category.id,
-        ),
+        categoryAttributes: db.categoryAttributes
+          .filter((l) => l.categoryId === category.id)
+          .map((l) => {
+            // The real API embeds the attribute here but strips `options` off
+            // it, so callers must go to `/attributes` for the choices. Mirrored
+            // exactly, or the frontend looks fine here and breaks in prod.
+            const attribute = db.attributes.find((a) => a.id === l.attributeId);
+            if (!attribute) return l;
+            const { options: _stripped, ...withoutOptions } = attribute;
+            return { ...l, attribute: withoutOptions };
+          }),
       });
     }
     if (method === "PATCH") {
@@ -1311,6 +1399,7 @@ const server = createServer(async (req, res) => {
     return send(res, 201, media);
   }
   if (path === "/__reset" && method === "POST") {
+    db.users = seedUsers();
     db.categories = [];
     db.attributes = [];
     db.categoryAttributes = [];

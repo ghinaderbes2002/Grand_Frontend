@@ -12,6 +12,7 @@ import { PRICE_FIELD_PREFIX } from "@/lib/forms/fields";
 import { idleFormState } from "@/lib/forms/state";
 import { translateFieldErrors } from "@/lib/forms/translate";
 import { useI18n } from "@/lib/i18n/context";
+import { controlClass } from "@/components/ui/control";
 
 /** One amount per variant, submitted together via `POST /prices/bulk`. */
 export function BulkPriceForm({
@@ -64,9 +65,10 @@ export function BulkPriceForm({
                 min={0}
                 placeholder={dict.admin.prices.amount}
                 aria-invalid={errors ? true : undefined}
-                className={`bg-background h-10 w-32 rounded-lg border px-3 text-sm outline-none focus:ring-2 focus:ring-accent/40 ${
-                  errors ? "border-danger" : "border-border"
-                }`}
+                className={controlClass({
+                  invalid: Boolean(errors),
+                  className: "w-32",
+                })}
               />
             </li>
           );

@@ -6,6 +6,7 @@ import { AttributeFilterFields } from "@/components/shop/attribute-filter-fields
 import { CategoryNav } from "@/components/shop/category-nav";
 import { ProductCard } from "@/components/shop/product-card";
 import { Button } from "@/components/ui/button";
+import { controlClass } from "@/components/ui/control";
 import {
   getCategoryTree,
   listAttributes,
@@ -149,7 +150,7 @@ export default async function ShopPage({
           page keeps working without client-side JavaScript. */}
       <form
         method="get"
-        className="border-border bg-surface/30 grid gap-3 rounded-2xl border p-4 sm:grid-cols-2"
+        className="border-border bg-surface/40 grid gap-3 rounded-2xl border p-4 sm:grid-cols-2"
       >
         <label className="flex flex-col gap-1.5 text-sm">
           {dict.shop.search}
@@ -157,7 +158,7 @@ export default async function ShopPage({
             name="q"
             defaultValue={filters.q}
             placeholder={dict.shop.searchPlaceholder}
-            className="border-border bg-background h-10 rounded-lg border px-3 text-sm outline-none focus:ring-2 focus:ring-accent/40"
+            className={controlClass()}
           />
         </label>
 
@@ -166,7 +167,7 @@ export default async function ShopPage({
           <select
             name="categoryId"
             defaultValue={filters.categoryId ?? ""}
-            className="border-border bg-background h-10 rounded-lg border px-3 text-sm outline-none focus:ring-2 focus:ring-accent/40"
+            className={controlClass()}
           >
             <option value="">{dict.shop.allCategories}</option>
             {categoryOptions(categories).map((option) => (
@@ -182,7 +183,7 @@ export default async function ShopPage({
           <select
             name="brandId"
             defaultValue={filters.brandId ?? ""}
-            className="border-border bg-background h-10 rounded-lg border px-3 text-sm outline-none focus:ring-2 focus:ring-accent/40"
+            className={controlClass()}
           >
             <option value="">{dict.shop.allBrands}</option>
             {brands.map((brand) => (
@@ -200,7 +201,7 @@ export default async function ShopPage({
             type="number"
             min={0}
             defaultValue={filters.minPrice}
-            className="border-border bg-background h-10 rounded-lg border px-3 text-sm outline-none focus:ring-2 focus:ring-accent/40"
+            className={controlClass()}
           />
         </label>
 
@@ -211,7 +212,7 @@ export default async function ShopPage({
             type="number"
             min={0}
             defaultValue={filters.maxPrice}
-            className="border-border bg-background h-10 rounded-lg border px-3 text-sm outline-none focus:ring-2 focus:ring-accent/40"
+            className={controlClass()}
           />
         </label>
 
@@ -231,11 +232,11 @@ export default async function ShopPage({
         )}
 
         <div className="col-span-full flex items-end gap-2">
-          <Button type="submit" className="h-10">
+          <Button type="submit">
             {dict.shop.apply}
           </Button>
           <Link href={`/${lang}/shop`}>
-            <Button type="button" variant="ghost" className="h-10">
+            <Button type="button" variant="ghost">
               {dict.shop.clear}
             </Button>
           </Link>
@@ -263,10 +264,22 @@ export default async function ShopPage({
         </ul>
       )}
 
-      {page.nextCursor ? (
-        <Link href={`/${lang}/shop?${nextParams.toString()}`} className="self-center">
-          <Button variant="ghost">{dict.shop.loadMore}</Button>
-        </Link>
+      {/* Cursor paging only moves forward, so this replaces the list rather
+          than appending to it — hence "next page", and a way back to the
+          start for anyone several pages deep. */}
+      {page.nextCursor || filters.cursor ? (
+        <div className="flex items-center justify-center gap-2">
+          {filters.cursor ? (
+            <Link href={`/${lang}/shop?${navParams.toString()}`}>
+              <Button variant="ghost">{dict.shop.firstPage}</Button>
+            </Link>
+          ) : null}
+          {page.nextCursor ? (
+            <Link href={`/${lang}/shop?${nextParams.toString()}`}>
+              <Button variant="ghost">{dict.shop.loadMore}</Button>
+            </Link>
+          ) : null}
+        </div>
       ) : null}
         </div>
       </div>

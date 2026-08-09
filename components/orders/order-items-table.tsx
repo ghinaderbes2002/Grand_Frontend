@@ -17,7 +17,7 @@ export function OrderItemsTable({
   }
 
   return (
-    <div className="border-border overflow-x-auto rounded-xl border">
+    <div className="border-border overflow-x-auto rounded-2xl border">
       <table className="w-full text-sm">
         <thead className="border-border bg-surface/60 border-b">
           <tr>

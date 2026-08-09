@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { NewItemDialog } from "@/components/admin/new-item-dialog";
 import { NoAccess } from "@/components/admin/no-access";
-import { Card, PageHeader } from "@/components/admin/page-header";
+import { PageHeader } from "@/components/admin/page-header";
 import { CategoryForm } from "@/components/admin/category-form";
 import { getCategoryTree, listCategories } from "@/lib/api/catalog";
 import { categoryOptions } from "@/lib/catalog/category-labels";
@@ -30,26 +31,24 @@ export default async function CategoriesPage({ params }: PageProps<"/[lang]/admi
       <PageHeader
         title={dict.admin.categories.title}
         subtitle={dict.admin.categories.subtitle}
+        action={
+          <NewItemDialog label={dict.admin.categories.newTitle}>
+            <CategoryForm parentOptions={categoryOptions(flat)} />
+          </NewItemDialog>
+        }
       />
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
-        <section>
-          {tree.length === 0 ? (
-            <p className="text-muted text-sm">{dict.admin.empty}</p>
-          ) : (
-            <ul className="border-border divide-border divide-y rounded-2xl border">
-              {tree.map((node) => (
-                <CategoryBranch key={node.id} node={node} locale={lang} depth={0} />
-              ))}
-            </ul>
-          )}
-        </section>
-
-        <Card className="h-fit">
-          <h2 className="mb-4 font-medium">{dict.admin.categories.newTitle}</h2>
-          <CategoryForm parentOptions={categoryOptions(flat)} />
-        </Card>
-      </div>
+      <section>
+        {tree.length === 0 ? (
+          <p className="text-muted text-sm">{dict.admin.empty}</p>
+        ) : (
+          <ul className="border-border divide-border divide-y rounded-2xl border">
+            {tree.map((node) => (
+              <CategoryBranch key={node.id} node={node} locale={lang} depth={0} />
+            ))}
+          </ul>
+        )}
+      </section>
     </div>
   );
 }

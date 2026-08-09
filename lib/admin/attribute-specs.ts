@@ -22,7 +22,10 @@ export function splitCategoryAttributes(
   const ordered = [...links].sort((a, b) => a.sortOrder - b.sortOrder);
 
   for (const link of ordered) {
-    const attribute = link.attribute ?? byId.get(link.attributeId);
+    // The standalone attribute wins over the one embedded in the link: the
+    // embedded copy carries no `options`, which would leave every SELECT field
+    // with nothing to pick.
+    const attribute = byId.get(link.attributeId) ?? link.attribute;
     if (!attribute) continue;
 
     if (link.createsVariant) {

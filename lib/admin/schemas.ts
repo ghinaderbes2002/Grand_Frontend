@@ -247,6 +247,47 @@ export const couponSchema = z.object({
   isActive: z.boolean(),
 });
 
+export const ROLE_KEYS = [
+  "super_admin",
+  "catalog_manager",
+  "inventory_manager",
+  "order_manager",
+  "sales_agent",
+  "customer",
+] as const;
+
+/**
+ * `PENDING_VERIFICATION` is deliberately absent: the contract calls it an
+ * internal state and rejects it on `PATCH /users/:id/status`.
+ */
+export const ASSIGNABLE_USER_STATUSES = ["ACTIVE", "SUSPENDED", "DISABLED"] as const;
+
+export const createUserSchema = z.object({
+  email: z
+    .string({ error: "emailRequired" })
+    .trim()
+    .min(1, { error: "emailRequired" })
+    .pipe(z.email({ error: "emailInvalid" })),
+  // Same rule as public registration — the endpoint differs only in that the
+  // account comes out ACTIVE and with a role of our choosing.
+  password: z
+    .string({ error: "passwordRequired" })
+    .min(1, { error: "passwordRequired" })
+    .min(10, { error: "passwordTooShort" })
+    .max(128, { error: "passwordTooLong" }),
+  firstName: z.string().trim().max(100, { error: "nameTooLong" }).optional(),
+  lastName: z.string().trim().max(100, { error: "nameTooLong" }).optional(),
+  roleKey: z.enum(ROLE_KEYS, { error: "required" }),
+});
+
+export const userRoleSchema = z.object({
+  roleKey: z.enum(ROLE_KEYS, { error: "required" }),
+});
+
+export const userStatusSchema = z.object({
+  status: z.enum(ASSIGNABLE_USER_STATUSES, { error: "required" }),
+});
+
 export const categoryAttributeSchema = z.object({
   categoryId: uuid,
   attributeId: uuid,

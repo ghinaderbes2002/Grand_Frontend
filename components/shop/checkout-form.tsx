@@ -11,6 +11,7 @@ import { formatAmount } from "@/lib/format";
 import { idleFormState, type FormState } from "@/lib/forms/state";
 import { translateFieldErrors, translateFormError } from "@/lib/forms/translate";
 import { useI18n } from "@/lib/i18n/context";
+import { controlClass } from "@/components/ui/control";
 
 export function CheckoutForm({ subtotal }: { subtotal: number }) {
   const { locale, dict } = useI18n();
@@ -79,7 +80,7 @@ export function CheckoutForm({ subtotal }: { subtotal: number }) {
               setDiscount(null);
               setCouponState(idleFormState);
             }}
-            className="border-border bg-background h-11 flex-1 rounded-lg border px-3 text-sm uppercase outline-none focus:ring-2 focus:ring-accent/40"
+            className={controlClass({ className: "flex-1 uppercase" })}
           />
           <Button
             type="button"

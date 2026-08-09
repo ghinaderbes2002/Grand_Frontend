@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { NoAccess } from "@/components/admin/no-access";
 import { PageHeader } from "@/components/admin/page-header";
 import { Button } from "@/components/ui/button";
+import { controlClass } from "@/components/ui/control";
 import { getSalesReport } from "@/lib/api/reports";
 import { PERMISSIONS, can } from "@/lib/auth/permissions";
 import { requireSession } from "@/lib/auth/session";
@@ -55,7 +56,7 @@ export default async function ReportsPage({
 
       <form
         method="get"
-        className="border-border bg-surface/30 flex flex-wrap items-end gap-3 rounded-2xl border p-4"
+        className="border-border bg-surface/40 flex flex-wrap items-end gap-3 rounded-2xl border p-4"
       >
         <label className="flex flex-col gap-1.5 text-sm">
           {dict.admin.reports.from}
@@ -63,7 +64,7 @@ export default async function ReportsPage({
             name="from"
             type="date"
             defaultValue={from?.slice(0, 10)}
-            className="border-border bg-background h-10 rounded-lg border px-3 text-sm outline-none focus:ring-2 focus:ring-accent/40"
+            className={controlClass()}
           />
         </label>
         <label className="flex flex-col gap-1.5 text-sm">
@@ -72,15 +73,15 @@ export default async function ReportsPage({
             name="to"
             type="date"
             defaultValue={to?.slice(0, 10)}
-            className="border-border bg-background h-10 rounded-lg border px-3 text-sm outline-none focus:ring-2 focus:ring-accent/40"
+            className={controlClass()}
           />
         </label>
-        <Button type="submit" className="h-10">
+        <Button type="submit">
           {dict.admin.filters.apply}
         </Button>
         {from || to ? (
           <Link href={`/${lang}/admin/reports`}>
-            <Button type="button" variant="ghost" className="h-10">
+            <Button type="button" variant="ghost">
               {dict.admin.filters.clear}
             </Button>
           </Link>
@@ -88,13 +89,13 @@ export default async function ReportsPage({
       </form>
 
       <dl className="grid gap-4 sm:grid-cols-2">
-        <div className="border-border bg-surface/30 flex flex-col gap-1 rounded-2xl border p-5">
+        <div className="border-border bg-surface/40 flex flex-col gap-1 rounded-2xl border p-5">
           <dt className="text-muted text-sm">{dict.admin.reports.totalRevenue}</dt>
           <dd className="text-accent text-2xl font-semibold">
             {formatAmount(report.totalRevenue, lang)}
           </dd>
         </div>
-        <div className="border-border bg-surface/30 flex flex-col gap-1 rounded-2xl border p-5">
+        <div className="border-border bg-surface/40 flex flex-col gap-1 rounded-2xl border p-5">
           <dt className="text-muted text-sm">{dict.admin.reports.orderCount}</dt>
           <dd className="text-2xl font-semibold">{report.orderCount}</dd>
         </div>

@@ -115,6 +115,20 @@ await publish(paper.id);
   );
   check("filter form is present", list.includes('name="q"') && list.includes('name="minPrice"'));
 
+  // `Category.path` is a materialised path of ids on the live backend, so
+  // rendering it put raw UUIDs in the customer's category picker.
+  const categoryPicker =
+    list.match(/<select[^>]*name="categoryId"[\s\S]*?<\/select>/)?.[0] ?? "";
+  // Only the option *text* — `<option value="…">` carries the id by design.
+  const categoryLabels = [...categoryPicker.matchAll(/<option[^>]*>([^<]*)</g)]
+    .map((match) => match[1])
+    .join(" | ");
+  check(
+    "the category picker shows names, not id paths",
+    categoryLabels.includes("أحبار") && !/[0-9a-f]{8}-[0-9a-f]{4}-/.test(categoryLabels),
+    categoryLabels,
+  );
+
   const searched = await body("/ar/shop?q=" + encodeURIComponent("حبر"));
   check(
     "search narrows the listing",

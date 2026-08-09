@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 
 import { CommitImportButton } from "@/components/admin/import-forms";
+import { Badge, type BadgeTone } from "@/components/ui/badge";
 import { NoAccess } from "@/components/admin/no-access";
 import { PageHeader } from "@/components/admin/page-header";
 import { ApiError } from "@/lib/api/errors";
@@ -12,11 +13,11 @@ import { formatDateTime } from "@/lib/format";
 import { isLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 
-const ROW_TONE: Record<ImportRowStatus, string> = {
-  VALID: "border-success/40 text-success",
-  COMMITTED: "border-success/40 text-success",
-  ERROR: "border-danger/40 text-danger",
-  SKIPPED: "border-border text-muted",
+const ROW_TONE: Record<ImportRowStatus, BadgeTone> = {
+  VALID: "success",
+  COMMITTED: "success",
+  ERROR: "danger",
+  SKIPPED: "neutral",
 };
 
 export default async function ImportBatchPage({
@@ -48,9 +49,7 @@ export default async function ImportBatchPage({
         title={batch.filename}
         subtitle={formatDateTime(batch.createdAt, lang)}
         action={
-          <span className="border-border text-muted rounded-md border px-2 py-1 text-xs">
-            {dict.admin.imports.statuses[batch.status]}
-          </span>
+          <Badge>{dict.admin.imports.statuses[batch.status]}</Badge>
         }
       />
 
@@ -68,7 +67,7 @@ export default async function ImportBatchPage({
       </div>
 
       {batch.status === "PREVIEWED" && valid > 0 ? (
-        <div className="border-border rounded-xl border p-5">
+        <div className="border-border bg-surface/40 shadow-card rounded-2xl border p-5">
           <CommitImportButton batchId={batch.id} />
         </div>
       ) : null}
@@ -76,7 +75,7 @@ export default async function ImportBatchPage({
       {rows.length === 0 ? (
         <p className="text-muted text-sm">{dict.admin.empty}</p>
       ) : (
-        <div className="border-border overflow-x-auto rounded-xl border">
+        <div className="border-border overflow-x-auto rounded-2xl border">
           <table className="w-full text-sm">
             <thead className="border-border bg-surface/60 border-b">
               <tr>
@@ -92,11 +91,9 @@ export default async function ImportBatchPage({
                 <tr key={row.id}>
                   <td className="text-muted px-3 py-2 text-xs">{row.rowNumber}</td>
                   <td className="px-3 py-2">
-                    <span
-                      className={`rounded-md border px-2 py-0.5 text-xs whitespace-nowrap ${ROW_TONE[row.status]}`}
-                    >
+                    <Badge tone={ROW_TONE[row.status]}>
                       {dict.admin.imports.statuses[row.status]}
-                    </span>
+                    </Badge>
                   </td>
                   <td className="px-3 py-2 font-mono text-xs">{row.data?.sku ?? "—"}</td>
                   <td className="px-3 py-2 text-xs">{row.data?.productName ?? "—"}</td>

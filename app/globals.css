@@ -1,15 +1,30 @@
 @import "tailwindcss";
 
+/*
+ * Design tokens.
+ *
+ * Two rules keep this coherent: every colour is a token (no literal hex inside
+ * a component), and both themes define the *same* set — so a component never
+ * needs to know which one it is rendering in.
+ */
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #18181b;
   --muted: #71717a;
   --border: #e4e4e7;
-  --surface: #fafafa;
+  /* One step off the background: panels, table headers, inputs. Dark mode
+     inverts the direction, not the meaning. */
+  --surface: #f7f7f8;
   --accent: #4f46e5;
   --accent-foreground: #ffffff;
   --danger: #dc2626;
   --success: #16a34a;
+  --warning: #d97706;
+
+  /* Elevation, deliberately shallow — the border draws the edge, the shadow
+     only lifts it off the page. */
+  --shadow-card: 0 1px 2px 0 rgb(0 0 0 / 0.04), 0 1px 3px 0 rgb(0 0 0 / 0.06);
+  --shadow-raised: 0 4px 6px -2px rgb(0 0 0 / 0.05), 0 12px 20px -4px rgb(0 0 0 / 0.08);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -18,11 +33,17 @@
     --foreground: #fafafa;
     --muted: #a1a1aa;
     --border: #27272a;
-    --surface: #131316;
+    --surface: #161619;
     --accent: #818cf8;
     --accent-foreground: #10101a;
     --danger: #f87171;
     --success: #4ade80;
+    --warning: #fbbf24;
+
+    /* Shadows barely register on a near-black page, so these stay faint
+       rather than turning into halos; the border carries the edge. */
+    --shadow-card: 0 1px 2px 0 rgb(0 0 0 / 0.4);
+    --shadow-raised: 0 8px 24px -6px rgb(0 0 0 / 0.6);
   }
 }
 
@@ -36,6 +57,11 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-danger: var(--danger);
   --color-success: var(--success);
+  --color-warning: var(--warning);
+
+  --shadow-card: var(--shadow-card);
+  --shadow-raised: var(--shadow-raised);
+
   --font-sans: var(--font-latin), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-mono-latin), ui-monospace, monospace;
 }
@@ -49,4 +75,46 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
+  /* Proportional digits wobble in a column of prices and quantities; tabular
+     ones line up. */
+  font-variant-numeric: tabular-nums;
+}
+
+/*
+ * One focus ring for the whole app.
+ *
+ * `:focus-visible`, so a mouse click does not leave a ring behind, and defined
+ * once here so no component can forget it — a missing ring makes the interface
+ * unusable by keyboard.
+ */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 0.625rem;
+}
+
+::selection {
+  background: color-mix(in oklab, var(--accent) 25%, transparent);
+}
+
+/* Default tracking reads loose at heading sizes. Arabic is left alone —
+   letter-spacing breaks the joining between its letters. */
+html[lang="en"] :is(h1, h2, h3) {
+  letter-spacing: -0.015em;
+}
+
+/* The scrollbar is part of the page on a dashboard that scrolls constantly. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

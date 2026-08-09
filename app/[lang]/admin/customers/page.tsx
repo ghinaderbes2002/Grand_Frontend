@@ -29,7 +29,7 @@ export default async function CustomersPage({
       />
 
       {/* There is no customer directory to pick from — see the note. */}
-      <p className="border-border bg-surface/40 text-muted rounded-xl border px-4 py-2.5 text-sm">
+      <p className="border-border bg-surface/40 text-muted rounded-2xl border px-4 py-2.5 text-sm">
         {dict.admin.customers.noLookup}
       </p>
 

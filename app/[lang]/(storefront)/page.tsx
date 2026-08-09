@@ -139,7 +139,7 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
         {features.map((feature) => (
           <div
             key={feature.title}
-            className="border-border bg-surface/30 flex flex-col gap-2 rounded-2xl border p-5"
+            className="border-border bg-surface/40 flex flex-col gap-2 rounded-2xl border p-5"
           >
             <h2 className="font-medium">{feature.title}</h2>
             <p className="text-muted text-sm">{feature.body}</p>

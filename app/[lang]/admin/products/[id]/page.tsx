@@ -2,8 +2,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { BulkPriceForm } from "@/components/admin/bulk-price-form";
+import { Badge } from "@/components/ui/badge";
 import { ConfirmButton } from "@/components/admin/confirm-button";
 import { MediaManager } from "@/components/admin/media-manager";
+import { NewItemDialog } from "@/components/admin/new-item-dialog";
 import { NoAccess } from "@/components/admin/no-access";
 import { Card, PageHeader } from "@/components/admin/page-header";
 import { PriceForm } from "@/components/admin/price-form";
@@ -87,9 +89,9 @@ export default async function ProductDetailPage({
         // breadcrumb from — its own name is the honest answer.
         subtitle={`${dict.admin.products.category}: ${category.name}`}
         action={
-          <span className="border-border text-muted rounded-md border px-2 py-1 text-xs">
+          <Badge tone={product.status === "PUBLISHED" ? "success" : "neutral"}>
             {dict.admin.products.statuses[product.status]}
-          </span>
+          </Badge>
         }
       />
 
@@ -141,7 +143,19 @@ export default async function ProductDetailPage({
           </Card>
 
           <Card>
-            <h2 className="mb-1 font-medium">{dict.admin.variants.title}</h2>
+            <div className="mb-1 flex flex-wrap items-center justify-between gap-3">
+              <h2 className="font-medium">{dict.admin.variants.title}</h2>
+              {/* A simple product owns exactly one implicit variant, so there is
+                  nothing to add — hence the notice below instead. */}
+              {product.type === "VARIABLE" && canUpdate ? (
+                <NewItemDialog label={dict.admin.variants.newTitle}>
+                  <VariantForm
+                    productId={product.id}
+                    variantAttributes={variantCreating}
+                  />
+                </NewItemDialog>
+              ) : null}
+            </div>
             <p className="text-muted mb-4 text-sm">{dict.admin.variants.subtitle}</p>
 
             {variants.length === 0 ? (
@@ -173,17 +187,7 @@ export default async function ProductDetailPage({
             </Card>
           ) : null}
 
-          {product.type === "VARIABLE" ? (
-            canUpdate ? (
-              <Card>
-                <h2 className="mb-4 font-medium">{dict.admin.variants.newTitle}</h2>
-                <VariantForm
-                  productId={product.id}
-                  variantAttributes={variantCreating}
-                />
-              </Card>
-            ) : null
-          ) : (
+          {product.type === "VARIABLE" ? null : (
             <p className="text-muted text-sm">{dict.admin.variants.simpleNotice}</p>
           )}
         </section>
@@ -211,7 +215,7 @@ function ReadOnlyProduct({
   ];
 
   return (
-    <dl className="border-border divide-border divide-y rounded-xl border">
+    <dl className="border-border divide-border divide-y rounded-2xl border">
       {rows.map(([label, value]) => (
         <div key={label} className="flex items-center justify-between gap-4 p-3">
           <dt className="text-muted text-sm">{label}</dt>
@@ -258,15 +262,9 @@ function VariantCard({
     <li className="border-border flex flex-col gap-3 rounded-lg border p-4">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <span className="font-mono text-sm">{variant.sku}</span>
-        <span
-          className={`rounded-md border px-2 py-0.5 text-xs ${
-            variant.status === "ACTIVE"
-              ? "border-success/40 text-success"
-              : "border-border text-muted"
-          }`}
-        >
+        <Badge tone={variant.status === "ACTIVE" ? "success" : "neutral"}>
           {dict.admin.variants.statuses[variant.status]}
-        </span>
+        </Badge>
       </div>
 
       {variant.attributeValues.length > 0 ? (
@@ -304,11 +302,10 @@ function VariantCard({
       {variant.prices?.length ? (
         <ul className="flex flex-wrap gap-2 text-xs">
           {variant.prices.map((price) => (
-            <li
-              key={price.priceListKey}
-              className="border-border rounded-md border px-2 py-0.5"
-            >
-              {price.priceListKey}: {price.amount}
+            <li key={price.priceListKey}>
+              <Badge>
+                {price.priceListKey}: {price.amount}
+              </Badge>
             </li>
           ))}
         </ul>

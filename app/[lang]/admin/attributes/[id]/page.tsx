@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { AttributeForm } from "@/components/admin/attribute-form";
 import { AttributeOptionForm } from "@/components/admin/attribute-option-form";
 import { ConfirmButton } from "@/components/admin/confirm-button";
+import { NewItemDialog } from "@/components/admin/new-item-dialog";
 import { NoAccess } from "@/components/admin/no-access";
 import { Card, PageHeader } from "@/components/admin/page-header";
 import {
@@ -65,13 +66,20 @@ export default async function AttributeDetailPage({
 
         <section className="flex flex-col gap-6">
           <Card>
-            <h2 className="mb-1 font-medium">{dict.admin.attributes.options}</h2>
+            <div className="mb-1 flex flex-wrap items-center justify-between gap-3">
+              <h2 className="font-medium">{dict.admin.attributes.options}</h2>
+              {takesOptions ? (
+                <NewItemDialog label={dict.admin.attributes.addOption}>
+                  <AttributeOptionForm attributeId={attribute.id} />
+                </NewItemDialog>
+              ) : null}
+            </div>
 
             {!takesOptions ? (
               <p className="text-muted text-sm">
                 {dict.admin.attributes.optionsOnlyForSelect}
               </p>
-            ) : attribute.options.length === 0 ? (
+            ) : !attribute.options?.length ? (
               <p className="text-muted text-sm">{dict.admin.attributes.noOptions}</p>
             ) : (
               <ul className="mt-3 flex flex-col gap-2">
@@ -99,13 +107,6 @@ export default async function AttributeDetailPage({
               </ul>
             )}
           </Card>
-
-          {takesOptions ? (
-            <Card>
-              <h2 className="mb-4 font-medium">{dict.admin.attributes.addOption}</h2>
-              <AttributeOptionForm attributeId={attribute.id} />
-            </Card>
-          ) : null}
         </section>
       </div>
     </div>

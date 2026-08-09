@@ -33,6 +33,7 @@ const SUITES = [
   "reports.test.mjs",
   "coupons.test.mjs",
   "warehouses.test.mjs",
+  "users.test.mjs",
 ];
 
 const children = [];
@@ -122,7 +123,9 @@ try {
   }
 } catch (error) {
   console.error(`\n[31m${error.message}[0m`);
-  console.error("Did you run `npm run build` first?");
+  // `npm test` builds first. This path is for `test:only`, which reuses the
+  // last build on purpose — and will happily test code you have since edited.
+  console.error("No build found? Run `npm test` (it builds) instead of `test:only`.");
   failed += 1;
 } finally {
   shutdown();

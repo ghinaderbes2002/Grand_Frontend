@@ -6,6 +6,7 @@ import {
   AttributeValueFields,
   type AttributeSpec,
 } from "@/components/admin/attribute-value-fields";
+import { useCloseOnSuccess } from "@/components/admin/new-item-dialog";
 import { Field } from "@/components/ui/field";
 import { FormError } from "@/components/ui/form-error";
 import { FormSuccess } from "@/components/ui/form-success";
@@ -29,6 +30,7 @@ export function VariantForm({
     createVariantAction.bind(null, locale, productId),
     idleFormState,
   );
+  useCloseOnSuccess(state);
 
   return (
     <form action={formAction} className="flex flex-col gap-4" noValidate>

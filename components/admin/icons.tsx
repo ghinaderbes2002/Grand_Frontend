@@ -126,6 +126,17 @@ export function CustomersIcon(props: IconProps) {
   );
 }
 
+/** Staff accounts — a single figure with a badge, against Customers' pair. */
+export function UsersIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <circle cx="10" cy="7.5" r="3.5" />
+      <path d="M3.5 20a6.5 6.5 0 0 1 11.4-4.3" />
+      <path d="m15.5 19 2 2 4-4" />
+    </Svg>
+  );
+}
+
 export function StoreIcon(props: IconProps) {
   return (
     <Svg {...props}>

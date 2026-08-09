@@ -53,7 +53,10 @@ export async function addToCartAction(
     return errorState(...describeApiError(error));
   }
 
-  revalidatePath(`/${locale}/cart`);
+  // "layout" so the storefront shell re-renders too — the header carries the
+  // cart count, and revalidating only `/cart` leaves it stale on the page the
+  // customer is actually standing on.
+  revalidatePath(`/${locale}`, "layout");
   return { status: "success" };
 }
 
@@ -85,7 +88,10 @@ export async function updateCartItemAction(
     return errorState(...describeApiError(error));
   }
 
-  revalidatePath(`/${locale}/cart`);
+  // "layout" so the storefront shell re-renders too — the header carries the
+  // cart count, and revalidating only `/cart` leaves it stale on the page the
+  // customer is actually standing on.
+  revalidatePath(`/${locale}`, "layout");
   return { status: "success" };
 }
 
@@ -106,7 +112,10 @@ export async function removeCartItemAction(
     return errorState(...describeApiError(error));
   }
 
-  revalidatePath(`/${locale}/cart`);
+  // "layout" so the storefront shell re-renders too — the header carries the
+  // cart count, and revalidating only `/cart` leaves it stale on the page the
+  // customer is actually standing on.
+  revalidatePath(`/${locale}`, "layout");
   return { status: "success" };
 }
 
@@ -122,7 +131,10 @@ export async function clearCartAction(
     return errorState(...describeApiError(error));
   }
 
-  revalidatePath(`/${locale}/cart`);
+  // "layout" so the storefront shell re-renders too — the header carries the
+  // cart count, and revalidating only `/cart` leaves it stale on the page the
+  // customer is actually standing on.
+  revalidatePath(`/${locale}`, "layout");
   return { status: "success" };
 }
 
@@ -216,7 +228,10 @@ export async function placeOrderAction(
   }
 
   // The API empties the cart itself, but only on success.
-  revalidatePath(`/${locale}/cart`);
+  // "layout" so the storefront shell re-renders too — the header carries the
+  // cart count, and revalidating only `/cart` leaves it stale on the page the
+  // customer is actually standing on.
+  revalidatePath(`/${locale}`, "layout");
   revalidatePath(`/${locale}/orders`);
   redirect(`/${locale}/orders/${order.id}`);
 }

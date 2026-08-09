@@ -1,9 +1,9 @@
+import { controlClass } from "@/components/ui/control";
 import { ATTR_QUERY_PREFIX, type FilterableAttribute } from "@/lib/shop/attribute-filters";
 import type { Locale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 
-const inputClass =
-  "border-border bg-background h-10 rounded-lg border px-3 text-sm outline-none focus:ring-2 focus:ring-accent/40";
+const inputClass = controlClass();
 
 /**
  * Filter inputs for a category's filterable attributes, shaped by attribute
@@ -43,7 +43,7 @@ export function AttributeFilterFields({
                   matches on value and is case-sensitive about it. */}
               <select name={name} defaultValue={value} className={inputClass}>
                 <option value="">{dict.shop.any}</option>
-                {attribute.options.map((option) => (
+                {(attribute.options ?? []).map((option) => (
                   <option key={option.id} value={option.value}>
                     {option.label}
                   </option>

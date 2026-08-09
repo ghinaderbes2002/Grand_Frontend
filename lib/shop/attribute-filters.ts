@@ -24,7 +24,9 @@ export function filterableAttributes(
   return [...links]
     .sort((a, b) => a.sortOrder - b.sortOrder)
     .filter((link) => link.isFilterable)
-    .map((link) => link.attribute ?? byId.get(link.attributeId))
+    // Preferred over `link.attribute`, which the API sends without `options` —
+    // a SELECT filter built from it would have no choices.
+    .map((link) => byId.get(link.attributeId) ?? link.attribute)
     .filter((attribute): attribute is Attribute => Boolean(attribute))
     .map((attribute) => ({ attribute, value: active[attribute.key] ?? "" }));
 }

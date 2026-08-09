@@ -1,9 +1,11 @@
 import { notFound } from "next/navigation";
 
 import { CategoryForm } from "@/components/admin/category-form";
+import { Badge } from "@/components/ui/badge";
 import { ConfirmButton } from "@/components/admin/confirm-button";
 import { LinkAttributeForm } from "@/components/admin/link-attribute-form";
 import { MediaManager } from "@/components/admin/media-manager";
+import { NewItemDialog } from "@/components/admin/new-item-dialog";
 import { NoAccess } from "@/components/admin/no-access";
 import { Card, PageHeader } from "@/components/admin/page-header";
 import { deleteCategoryAction, unlinkAttributeAction } from "@/lib/admin/categories";
@@ -91,9 +93,22 @@ export default async function CategoryDetailPage({
           </Card>
 
           <Card>
-            <h2 className="mb-1 font-medium">
-              {dict.admin.categories.linkedAttributes}
-            </h2>
+            <div className="mb-1 flex flex-wrap items-start justify-between gap-3">
+              <h2 className="font-medium">{dict.admin.categories.linkedAttributes}</h2>
+              {can(session, PERMISSIONS.attributesUpdate) ? (
+                <NewItemDialog label={dict.admin.categories.linkAttribute}>
+                  <LinkAttributeForm
+                    categoryId={category.id}
+                    available={attributes
+                      .filter((attribute) => !linkedIds.has(attribute.id))
+                      .map((attribute) => ({
+                        id: attribute.id,
+                        label: `${attribute.name} (${attribute.key})`,
+                      }))}
+                  />
+                </NewItemDialog>
+              ) : null}
+            </div>
             <p className="text-muted mb-4 text-sm">
               {dict.admin.categories.linkedAttributesHint}
             </p>
@@ -103,8 +118,10 @@ export default async function CategoryDetailPage({
             ) : (
               <ul className="flex flex-col gap-3">
                 {category.categoryAttributes.map((link) => {
+                  // Same order as everywhere else: the standalone attribute is
+                  // the complete one, the embedded copy is the fallback.
                   const attribute =
-                    link.attribute ?? attributesById.get(link.attributeId);
+                    attributesById.get(link.attributeId) ?? link.attribute;
 
                   return (
                     <li
@@ -152,43 +169,8 @@ export default async function CategoryDetailPage({
               </ul>
             )}
           </Card>
-
-          {can(session, PERMISSIONS.attributesUpdate) ? (
-            <Card>
-              <h2 className="mb-4 font-medium">{dict.admin.categories.linkAttribute}</h2>
-              <LinkAttributeForm
-                categoryId={category.id}
-                available={attributes
-                  .filter((attribute) => !linkedIds.has(attribute.id))
-                  .map((attribute) => ({
-                    id: attribute.id,
-                    label: `${attribute.name} (${attribute.key})`,
-                  }))}
-              />
-            </Card>
-          ) : null}
         </section>
       </div>
     </div>
-  );
-}
-
-function Badge({
-  children,
-  tone = "muted",
-}: {
-  children: React.ReactNode;
-  tone?: "muted" | "accent";
-}) {
-  return (
-    <span
-      className={`rounded-md border px-2 py-0.5 text-xs ${
-        tone === "accent"
-          ? "border-accent/40 bg-accent/10 text-accent"
-          : "border-border text-muted"
-      }`}
-    >
-      {children}
-    </span>
   );
 }
