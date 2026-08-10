@@ -11,6 +11,7 @@ import { listMedia } from "@/lib/api/media";
 import { getProductBySlug } from "@/lib/api/products";
 import { getSessionOrNull } from "@/lib/auth/session";
 import { formatAmount } from "@/lib/format";
+import { ORDERING_ENABLED } from "@/lib/shop/ordering";
 import { isLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 
@@ -127,7 +128,10 @@ export default async function ProductPage({ params }: PageProps<"/[lang]/shop/[s
             ) : null}
           </div>
 
-          {!session ? (
+          {/* Ordering is suspended, so the page stops at the specification —
+              no buy controls, and no notice about an account either, since
+              having one would not help. */}
+          {!ORDERING_ENABLED ? null : !session ? (
             /* The cart lives on the server keyed to an account, so there is no
                guest cart to fall back on — say so instead of showing a form
                that would only bounce them to the login. */

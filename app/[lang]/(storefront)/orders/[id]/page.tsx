@@ -9,6 +9,7 @@ import { ApiError } from "@/lib/api/errors";
 import { getOrder } from "@/lib/api/orders";
 import { requireSession } from "@/lib/auth/session";
 import { cancelOrderAction } from "@/lib/shop/cart";
+import { ORDERING_ENABLED } from "@/lib/shop/ordering";
 import { formatAmount, formatDateTime, shortId } from "@/lib/format";
 import { awaitingPayment, customerCanCancel } from "@/lib/orders/transitions";
 import { isLocale } from "@/lib/i18n/config";
@@ -17,6 +18,10 @@ import { getDictionary } from "@/lib/i18n/dictionaries";
 export default async function MyOrderPage({ params }: PageProps<"/[lang]/orders/[id]">) {
   const { lang, id } = await params;
   if (!isLocale(lang)) notFound();
+
+  // Ordering is suspended: the route stops existing rather than asking for
+  // a login it no longer has any use for.
+  if (!ORDERING_ENABLED) notFound();
 
   const dict = getDictionary(lang);
   await requireSession(lang, `/${lang}/orders/${id}`);

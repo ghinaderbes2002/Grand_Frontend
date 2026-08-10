@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { getCart } from "@/lib/api/orders";
 import { requireSession } from "@/lib/auth/session";
 import { clearCartAction } from "@/lib/shop/cart";
+import { ORDERING_ENABLED } from "@/lib/shop/ordering";
 import { formatAmount } from "@/lib/format";
 import { isLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionaries";
@@ -15,6 +16,10 @@ import { getDictionary } from "@/lib/i18n/dictionaries";
 export default async function CartPage({ params }: PageProps<"/[lang]/cart">) {
   const { lang } = await params;
   if (!isLocale(lang)) notFound();
+
+  // Ordering is suspended: the route stops existing rather than asking for
+  // a login it no longer has any use for.
+  if (!ORDERING_ENABLED) notFound();
 
   const dict = getDictionary(lang);
   await requireSession(lang, `/${lang}/cart`);

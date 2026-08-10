@@ -26,8 +26,10 @@ import {
  * suspended those pages answer 404, and guarding them would turn that 404 into
  * a login prompt, which is exactly what suspending them was meant to avoid.
  */
+const ORDERING_PREFIXES = ["/cart", "/checkout", "/orders"];
+
 const PROTECTED_PREFIXES = ORDERING_ENABLED
-  ? ["/account", "/admin", "/cart", "/checkout", "/orders"]
+  ? ["/account", "/admin", ...ORDERING_PREFIXES]
   : ["/account", "/admin"];
 
 /** Routes a logged-in user has no business seeing. */
@@ -48,7 +50,19 @@ export async function proxy(request: NextRequest) {
 
   const route = stripLocale(pathname);
 
-  // 2. Keep the access token fresh. This is the ONLY place a normal page
+  // 2. Ordering suspended. Those routes are turned off at the page too, but a
+  //    `loading.tsx` makes the response stream, and a status set after the
+  //    headers are out is a 200 carrying a not-found page. Catching it here
+  //    keeps the answer honest — and the catalog is where someone following an
+  //    old cart link wanted to end up anyway.
+  if (!ORDERING_ENABLED && ORDERING_PREFIXES.some((prefix) => route.startsWith(prefix))) {
+    const target = request.nextUrl.clone();
+    target.pathname = `/${locale}/shop`;
+    target.search = "";
+    return NextResponse.redirect(target);
+  }
+
+  // 3. Keep the access token fresh. This is the ONLY place a normal page
   //    navigation can rotate the refresh token, because it is the only one that
   //    can still write `Set-Cookie` before the render starts.
   const accessToken = request.cookies.get(ACCESS_TOKEN_COOKIE)?.value;

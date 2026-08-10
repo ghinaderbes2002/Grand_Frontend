@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { LogoMark } from "@/components/brand/logo";
+import { ORDERING_ENABLED } from "@/lib/shop/ordering";
 import type { Locale } from "@/lib/i18n/config";
 import type { Dictionary } from "@/lib/i18n/dictionaries";
 
@@ -37,8 +38,13 @@ export function SiteFooter({ locale, dict }: { locale: Locale; dict: Dictionary 
       title: dict.footer.help,
       links: [
         { href: `/${locale}/faq`, label: dict.nav.faq },
-        { href: `/${locale}/orders`, label: dict.admin.orders.myOrders },
-        { href: `/${locale}/cart`, label: dict.cart.title },
+        // Those two routes answer 404 while ordering is suspended.
+        ...(ORDERING_ENABLED
+          ? [
+              { href: `/${locale}/orders`, label: dict.admin.orders.myOrders },
+              { href: `/${locale}/cart`, label: dict.cart.title },
+            ]
+          : []),
         { href: `/${locale}/account`, label: dict.nav.account },
       ],
     },
