@@ -25,6 +25,13 @@ COPY . .
 ARG NEXT_PUBLIC_MEDIA_ORIGIN=""
 ENV NEXT_PUBLIC_MEDIA_ORIGIN=${NEXT_PUBLIC_MEDIA_ORIGIN}
 
+# Also build-time: `proxy.ts` reads it, and the proxy bundle has its
+# environment inlined during the build. Set it to `false` only while the site
+# is served over plain HTTP — a `Secure` cookie is dropped by the browser on
+# such an origin, which logs every user out on every navigation.
+ARG COOKIE_SECURE=""
+ENV COOKIE_SECURE=${COOKIE_SECURE}
+
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 

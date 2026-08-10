@@ -8,6 +8,7 @@ import {
 } from "@/lib/auth/cookies";
 import { getTokenExpiry, isTokenExpiring } from "@/lib/auth/jwt";
 import { refreshTokens } from "@/lib/auth/refresh";
+import { ORDERING_ENABLED } from "@/lib/shop/ordering";
 import {
   LOCALE_COOKIE,
   defaultLocale,
@@ -18,8 +19,16 @@ import {
   type Locale,
 } from "@/lib/i18n/config";
 
-/** Routes (locale stripped) that need a session. Prefix match. */
-const PROTECTED_PREFIXES = ["/account", "/cart", "/checkout", "/orders", "/admin"];
+/**
+ * Routes (locale stripped) that need a session. Prefix match.
+ *
+ * The ordering routes only join the list when ordering is on — while it is
+ * suspended those pages answer 404, and guarding them would turn that 404 into
+ * a login prompt, which is exactly what suspending them was meant to avoid.
+ */
+const PROTECTED_PREFIXES = ORDERING_ENABLED
+  ? ["/account", "/admin", "/cart", "/checkout", "/orders"]
+  : ["/account", "/admin"];
 
 /** Routes a logged-in user has no business seeing. */
 const GUEST_ONLY_PREFIXES = ["/login", "/register", "/forgot-password", "/reset-password"];

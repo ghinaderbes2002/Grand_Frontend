@@ -6,6 +6,8 @@ services:
         # Baked into the client bundle at build time — a rebuild is required to
         # change it, unlike everything under `environment` below.
         NEXT_PUBLIC_MEDIA_ORIGIN: ${NEXT_PUBLIC_MEDIA_ORIGIN:-}
+        # Same — baked in at build time because the proxy reads it.
+        COOKIE_SECURE: ${COOKIE_SECURE:-}
     image: printing-store-web
     restart: unless-stopped
 

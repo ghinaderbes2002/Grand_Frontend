@@ -20,11 +20,31 @@ export type CookieOptions = {
   maxAge: number;
 };
 
+/**
+ * `Secure` on, unless the deployment says otherwise.
+ *
+ * A browser silently *discards* a `Secure` cookie that arrives over plain
+ * HTTP. On a production build served without TLS that means the session
+ * cookies are never stored, so every navigation into `/account`, `/cart` or
+ * `/admin` bounces back to the login page — the login itself having appeared
+ * to succeed. `COOKIE_SECURE=false` is the escape hatch for a host that is not
+ * behind HTTPS yet; the tokens then travel in clear text, so it is a stopgap
+ * and not a setting to leave on.
+ *
+ * Read as a literal `process.env.X` because `proxy.ts` imports this file and
+ * the proxy bundle has its environment inlined at build time — the value has
+ * to be present when the image is built, not only when it runs.
+ */
+const secure =
+  process.env.COOKIE_SECURE !== undefined
+    ? process.env.COOKIE_SECURE !== "false"
+    : process.env.NODE_ENV === "production";
+
 function baseOptions(maxAge: number): CookieOptions {
   return {
     httpOnly: true,
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    secure,
     path: "/",
     maxAge,
   };
