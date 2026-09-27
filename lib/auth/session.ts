@@ -1,7 +1,7 @@
 import "server-only";
 
 import { cache } from "react";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { apiFetch } from "@/lib/api/client";
@@ -12,6 +12,7 @@ import {
   ACCESS_TOKEN_COOKIE,
   REFRESH_TOKEN_COOKIE,
   accessCookieOptions,
+  isSecureRequest,
   refreshCookieOptions,
 } from "./cookies";
 import { getTokenExpiry } from "./jwt";
@@ -80,12 +81,14 @@ export function hasPermission(session: CurrentUser | null, permission: string) {
  */
 export async function setSessionCookies(tokens: TokenPair) {
   const store = await cookies();
+  // `Secure` follows the protocol this request actually arrived on.
+  const secure = isSecureRequest((await headers()).get("x-forwarded-proto"));
   store.set(
     ACCESS_TOKEN_COOKIE,
     tokens.accessToken,
-    accessCookieOptions(getTokenExpiry(tokens.accessToken)),
+    accessCookieOptions(secure, getTokenExpiry(tokens.accessToken)),
   );
-  store.set(REFRESH_TOKEN_COOKIE, tokens.refreshToken, refreshCookieOptions());
+  store.set(REFRESH_TOKEN_COOKIE, tokens.refreshToken, refreshCookieOptions(secure));
 }
 
 export async function clearSessionCookies() {

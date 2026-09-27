@@ -4,6 +4,7 @@ import {
   ACCESS_TOKEN_COOKIE,
   REFRESH_TOKEN_COOKIE,
   accessCookieOptions,
+  isSecureRequest,
   refreshCookieOptions,
 } from "@/lib/auth/cookies";
 import { getTokenExpiry, isTokenExpiring } from "@/lib/auth/jwt";
@@ -139,12 +140,14 @@ function withSession(
   const redirectResponse = guardRoute(request, locale, route, true);
   const response = redirectResponse ?? NextResponse.next({ request: { headers } });
 
+  // `Secure` follows the protocol the browser actually used.
+  const secure = isSecureRequest(request.headers.get("x-forwarded-proto"), request.url);
   response.cookies.set(
     ACCESS_TOKEN_COOKIE,
     tokens.accessToken,
-    accessCookieOptions(getTokenExpiry(tokens.accessToken)),
+    accessCookieOptions(secure, getTokenExpiry(tokens.accessToken)),
   );
-  response.cookies.set(REFRESH_TOKEN_COOKIE, tokens.refreshToken, refreshCookieOptions());
+  response.cookies.set(REFRESH_TOKEN_COOKIE, tokens.refreshToken, refreshCookieOptions(secure));
 
   return response;
 }
