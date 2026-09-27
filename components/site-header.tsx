@@ -59,6 +59,7 @@ export async function SiteHeader({
 
   const navItems = [
     { href: `/${locale}`, label: dict.nav.home },
+    { href: `/${locale}/about`, label: dict.nav.about },
     { href: `/${locale}/shop`, label: dict.shop.title },
     {
       href: `/${locale}/categories`,
@@ -66,7 +67,6 @@ export async function SiteHeader({
       children: categoryChildren,
       allLabel: dict.shop.allCategories,
     },
-    { href: `/${locale}/about`, label: dict.nav.about },
     { href: `/${locale}/faq`, label: dict.nav.faq },
   ];
 

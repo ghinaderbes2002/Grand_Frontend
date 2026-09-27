@@ -34,9 +34,9 @@ export function SiteFooter({ locale, dict }: { locale: Locale; dict: Dictionary 
       title: dict.footer.shop,
       links: [
         { href: `/${locale}`, label: dict.nav.home },
+        { href: `/${locale}/about`, label: dict.nav.about },
         { href: `/${locale}/shop`, label: dict.shop.title },
         { href: `/${locale}/categories`, label: dict.nav.categories },
-        { href: `/${locale}/about`, label: dict.nav.about },
       ],
     },
     {
