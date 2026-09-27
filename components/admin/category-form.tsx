@@ -72,21 +72,15 @@ export function CategoryForm({
         ]}
       />
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Field
-          name="sortOrder"
-          type="number"
-          label={dict.admin.fields.sortOrder}
-          defaultValue={category?.sortOrder ?? 0}
-          errors={translateFieldErrors(dict, state, "sortOrder")}
-        />
-        <Field
-          name="imageUrl"
-          label={dict.admin.fields.imageUrl}
-          defaultValue={category?.imageUrl ?? ""}
-          errors={translateFieldErrors(dict, state, "imageUrl")}
-        />
-      </div>
+      {/* No image-URL field: the category's picture is uploaded in the
+          "Images" panel beside this form, which is what the storefront shows. */}
+      <Field
+        name="sortOrder"
+        type="number"
+        label={dict.admin.fields.sortOrder}
+        defaultValue={category?.sortOrder ?? 0}
+        errors={translateFieldErrors(dict, state, "sortOrder")}
+      />
 
       <Field
         name="seoTitle"

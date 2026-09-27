@@ -5,7 +5,9 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { CACHE_TAGS } from "@/lib/api/cache";
+import { listCategories, listCategoryAttributes } from "@/lib/api/catalog";
 import { apiFetch } from "@/lib/api/client";
+import { listAdminProducts } from "@/lib/api/products";
 import type { Category, CategoryAttribute, Uuid } from "@/lib/api/types";
 import { requireSession } from "@/lib/auth/session";
 import { describeApiError } from "@/lib/forms/api-error";
@@ -105,6 +107,12 @@ export async function deleteCategoryAction(
 ): Promise<FormState> {
   await requireSession(locale);
 
+  // The API refuses a category that is still in use but answers with a bare
+  // 500, which told the admin nothing. So the usual blockers are checked here
+  // first and named, with what to do about each.
+  const blocker = await findDeleteBlocker(id);
+  if (blocker) return errorState(blocker);
+
   try {
     await apiFetch<void>(`/categories/${id}`, {
       method: "DELETE",
@@ -112,12 +120,43 @@ export async function deleteCategoryAction(
       cache: "no-store",
     });
   } catch (error) {
-    return errorState(...describeApiError(error, { 409: "categoryHasChildren" }));
+    return errorState(
+      ...describeApiError(error, {
+        409: "categoryHasChildren",
+        // Something the checks above did not catch still holds on to it.
+        500: "categoryDeleteFailed",
+      }),
+    );
   }
 
   updateTag(CACHE_TAGS.categories);
   revalidatePath(`/${locale}/admin/categories`, "layout");
   redirect(`/${locale}/admin/categories`);
+}
+
+/**
+ * Why a category cannot be deleted, if anything visible stops it: children
+ * first (the most fundamental), then products, then linked attributes. A check
+ * that fails to load is skipped rather than blocking — the API still has the
+ * final say.
+ */
+async function findDeleteBlocker(id: Uuid) {
+  const [children, products, attributes] = await Promise.all([
+    listCategories()
+      .then((all) => all.some((category) => category.parentId === id))
+      .catch(() => false),
+    listAdminProducts({ categoryId: id, limit: 1 })
+      .then((page) => page.items.length > 0)
+      .catch(() => false),
+    listCategoryAttributes(id)
+      .then((links) => links.length > 0)
+      .catch(() => false),
+  ]);
+
+  if (children) return "categoryHasChildren" as const;
+  if (products) return "categoryHasProducts" as const;
+  if (attributes) return "categoryHasAttributes" as const;
+  return null;
 }
 
 // --- Category ↔ attribute links -------------------------------------------

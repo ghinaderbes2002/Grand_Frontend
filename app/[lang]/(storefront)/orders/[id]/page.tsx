@@ -100,6 +100,7 @@ export default async function MyOrderPage({ params }: PageProps<"/[lang]/orders/
             action={cancelOrderAction.bind(null, lang, order.id)}
             label={dict.admin.orders.cancel}
             pendingLabel={dict.admin.actions.saving}
+            question={dict.admin.actions.confirmAction}
           />
         </div>
       ) : null}

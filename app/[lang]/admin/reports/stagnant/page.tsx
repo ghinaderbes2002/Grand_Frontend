@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { AutoFilterForm } from "@/components/admin/auto-filter-form";
 import { DataTable, Td, Th, Tr } from "@/components/admin/data-table";
 import { NoAccess } from "@/components/admin/no-access";
 import { PageHeader } from "@/components/admin/page-header";
-import { Button } from "@/components/ui/button";
 import { getStagnantProducts } from "@/lib/api/reports";
 import { PERMISSIONS, can } from "@/lib/auth/permissions";
 import { requireSession } from "@/lib/auth/session";
@@ -41,10 +41,7 @@ export default async function StagnantProductsPage({
         subtitle={dict.admin.reports.stagnantSubtitle}
       />
 
-      <form
-        method="get"
-        className="border-border bg-card flex flex-wrap items-end gap-3 rounded-2xl border p-4"
-      >
+      <AutoFilterForm className="border-border bg-card flex flex-wrap items-end gap-3 rounded-2xl border p-4">
         <label className="flex flex-col gap-1.5 text-sm">
           {dict.admin.reports.days}
           <input
@@ -55,10 +52,7 @@ export default async function StagnantProductsPage({
             className={controlClass({ className: "w-28" })}
           />
         </label>
-        <Button type="submit">
-          {dict.admin.filters.apply}
-        </Button>
-      </form>
+      </AutoFilterForm>
 
       {products.length === 0 ? (
         <p className="text-muted text-sm">{dict.admin.reports.noStagnant}</p>

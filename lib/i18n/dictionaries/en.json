@@ -12,7 +12,9 @@
     "language": "Language",
     "arabic": "العربية",
     "english": "English",
-    "toggleTheme": "Toggle light / dark theme"
+    "toggleTheme": "Toggle light / dark theme",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password"
   },
   "nav": {
     "home": "Home",
@@ -50,7 +52,7 @@
     "keyTaken": "That key is already taken",
     "parentNotFound": "The parent category does not exist",
     "categoryCycle": "A category cannot be moved under one of its own children",
-    "categoryHasChildren": "Delete or move the child categories first",
+    "categoryHasChildren": "This category can't be deleted because it has subcategories — delete them or move them to another category first.",
     "attributeInUse": "This attribute is linked to a category — unlink it first",
     "brandInUse": "This brand is still linked to products",
     "optionValueTaken": "That value already exists on this attribute",
@@ -78,7 +80,10 @@
     "couponUnavailable": "That coupon has reached its limit or expired",
     "lastActiveWarehouse": "At least one warehouse must stay active",
     "roleNotFound": "The backend does not know that role",
-    "cannotEditSelf": "You cannot edit your own account here"
+    "cannotEditSelf": "You cannot edit your own account here",
+    "categoryHasProducts": "This category can't be deleted because it still has products — move them to another category or delete them first.",
+    "categoryHasAttributes": "This category can't be deleted because attributes are linked to it — press “Unlink” on each one under “Linked attributes” first.",
+    "categoryDeleteFailed": "The category couldn't be deleted — it is most likely still linked to products or attributes. Check them and try again."
   },
   "auth": {
     "email": "Email",
@@ -253,7 +258,10 @@
       "delete": "Delete",
       "deleting": "Deleting…",
       "edit": "Edit",
-      "back": "Back"
+      "back": "Back",
+      "confirmDelete": "Are you sure you want to delete this? This can't be undone.",
+      "confirmUnlink": "Unlink this attribute from the category?",
+      "confirmAction": "Are you sure you want to continue?"
     },
     "fields": {
       "name": "Name",
@@ -274,7 +282,9 @@
       "apply": "Apply",
       "clear": "Clear",
       "loadMore": "Next page",
-      "firstPage": "First page"
+      "firstPage": "First page",
+      "noResults": "No matching results.",
+      "searchCodePlaceholder": "Search by code…"
     },
     "categories": {
       "title": "Categories",
@@ -446,7 +456,8 @@
       "upload": "Upload image",
       "uploading": "Uploading…",
       "empty": "No images yet.",
-      "remove": "Remove image"
+      "remove": "Remove image",
+      "confirmRemove": "Delete this image? This can't be undone."
     },
     "orders": {
       "title": "Orders",
@@ -614,7 +625,10 @@
       "priceList": "Price list",
       "retailDefault": "Retail (default)",
       "apply": "Assign",
-      "noLookup": "The only endpoint that lists customers with their ids is `/users`, and that one needs users.manage. If you hold it, copy the id from the users page and paste it here."
+      "noLookup": "The only endpoint that lists customers with their ids is `/users`, and that one needs users.manage. If you hold it, copy the id from the users page and paste it here.",
+      "customer": "Customer",
+      "choosePlaceholder": "— Choose a customer —",
+      "noCustomers": "No customers have signed up yet."
     },
     "users": {
       "title": "Users",

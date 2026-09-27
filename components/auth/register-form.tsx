@@ -5,6 +5,7 @@ import { useActionState } from "react";
 
 import { FormError } from "@/components/ui/form-error";
 import { Field } from "@/components/ui/field";
+import { PasswordField } from "@/components/ui/password-field";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { registerAction } from "@/lib/auth/actions";
 import { idleFormState } from "@/lib/forms/state";
@@ -49,9 +50,8 @@ export function RegisterForm({ next }: { next?: string }) {
         required
         errors={translateFieldErrors(dict, state, "email")}
       />
-      <Field
+      <PasswordField
         name="password"
-        type="password"
         label={dict.auth.password}
         autoComplete="new-password"
         minLength={10}

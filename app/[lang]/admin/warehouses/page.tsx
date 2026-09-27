@@ -1,13 +1,14 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { AdminSearch } from "@/components/admin/admin-search";
 import { DataTable, Td, Th, Tr } from "@/components/admin/data-table";
-import { NewItemDialog } from "@/components/admin/new-item-dialog";
+import { EditItemDialog, NewItemDialog } from "@/components/admin/new-item-dialog";
 import { NoAccess } from "@/components/admin/no-access";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/admin/page-header";
 import { WarehouseForm } from "@/components/admin/warehouse-form";
 import { listWarehouses } from "@/lib/api/inventory";
+import { matchesQuery, readQuery } from "@/lib/admin/search";
 import { PERMISSIONS, can } from "@/lib/auth/permissions";
 import { requireSession } from "@/lib/auth/session";
 import { isLocale } from "@/lib/i18n/config";
@@ -15,6 +16,7 @@ import { getDictionary } from "@/lib/i18n/dictionaries";
 
 export default async function WarehousesPage({
   params,
+  searchParams,
 }: PageProps<"/[lang]/admin/warehouses">) {
   const { lang } = await params;
   if (!isLocale(lang)) notFound();
@@ -27,6 +29,8 @@ export default async function WarehousesPage({
   }
 
   const warehouses = await listWarehouses();
+  const query = readQuery((await searchParams).q);
+  const shown = warehouses.filter((warehouse) => matchesQuery(query, warehouse.name, warehouse.code));
 
   return (
     <div className="flex flex-col gap-6">
@@ -40,9 +44,13 @@ export default async function WarehousesPage({
         }
       />
 
+      <AdminSearch />
+
       <section>
         {warehouses.length === 0 ? (
           <p className="text-muted text-sm">{dict.admin.empty}</p>
+        ) : shown.length === 0 ? (
+          <p className="text-muted text-sm">{dict.admin.filters.noResults}</p>
         ) : (
           <DataTable
             head={
@@ -53,15 +61,13 @@ export default async function WarehousesPage({
               </>
             }
           >
-            {warehouses.map((warehouse) => (
+            {shown.map((warehouse) => (
               <Tr key={warehouse.id}>
                 <Td>
-                  <Link
-                    href={`/${lang}/admin/warehouses/${warehouse.id}`}
-                    className="font-medium hover:underline"
-                  >
-                    {warehouse.name}
-                  </Link>
+                  <EditItemDialog label={warehouse.name} title={dict.admin.warehouses.editTitle}>
+                    <WarehouseForm warehouse={warehouse} />
+                    <p className="text-muted text-xs">{dict.admin.warehouses.noDelete}</p>
+                  </EditItemDialog>
                 </Td>
                 <Td className="text-muted font-mono text-xs">{warehouse.code}</Td>
                 <Td>

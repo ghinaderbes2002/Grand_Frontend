@@ -5,6 +5,7 @@ import { useActionState } from "react";
 
 import { FormError } from "@/components/ui/form-error";
 import { Field } from "@/components/ui/field";
+import { PasswordField } from "@/components/ui/password-field";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { loginAction } from "@/lib/auth/actions";
 import { idleFormState } from "@/lib/forms/state";
@@ -32,9 +33,8 @@ export function LoginForm({ next }: { next?: string }) {
         required
         errors={translateFieldErrors(dict, state, "email")}
       />
-      <Field
+      <PasswordField
         name="password"
-        type="password"
         label={dict.auth.password}
         autoComplete="current-password"
         required
@@ -46,10 +46,9 @@ export function LoginForm({ next }: { next?: string }) {
         pendingLabel={dict.auth.login.submitting}
       />
 
-      <div className="text-muted flex flex-wrap justify-between gap-2 text-sm">
-        <Link href={`/${locale}/forgot-password`} className="hover:text-foreground">
-          {dict.auth.login.forgotPassword}
-        </Link>
+      {/* The "forgot password" link is hidden for now; the page behind it
+          (`/forgot-password`) still exists and can be linked again here. */}
+      <div className="text-muted flex flex-wrap justify-center gap-2 text-sm">
         <span>
           {dict.auth.login.noAccount}{" "}
           <Link href={`/${locale}/register`} className="text-accent-strong hover:underline">

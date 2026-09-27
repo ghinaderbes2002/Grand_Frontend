@@ -29,6 +29,7 @@ import { PERMISSIONS, canAny } from "@/lib/auth/permissions";
 import { requireSession } from "@/lib/auth/session";
 import { isLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionaries";
+import { ORDERING_ENABLED } from "@/lib/shop/ordering";
 
 /** Nothing behind the login belongs in a search index. */
 export const metadata = {
@@ -101,7 +102,9 @@ export default async function AdminLayout({ children, params }: LayoutProps<"/[l
         label: dict.admin.orders.title,
         icon: <OrdersIcon />,
       },
-      allowed: canAny(session, [PERMISSIONS.ordersRead]),
+      // Hidden while the storefront takes no orders — there is nothing to
+      // manage. It comes back with the same switch as the rest of the flow.
+      allowed: ORDERING_ENABLED && canAny(session, [PERMISSIONS.ordersRead]),
     },
     {
       item: {

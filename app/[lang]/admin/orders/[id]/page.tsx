@@ -151,6 +151,7 @@ export default async function OrderDetailPage({
                           )}
                           label={dict.admin.shipments.deliver}
                           pendingLabel={dict.admin.actions.saving}
+                          question={dict.admin.actions.confirmAction}
                         />
                       ) : null}
                     </li>

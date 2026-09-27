@@ -4,6 +4,7 @@ import { useActionState } from "react";
 
 import { FormError } from "@/components/ui/form-error";
 import { Field } from "@/components/ui/field";
+import { PasswordField } from "@/components/ui/password-field";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { resetPasswordAction } from "@/lib/auth/actions";
 import { idleFormState } from "@/lib/forms/state";
@@ -28,9 +29,8 @@ export function ResetPasswordForm({ token }: { token?: string }) {
         required
         errors={translateFieldErrors(dict, state, "token")}
       />
-      <Field
+      <PasswordField
         name="newPassword"
-        type="password"
         label={dict.auth.newPassword}
         autoComplete="new-password"
         minLength={10}

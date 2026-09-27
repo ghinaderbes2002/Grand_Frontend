@@ -80,6 +80,7 @@ export default async function CartPage({ params }: PageProps<"/[lang]/cart">) {
               action={clearCartAction.bind(null, lang)}
               label={dict.cart.clear}
               pendingLabel={dict.admin.actions.deleting}
+              question={dict.admin.actions.confirmAction}
             />
           </Panel>
         </div>

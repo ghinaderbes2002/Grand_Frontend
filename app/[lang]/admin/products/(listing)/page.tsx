@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { AutoFilterForm } from "@/components/admin/auto-filter-form";
 import { DataTable, Td, Th, Tr } from "@/components/admin/data-table";
 import { PlusIcon } from "@/components/admin/icons";
 import { Badge } from "@/components/ui/badge";
@@ -81,17 +82,15 @@ export default async function ProductsPage({
         }
       />
 
-      <form
-        method="get"
-        className="border-border bg-card flex flex-wrap items-end gap-3 rounded-2xl border p-4"
-      >
+      <AutoFilterForm className="border-border bg-card grid gap-3 rounded-2xl border p-4 sm:grid-cols-[2fr_1fr_1fr]">
         <label className="flex flex-col gap-1.5 text-sm">
           {dict.admin.filters.search}
           <input
+            type="search"
             name="q"
             defaultValue={filters.q}
             placeholder={dict.admin.filters.searchPlaceholder}
-            className={controlClass({ className: "w-56" })}
+            className={controlClass({ className: "w-full" })}
           />
         </label>
 
@@ -126,18 +125,7 @@ export default async function ProductsPage({
             ))}
           </select>
         </label>
-
-        <Button type="submit">
-          {dict.admin.filters.apply}
-        </Button>
-        {filters.q || filters.categoryId || filters.status ? (
-          <Link href={`/${lang}/admin/products`}>
-            <Button type="button" variant="ghost">
-              {dict.admin.filters.clear}
-            </Button>
-          </Link>
-        ) : null}
-      </form>
+      </AutoFilterForm>
 
       {page.items.length === 0 ? (
         <p className="text-muted text-sm">{dict.admin.empty}</p>

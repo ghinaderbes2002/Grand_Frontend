@@ -4,6 +4,7 @@ import { useActionState } from "react";
 
 import { useCloseOnSuccess } from "@/components/admin/new-item-dialog";
 import { Field } from "@/components/ui/field";
+import { PasswordField } from "@/components/ui/password-field";
 import { FormError } from "@/components/ui/form-error";
 import { FormSuccess } from "@/components/ui/form-success";
 import { SelectField } from "@/components/ui/select-field";
@@ -40,9 +41,8 @@ export function UserForm() {
         required
         errors={translateFieldErrors(dict, state, "email")}
       />
-      <Field
+      <PasswordField
         name="password"
-        type="password"
         label={dict.auth.password}
         hint={dict.admin.users.passwordHint}
         autoComplete="new-password"

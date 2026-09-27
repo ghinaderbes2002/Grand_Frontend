@@ -2,9 +2,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { Th } from "@/components/admin/data-table";
+import { AutoFilterForm } from "@/components/admin/auto-filter-form";
 import { NoAccess } from "@/components/admin/no-access";
 import { PageHeader } from "@/components/admin/page-header";
-import { Button } from "@/components/ui/button";
 import { getLowStock } from "@/lib/api/reports";
 import { availableQuantity } from "@/lib/api/types";
 import { PERMISSIONS, can } from "@/lib/auth/permissions";
@@ -43,10 +43,7 @@ export default async function LowStockPage({
         subtitle={dict.admin.reports.lowStockSubtitle}
       />
 
-      <form
-        method="get"
-        className="border-border bg-card flex flex-wrap items-end gap-3 rounded-2xl border p-4"
-      >
+      <AutoFilterForm className="border-border bg-card flex flex-wrap items-end gap-3 rounded-2xl border p-4">
         <label className="flex flex-col gap-1.5 text-sm">
           {dict.admin.reports.threshold}
           <input
@@ -57,10 +54,7 @@ export default async function LowStockPage({
             className={controlClass({ className: "w-28" })}
           />
         </label>
-        <Button type="submit">
-          {dict.admin.filters.apply}
-        </Button>
-      </form>
+      </AutoFilterForm>
 
       {rows.length === 0 ? (
         <p className="text-success text-sm">{dict.admin.reports.noLowStock}</p>

@@ -2,19 +2,24 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { CouponForm } from "@/components/admin/coupon-form";
+import { AdminSearch } from "@/components/admin/admin-search";
 import { DataTable, Td, Th, Tr } from "@/components/admin/data-table";
 import { NewItemDialog } from "@/components/admin/new-item-dialog";
 import { NoAccess } from "@/components/admin/no-access";
 import { PageHeader } from "@/components/admin/page-header";
 import { Badge } from "@/components/ui/badge";
 import { listCoupons } from "@/lib/api/coupons";
+import { matchesQuery, readQuery } from "@/lib/admin/search";
 import { PERMISSIONS, can } from "@/lib/auth/permissions";
 import { requireSession } from "@/lib/auth/session";
 import { formatAmount } from "@/lib/format";
 import { isLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 
-export default async function CouponsPage({ params }: PageProps<"/[lang]/admin/coupons">) {
+export default async function CouponsPage({
+  params,
+  searchParams,
+}: PageProps<"/[lang]/admin/coupons">) {
   const { lang } = await params;
   if (!isLocale(lang)) notFound();
 
@@ -26,6 +31,8 @@ export default async function CouponsPage({ params }: PageProps<"/[lang]/admin/c
   }
 
   const coupons = await listCoupons();
+  const query = readQuery((await searchParams).q);
+  const shown = coupons.filter((coupon) => matchesQuery(query, coupon.code));
 
   return (
     <div className="flex flex-col gap-6">
@@ -39,9 +46,13 @@ export default async function CouponsPage({ params }: PageProps<"/[lang]/admin/c
         }
       />
 
+      <AdminSearch placeholder={dict.admin.filters.searchCodePlaceholder} />
+
       <section>
         {coupons.length === 0 ? (
           <p className="text-muted text-sm">{dict.admin.empty}</p>
+        ) : shown.length === 0 ? (
+          <p className="text-muted text-sm">{dict.admin.filters.noResults}</p>
         ) : (
           <DataTable
             head={
@@ -53,7 +64,7 @@ export default async function CouponsPage({ params }: PageProps<"/[lang]/admin/c
               </>
             }
           >
-            {coupons.map((coupon) => (
+            {shown.map((coupon) => (
               <Tr key={coupon.id}>
                 <Td>
                   <Link

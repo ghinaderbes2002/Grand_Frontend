@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { Th } from "@/components/admin/data-table";
+import { AutoFilterForm } from "@/components/admin/auto-filter-form";
 import { NoAccess } from "@/components/admin/no-access";
 import { PageHeader } from "@/components/admin/page-header";
 import { Button } from "@/components/ui/button";
@@ -55,10 +56,7 @@ export default async function ReportsPage({
         }
       />
 
-      <form
-        method="get"
-        className="border-border bg-card flex flex-wrap items-end gap-3 rounded-2xl border p-4"
-      >
+      <AutoFilterForm className="border-border bg-card flex flex-wrap items-end gap-3 rounded-2xl border p-4">
         <label className="flex flex-col gap-1.5 text-sm">
           {dict.admin.reports.from}
           <input
@@ -77,17 +75,7 @@ export default async function ReportsPage({
             className={controlClass()}
           />
         </label>
-        <Button type="submit">
-          {dict.admin.filters.apply}
-        </Button>
-        {from || to ? (
-          <Link href={`/${lang}/admin/reports`}>
-            <Button type="button" variant="ghost">
-              {dict.admin.filters.clear}
-            </Button>
-          </Link>
-        ) : null}
-      </form>
+      </AutoFilterForm>
 
       <dl className="grid gap-4 sm:grid-cols-2">
         <div className="border-border bg-card flex flex-col gap-1 rounded-2xl border p-5">

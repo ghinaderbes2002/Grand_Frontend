@@ -2,18 +2,23 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { AttributeForm } from "@/components/admin/attribute-form";
+import { AdminSearch } from "@/components/admin/admin-search";
 import { DataTable, Td, Th, Tr } from "@/components/admin/data-table";
 import { Badge } from "@/components/ui/badge";
 import { NewItemDialog } from "@/components/admin/new-item-dialog";
 import { NoAccess } from "@/components/admin/no-access";
 import { PageHeader } from "@/components/admin/page-header";
 import { listAttributes } from "@/lib/api/catalog";
+import { matchesQuery, readQuery } from "@/lib/admin/search";
 import { PERMISSIONS, can } from "@/lib/auth/permissions";
 import { requireSession } from "@/lib/auth/session";
 import { isLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 
-export default async function AttributesPage({ params }: PageProps<"/[lang]/admin/attributes">) {
+export default async function AttributesPage({
+  params,
+  searchParams,
+}: PageProps<"/[lang]/admin/attributes">) {
   const { lang } = await params;
   if (!isLocale(lang)) notFound();
 
@@ -25,6 +30,8 @@ export default async function AttributesPage({ params }: PageProps<"/[lang]/admi
   }
 
   const attributes = await listAttributes();
+  const query = readQuery((await searchParams).q);
+  const shown = attributes.filter((attribute) => matchesQuery(query, attribute.name, attribute.key));
 
   return (
     <div className="flex flex-col gap-6">
@@ -38,9 +45,13 @@ export default async function AttributesPage({ params }: PageProps<"/[lang]/admi
         }
       />
 
+      <AdminSearch />
+
       <section>
         {attributes.length === 0 ? (
           <p className="text-muted text-sm">{dict.admin.empty}</p>
+        ) : shown.length === 0 ? (
+          <p className="text-muted text-sm">{dict.admin.filters.noResults}</p>
         ) : (
           <DataTable
             head={
@@ -52,7 +63,7 @@ export default async function AttributesPage({ params }: PageProps<"/[lang]/admi
               </>
             }
           >
-            {attributes.map((attribute) => (
+            {shown.map((attribute) => (
               <Tr key={attribute.id}>
                 <Td>
                   <Link

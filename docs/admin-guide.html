@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>دليل لوحة التحكم</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#242b66;--red:#e12027;--bg:#f6f7fb;--card:#fff;--fg:#121638;--muted:#5a6087;--line:#e2e5f1;--soft:#eceef7}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0c1030;--card:#141a47;--fg:#f3f4fc;--muted:#a9aed6;--line:#283071;--soft:#1a2156}}
+:root[data-theme="dark"]{--bg:#0c1030;--card:#141a47;--fg:#f3f4fc;--muted:#a9aed6;--line:#283071;--soft:#1a2156}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.8 "Readex Pro",system-ui,sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:0 16px 48px}
+header{background:var(--navy);color:#fff;padding:28px 0 26px;margin-bottom:28px;border-bottom:4px solid;border-image:linear-gradient(270deg,var(--navy) 0 33%,#fff 33% 66%,var(--red) 66%) 1}
+header .wrap{display:flex;align-items:center;gap:18px;padding-bottom:0;flex-wrap:wrap}
+.logo{height:48px;width:auto}.logo .nv{fill:#fff}
+h1{margin:0;font-size:24px;font-weight:700}
+header p{margin:2px 0 0;color:#ffffffb3;font-size:14px}
+h2{font-size:18px;margin:34px 0 12px;display:flex;align-items:center;gap:10px}
+h2::before{content:"";width:22px;height:3px;border-radius:3px;background:var(--red)}
+.note{background:var(--card);border:1px solid var(--line);border-inline-start:4px solid var(--red);border-radius:12px;padding:12px 16px;color:var(--muted);font-size:14px}
+.note b{color:var(--fg)}
+ol.steps{list-style:none;margin:0;padding:0;display:grid;gap:10px;counter-reset:s}
+ol.steps>li{counter-increment:s;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px 14px 16px;padding-inline-start:62px;position:relative}
+ol.steps>li::before{content:counter(s);position:absolute;inset-inline-start:16px;top:14px;width:32px;height:32px;border-radius:10px;background:var(--navy);color:#fff;display:grid;place-items:center;font-weight:700}
+ol.steps>li:nth-child(even)::before{background:var(--red)}
+:root[data-theme="dark"] ol.steps>li:nth-child(odd)::before{background:#fff;color:var(--navy)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) ol.steps>li:nth-child(odd)::before{background:#fff;color:var(--navy)}}
+.t{font-weight:600;display:block}
+.p{color:var(--muted);font-size:14px}
+.path{display:inline-block;background:var(--soft);border-radius:8px;padding:0 8px;font-size:13px;color:var(--fg);white-space:nowrap}
+table{width:100%;border-collapse:separate;border-spacing:0;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;font-size:14px}
+td{padding:11px 14px;border-top:1px solid var(--line);vertical-align:top}
+tr:first-child td{border-top:0}
+td:first-child{font-weight:600;white-space:nowrap;width:1%}
+td:last-child{color:var(--muted)}
+footer{margin-top:36px;color:var(--muted);font-size:13px;text-align:center}
+@media print{body{background:#fff}header{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+@media (max-width:560px){td:first-child{white-space:normal}}
+</style>
+</head>
+<body>
+<header><div class="wrap"><svg viewBox="0 0 940 520" class="logo" role="img" aria-label="Grand Group"><g fill-rule="evenodd"><path fill="#e12027" d="M60.85 463.79A264.81 264.81 0 0 1 169.62 89.5L168.62 87.07A238.12 238.12 0 0 0 57.81 465.32ZM231.72 71.37A293.23 293.23 0 0 1 506.43 179.55L524.53 165.26A277.13 277.13 0 0 0 231.8 69.89Z"/><path class="nv" d="M202.19 512.44A183.67 183.67 0 0 1 75.56 372.64L75.31 372.49A140.27 140.27 0 0 0 201.72 514.21ZM82.13 263.49A204.81 204.81 0 0 1 375.34 148.11L374.1 148.53A187.02 187.02 0 0 0 78.21 262.37ZM19.02 144.36A339.35 339.35 0 0 1 484.19 88.14L488.65 82.6A313.5 313.5 0 0 0 18.43 144.18Z"/><path fill="#e12027" d="M200 197.6H268.1V231.2H205C185 231.2 173 240 173 262V300C173 318 180 327 198 327H236.4V295.5H203.6V263.5H268.1V358.2H200C162 358.2 141.9 318 141.9 290V262C141.9 243 163 197.6 200 197.6ZM300.2 199.9H378C405 199.9 422.4 217 422.4 243V252C422.4 272 411 287 394.6 295.5L427 358.2H396.1L364.3 295.5H331.5V358.2H300.2ZM331.5 231.2V263.5H380C390 263.5 396 257 396 247.4C396 237.8 390 231.2 380 231.2ZM505.8 199.4H539.9L602.7 358.2H569L554 326.6H491L477.6 358.2H444.4ZM522.3 239.5L500 295.9H545.5ZM620 199.5H651L714.8 304.7V199.5H746.3V358.5H714.6L650.6 258V358.5H620ZM778.1 199.5H845C882 199.5 904 225 904 260V290C904 330 880 358.8 845 358.8H778.1ZM808.8 232.6V325.5H842C860 325.5 872.2 312 872.2 290V268C872.2 248 862 232.6 842 232.6Z"/><path class="nv" d="M158 396.2H195V408.4H160.5C156.5 408.4 154.2 410.7 154.2 414.7V433.2C154.2 437.2 156.5 439.5 160.5 439.5H183.1V429.9H163.2V418.2H195V451H158Q155 451 153 449.6L145.5 440Q144.1 438.2 144.1 435.5V412Q144.1 409.4 145.5 407.6L153 397.6Q155 396.2 158 396.2ZM209.4 396.1H238C246 396.1 250.3 402 250.3 410.5C250.3 418 246.5 423.5 240.5 425.5L255.4 451H242.4L229 428.2H220.9V451H209.4ZM220.9 406V418.4H235.5C238 418.4 239.5 416 239.5 412C239.5 408.5 238.5 406 236 406ZM289.6 395.1C305 395.1 315.2 404 315.2 418V428C315.2 443 305 451.6 289.6 451.6C274 451.6 264.1 443 264.1 428V418C264.1 404 274 395.1 289.6 395.1ZM289.2 405.1C280.5 405.1 275.1 410 275.1 418V428C275.1 436.5 280.5 441.5 289.2 441.5C298 441.5 303.2 436.5 303.2 428V418C303.2 410 298 405.1 289.2 405.1ZM328.5 395.5H340.5V432C340.5 437.5 342.5 440 347 440H352.6C357 440 359.1 437.5 359.1 432V395.5H371V434C371 445 364 450.9 350 450.9C335.5 450.9 328.5 445 328.5 434ZM384.8 396.1H414C423 396.1 428 402.5 428 412.5C428 423 422.5 430.4 413 430.4H396.8V450.6H384.8ZM396.8 406V420.5H412C414.8 420.5 416 417.5 416 413C416 408.5 414.8 406 412 406Z"/></g></svg>
+<div><h1>دليل لوحة التحكم</h1><p>كيف تضيف منتجاتك وتدير متجرك — خطوة بخطوة</p></div></div></header>
+
+<main class="wrap">
+<div class="note"><b>للدخول:</b> سجّل دخول بحساب الإدارة، ثم اضغط <b>«لوحة التحكم»</b> بأعلى الموقع. القائمة الجانبية فيها كل الأقسام.</div>
+
+<h2>إضافة منتج — بهذا الترتيب</h2>
+<ol class="steps">
+<li><span class="t">جهّز الأصناف</span><span class="p"><span class="path">الأصناف ← إضافة</span> — مثل: أحبار، ورق، آلات. للصنف الفرعي اختر «الصنف الأب».</span></li>
+<li><span class="t">عرّف الصفات <small>(مرة وحدة بس)</small></span><span class="p"><span class="path">الصفات ← إضافة</span> — مثل: اللون، المقاس، الوزن. بعدها افتح الصنف واضغط <b>«ربط صفة»</b>. فعّل <b>«تُنشئ متغيرات»</b> إذا المنتج بيجي بأكتر من لون أو مقاس.</span></li>
+<li><span class="t">أضف العلامة التجارية والمستودع</span><span class="p"><span class="path">العلامات التجارية</span> (مثل Epson) — و<span class="path">المستودعات</span> (مثل MAIN). المستودع مطلوب لتسجّل الكميات.</span></li>
+<li><span class="t">أنشئ المنتج</span><span class="p"><span class="path">المنتجات ← إضافة</span> ← اختر الصنف ← «متابعة» ← عبّي الاسم والوصف و SKU ووحدة البيع.</span></li>
+<li><span class="t">ارفع الصور</span><span class="p">من صفحة المنتج، قسم <b>«الصور»</b> ← «رفع صورة». أول صورة هي اللي بتظهر بالمتجر.</span></li>
+<li><span class="t">حطّ السعر</span><span class="p">قسم <b>«الأسعار»</b> — سعر <b>التجزئة إلزامي</b>، وسعر الجملة اختياري (بيظهر لزبائن الجملة بس).</span></li>
+<li><span class="t">سجّل الكمية</span><span class="p">«المخزون» ← <b>«استلام بضاعة»</b> ← اختر المستودع والكمية.</span></li>
+<li><span class="t">انشر المنتج</span><span class="p">غيّر الحالة من <b>«مسودة»</b> إلى <b>«منشور»</b> — هلق صار ظاهر بالمتجر.</span></li>
+</ol>
+
+<div class="note" style="margin-top:12px"><b>منتج بأكتر من لون أو مقاس؟</b> من صفحة المنتج ← <b>«المتغيرات» ← «متغيّر جديد»</b>. كل متغيّر إلو SKU وسعر وكمية لحاله.</div>
+
+<h2>باقي الأقسام</h2>
+<table>
+<tr><td>استيراد المنتجات</td><td>لإضافة منتجات كتير دفعة وحدة: ارفع ملف CSV ← «رفع ومعاينة» ← صحّح الأخطاء ← «اعتماد الدفعة».</td></tr>
+<tr><td>الكوبونات</td><td>كود خصم بنسبة مئوية أو مبلغ ثابت، مع تاريخ بداية ونهاية وحد للاستخدام.</td></tr>
+<tr><td>الزبائن</td><td>عيّن لزبون معيّن قائمة سعر الجملة.</td></tr>
+<tr><td>المستخدمون</td><td>أضف موظفين وحدد دور كل واحد، أو أوقف حساب.</td></tr>
+<tr><td>التقارير</td><td>المبيعات، والمنتجات اللي مخزونها قليل، والمنتجات الراكدة.</td></tr>
+<tr><td>تسوية جرد</td><td>لتصحيح كمية غلط: «المخزون» ← «تسوية جرد» — رقم موجب بيزيد وسالب بينقص، والسبب إجباري.</td></tr>
+</table>
+
+<h2>نصائح سريعة</h2>
+<div class="note">• المنتج ما بيظهر بالمتجر إلا إذا كان <b>منشور</b> وإلو <b>سعر تجزئة</b>.<br>
+• لإخفاء منتج مؤقتًا: غيّر حالته لـ <b>«مؤرشف»</b> بدل الحذف.<br>
+• الـ SKU لازم يكون فريد لكل منتج أو متغيّر.</div>
+
+<footer>غراند غروب · Grand Group</footer>
+</main>
+</body>
+</html>

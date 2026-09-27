@@ -23,7 +23,7 @@ export function StoreSearch({
       method="get"
       action={action}
       role="search"
-      className="border-border bg-surface/60 focus-within:border-accent/60 mx-auto flex w-full max-w-xl items-center gap-2 rounded-full border p-1.5 transition"
+      className="border-border bg-card focus-within:border-accent focus-within:ring-accent/15 mx-auto flex w-full max-w-xl items-center gap-2 rounded-full border p-1.5 transition focus-within:ring-4"
     >
       <label htmlFor="store-search" className="sr-only">
         {label}
@@ -36,7 +36,7 @@ export function StoreSearch({
         placeholder={placeholder}
         // The ring is on the wrapper's border instead, so the pill does not
         // grow a second outline inside itself.
-        className="min-w-0 flex-1 bg-transparent text-sm outline-none focus-visible:outline-none"
+        className="min-w-0 flex-1 bg-transparent text-sm outline-none!"
       />
       <Button type="submit" className="shrink-0">
         {submit}

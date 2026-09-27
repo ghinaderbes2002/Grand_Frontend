@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { AdminSearch } from "@/components/admin/admin-search";
 import { DataTable, Td, Th, Tr } from "@/components/admin/data-table";
 import { NewItemDialog } from "@/components/admin/new-item-dialog";
 import { NoAccess } from "@/components/admin/no-access";
@@ -10,12 +11,16 @@ import { Badge } from "@/components/ui/badge";
 import { getCategoryTree, listCategories } from "@/lib/api/catalog";
 import { categoryOptions } from "@/lib/catalog/category-labels";
 import type { CategoryTreeNode } from "@/lib/api/types";
+import { matchesQuery, readQuery } from "@/lib/admin/search";
 import { PERMISSIONS, can } from "@/lib/auth/permissions";
 import { requireSession } from "@/lib/auth/session";
 import { isLocale, type Locale } from "@/lib/i18n/config";
 import { getDictionary, type Dictionary } from "@/lib/i18n/dictionaries";
 
-export default async function CategoriesPage({ params }: PageProps<"/[lang]/admin/categories">) {
+export default async function CategoriesPage({
+  params,
+  searchParams,
+}: PageProps<"/[lang]/admin/categories">) {
   const { lang } = await params;
   if (!isLocale(lang)) notFound();
 
@@ -27,6 +32,8 @@ export default async function CategoriesPage({ params }: PageProps<"/[lang]/admi
   }
 
   const [tree, flat] = await Promise.all([getCategoryTree(), listCategories()]);
+  const query = readQuery((await searchParams).q);
+  const shown = pruneTree(tree, query);
 
   return (
     <div className="flex flex-col gap-6">
@@ -40,9 +47,13 @@ export default async function CategoriesPage({ params }: PageProps<"/[lang]/admi
         }
       />
 
+      <AdminSearch />
+
       <section>
         {tree.length === 0 ? (
           <p className="text-muted text-sm">{dict.admin.empty}</p>
+        ) : shown.length === 0 ? (
+          <p className="text-muted text-sm">{dict.admin.filters.noResults}</p>
         ) : (
           <DataTable
             head={
@@ -53,7 +64,7 @@ export default async function CategoriesPage({ params }: PageProps<"/[lang]/admi
               </>
             }
           >
-            {tree.map((node) => (
+            {shown.map((node) => (
               <CategoryBranch key={node.id} node={node} locale={lang} depth={0} dict={dict} />
             ))}
           </DataTable>
@@ -61,6 +72,20 @@ export default async function CategoriesPage({ params }: PageProps<"/[lang]/admi
       </section>
     </div>
   );
+}
+
+/**
+ * The tree cut down to the search. A category that matches keeps its whole
+ * subtree; one that does not stays only as the parent of something that does,
+ * so a match never shows up detached from where it sits in the catalog.
+ */
+function pruneTree(nodes: CategoryTreeNode[], query: string): CategoryTreeNode[] {
+  if (!query) return nodes;
+  return nodes.flatMap((node) => {
+    if (matchesQuery(query, node.name, node.slug)) return [node];
+    const children = pruneTree(node.children, query);
+    return children.length > 0 ? [{ ...node, children }] : [];
+  });
 }
 
 /**

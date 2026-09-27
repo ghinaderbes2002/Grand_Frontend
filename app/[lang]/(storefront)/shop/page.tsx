@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { AttributeFilterFields } from "@/components/shop/attribute-filter-fields";
 import { PageBanner } from "@/components/shop/page-shell";
 import { ProductCard } from "@/components/shop/product-card";
+import { AutoFilterForm } from "@/components/admin/auto-filter-form";
 import { Button } from "@/components/ui/button";
 import { controlClass } from "@/components/ui/control";
 import {
@@ -127,8 +128,6 @@ export default async function ShopPage({
     filters.minPrice !== undefined ||
     filters.maxPrice !== undefined ||
     Object.keys(attributes).length > 0;
-  const hasFilters =
-    hasAdvanced || Boolean(filters.q || filters.categoryId || filters.brandId);
 
   /** One facet swapped, everything else kept, and the cursor always dropped. */
   const facetHref = (facet: "categoryId" | "brandId", value?: string) => {
@@ -166,14 +165,15 @@ export default async function ShopPage({
 
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-12">
         {/*
-          A GET form: filters live in the URL, so results are shareable and the
-          page keeps working without client-side JavaScript.
+          A GET form that applies itself as the visitor types or picks: filters
+          live in the URL, so results are shareable, and without JavaScript it
+          is still a plain form that submits on Enter.
 
           Search and price stay in the form; category and brand became links
           instead — a pill row reads faster than a select, and every pill is a
           real URL a visitor can bookmark or share.
         */}
-        <form method="get" className="flex flex-col gap-4">
+        <AutoFilterForm className="flex flex-col gap-4" showSpinner={false}>
           {/* The facets chosen by pill have to ride along, or submitting the
               search would silently clear them. */}
           {filters.categoryId ? (
@@ -183,7 +183,7 @@ export default async function ShopPage({
             <input type="hidden" name="brandId" value={filters.brandId} />
           ) : null}
 
-          <div className="border-border bg-card flex flex-wrap items-center gap-2 rounded-full border p-2">
+          <div className="border-border bg-card focus-within:border-accent focus-within:ring-accent/15 flex flex-wrap items-center gap-2 rounded-full border p-2 transition focus-within:ring-4">
             <span className="flex min-w-48 flex-1 items-center gap-2 px-3">
               <SearchIcon className="text-muted size-4 shrink-0" />
               <label htmlFor="shop-q" className="sr-only">
@@ -191,23 +191,16 @@ export default async function ShopPage({
               </label>
               <input
                 id="shop-q"
+                type="search"
                 name="q"
                 defaultValue={filters.q}
                 placeholder={dict.shop.searchPlaceholder}
-                className="min-w-0 flex-1 bg-transparent py-2 text-sm outline-none"
+                autoComplete="off"
+                // `!`: the global focus outline would otherwise draw a box
+                // inside the pill; the pill itself shows the focus.
+                className="min-w-0 flex-1 bg-transparent py-2 text-sm outline-none!"
               />
             </span>
-
-            <Button type="submit" size="sm">
-              {dict.shop.apply}
-            </Button>
-            {hasFilters ? (
-              <Link href={`/${lang}/shop`}>
-                <Button type="button" variant="ghost" size="sm">
-                  {dict.shop.clear}
-                </Button>
-              </Link>
-            ) : null}
           </div>
 
           <details
@@ -252,7 +245,7 @@ export default async function ShopPage({
               )}
             </div>
           </details>
-        </form>
+        </AutoFilterForm>
 
         <FacetRow
           label={dict.admin.products.category}
@@ -281,9 +274,6 @@ export default async function ShopPage({
         {page.items.length === 0 ? (
           <div className="border-border flex flex-col items-center gap-4 rounded-2xl border border-dashed p-12">
             <p className="text-muted text-sm">{dict.shop.noResults}</p>
-            <Link href={`/${lang}/shop`}>
-              <Button variant="ghost">{dict.shop.clear}</Button>
-            </Link>
           </div>
         ) : (
           <ul className="reveal-grid grid gap-5 sm:grid-cols-2 lg:grid-cols-4">

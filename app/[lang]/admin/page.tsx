@@ -21,6 +21,7 @@ import { PERMISSIONS, can, canAny } from "@/lib/auth/permissions";
 import { requireSession } from "@/lib/auth/session";
 import { isLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionaries";
+import { ORDERING_ENABLED } from "@/lib/shop/ordering";
 
 export default async function AdminOverviewPage({ params }: PageProps<"/[lang]/admin">) {
   const { lang } = await params;
@@ -82,7 +83,7 @@ export default async function AdminOverviewPage({ params }: PageProps<"/[lang]/a
       title: dict.admin.orders.title,
       body: dict.admin.orders.subtitle,
       icon: <OrdersIcon />,
-      allowed: canAny(session, [PERMISSIONS.ordersRead]),
+      allowed: ORDERING_ENABLED && canAny(session, [PERMISSIONS.ordersRead]),
     },
     {
       href: `/${lang}/admin/imports`,
@@ -117,7 +118,10 @@ export default async function AdminOverviewPage({ params }: PageProps<"/[lang]/a
   // One filtered query per bucket, in parallel. `GET /orders` returns a page
   // rather than a total, so a full page plus a `nextCursor` is reported as
   // "100+" instead of pretending to know the exact figure.
-  const canReadOrders = can(session, PERMISSIONS.ordersRead);
+  // Off while ordering is suspended: no buckets, and no links into a section
+  // the sidebar no longer shows.
+  const canReadOrders = ORDERING_ENABLED && can(session, PERMISSIONS.ordersRead);
+  const canViewReports = can(session, PERMISSIONS.reportsView);
   const BUCKET_LIMIT = 100;
 
   const buckets: Array<{ label: string; status: OrderStatus }> = [
@@ -144,7 +148,7 @@ export default async function AdminOverviewPage({ params }: PageProps<"/[lang]/a
 
   // Stock alerts belong on the same shelf as the order buckets: both are
   // "something needs a person today".
-  const lowStock = can(session, PERMISSIONS.reportsView)
+  const lowStock = canViewReports
     ? await getLowStock().catch(() => [])
     : [];
 
@@ -162,29 +166,27 @@ export default async function AdminOverviewPage({ params }: PageProps<"/[lang]/a
     <div className="flex flex-col gap-8">
       <PageHeader title={dict.admin.title} subtitle={dict.admin.greetingSubtitle} />
 
-      {canReadOrders ? (
+      {/* Only when something actually needs a person — an empty "nothing to
+          see" block was noise on every visit. */}
+      {(canReadOrders || canViewReports) && attention.length > 0 ? (
         <section className="flex flex-col gap-3">
           <h2 className="font-medium">{dict.admin.stats.attention}</h2>
-          {attention.length === 0 ? (
-            <p className="text-muted text-sm">{dict.admin.stats.noAttention}</p>
-          ) : (
-            <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-              {attention.map((item) => (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    className="border-border bg-card shadow-card hover:border-accent/40 hover:shadow-raised flex flex-col gap-1 rounded-2xl border p-5 transition"
-                  >
-                    <span className="text-accent-strong text-3xl font-semibold">
-                      {item.count}
-                      {item.more ? "+" : ""}
-                    </span>
-                    <span className="text-muted text-sm">{item.label}</span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
+          <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {attention.map((item) => (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  className="border-border bg-card shadow-card hover:border-accent/40 hover:shadow-raised flex flex-col gap-1 rounded-2xl border p-5 transition"
+                >
+                  <span className="text-accent-strong text-3xl font-semibold">
+                    {item.count}
+                    {item.more ? "+" : ""}
+                  </span>
+                  <span className="text-muted text-sm">{item.label}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
         </section>
       ) : null}
 

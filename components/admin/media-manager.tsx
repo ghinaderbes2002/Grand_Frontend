@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
 
-import { Button } from "@/components/ui/button";
+import { ConfirmButton } from "@/components/admin/confirm-button";
 import { FormError } from "@/components/ui/form-error";
 import { RemoteImage } from "@/components/ui/remote-image";
 import {
@@ -89,20 +89,6 @@ export function MediaManager({
     }
   }
 
-  function remove(id: Uuid) {
-    setBusy(true);
-    setState(idleFormState);
-
-    deleteMediaAction(locale, id, revalidate)
-      .then((result) => {
-        setState(result);
-        if (result.status === "success") {
-          startTransition(() => router.refresh());
-        }
-      })
-      .finally(() => setBusy(false));
-  }
-
   const pending = busy || isPending;
 
   return (
@@ -119,15 +105,20 @@ export function MediaManager({
                 <RemoteImage src={item.url} alt="" sizes="10rem" />
               </div>
               {canManage ? (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="text-danger h-8 text-xs"
-                  disabled={pending}
-                  onClick={() => remove(item.id)}
-                >
-                  {dict.admin.media.remove}
-                </Button>
+                // Asks first: an image removed by a stray click is gone for good.
+                <ConfirmButton
+                  action={async () => {
+                    const result = await deleteMediaAction(locale, item.id, revalidate);
+                    if (result.status === "success") {
+                      startTransition(() => router.refresh());
+                    }
+                    return result;
+                  }}
+                  label={dict.admin.media.remove}
+                  pendingLabel={dict.admin.actions.deleting}
+                  question={dict.admin.media.confirmRemove}
+                  className="h-8 w-full! text-xs"
+                />
               ) : null}
             </li>
           ))}

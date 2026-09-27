@@ -12,7 +12,13 @@ import { idleFormState } from "@/lib/forms/state";
 import { translateFieldErrors } from "@/lib/forms/translate";
 import { useI18n } from "@/lib/i18n/context";
 
-export function CustomerPriceListForm() {
+export type CustomerOption = { id: string; label: string };
+
+/**
+ * `customers` is the directory to pick from. It is only available to accounts
+ * that may read `/users`; without it the form falls back to pasting the id.
+ */
+export function CustomerPriceListForm({ customers }: { customers?: CustomerOption[] }) {
   const { locale, dict } = useI18n();
   const [state, formAction] = useActionState(
     setCustomerPriceListAction.bind(null, locale),
@@ -24,13 +30,27 @@ export function CustomerPriceListForm() {
       <FormError state={state} />
       <FormSuccess state={state} message={dict.admin.actions.saved} />
 
-      <Field
-        name="customerId"
-        label={dict.admin.customers.customerId}
-        hint={dict.admin.customers.customerIdHint}
-        required
-        errors={translateFieldErrors(dict, state, "customerId")}
-      />
+      {customers ? (
+        <SelectField
+          name="customerId"
+          label={dict.admin.customers.customer}
+          defaultValue=""
+          required
+          errors={translateFieldErrors(dict, state, "customerId")}
+          options={[
+            { value: "", label: dict.admin.customers.choosePlaceholder },
+            ...customers.map((customer) => ({ value: customer.id, label: customer.label })),
+          ]}
+        />
+      ) : (
+        <Field
+          name="customerId"
+          label={dict.admin.customers.customerId}
+          hint={dict.admin.customers.customerIdHint}
+          required
+          errors={translateFieldErrors(dict, state, "customerId")}
+        />
+      )}
 
       {/* An empty value clears the override and returns them to retail. */}
       <SelectField

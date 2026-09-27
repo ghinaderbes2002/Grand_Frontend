@@ -161,6 +161,7 @@ export default async function CategoryDetailPage({
                           )}
                           label={dict.admin.categories.unlink}
                           pendingLabel={dict.admin.actions.deleting}
+                          question={dict.admin.actions.confirmUnlink}
                         />
                       ) : null}
                     </li>

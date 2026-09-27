@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { Th } from "@/components/admin/data-table";
+import { AutoFilterForm } from "@/components/admin/auto-filter-form";
 import { NoAccess } from "@/components/admin/no-access";
 import { PageHeader } from "@/components/admin/page-header";
 import { OrderStatusBadge } from "@/components/orders/order-status-badge";
@@ -56,10 +57,7 @@ export default async function OrdersPage({
         {dict.admin.orders.paymentTimeout}
       </p>
 
-      <form
-        method="get"
-        className="border-border bg-card flex flex-wrap items-end gap-3 rounded-2xl border p-4"
-      >
+      <AutoFilterForm className="border-border bg-card flex flex-wrap items-end gap-3 rounded-2xl border p-4">
         <label className="flex flex-col gap-1.5 text-sm">
           {dict.admin.filters.status}
           <select
@@ -76,18 +74,7 @@ export default async function OrdersPage({
           </select>
         </label>
 
-        <Button type="submit">
-          {dict.admin.filters.apply}
-        </Button>
-        {selected ? (
-          <Link href={`/${lang}/admin/orders`}>
-            <Button type="button" variant="ghost">
-              {dict.admin.filters.clear}
-            </Button>
-          </Link>
-        ) : null}
-
-      </form>
+      </AutoFilterForm>
 
       {orders.length === 0 ? (
         <p className="text-muted text-sm">{dict.admin.empty}</p>
