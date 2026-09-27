@@ -1,11 +1,20 @@
 import type { ComponentProps } from "react";
 
-type Variant = "primary" | "ghost" | "danger";
+type Variant = "primary" | "brand" | "ghost" | "onDark" | "danger";
 type Size = "sm" | "md" | "lg";
 
 const variants: Record<Variant, string> = {
-  primary: "bg-accent text-accent-foreground shadow-card hover:opacity-90",
-  ghost: "border-border border text-foreground hover:bg-surface",
+  /** Navy. The everyday action — saving a form, applying a filter. */
+  primary: "bg-accent text-accent-foreground shadow-card hover:bg-accent/90",
+  /**
+   * Brand red, with its own glow. The one call to action a screen is built
+   * around — rationed to one per view, or it stops meaning anything.
+   */
+  brand:
+    "bg-brand text-brand-foreground shadow-brand hover:bg-brand-strong hover:-translate-y-0.5",
+  ghost: "border-border border text-foreground hover:bg-surface hover:border-accent/40",
+  /** The ghost for the navy bands, where the theme's own border would vanish. */
+  onDark: "border border-white/30 text-white hover:bg-white/10 hover:border-white/60",
   danger: "border-danger/40 text-danger border hover:bg-danger/10",
 };
 

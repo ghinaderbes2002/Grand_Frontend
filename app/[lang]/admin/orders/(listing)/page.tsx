@@ -52,13 +52,13 @@ export default async function OrdersPage({
     <div className="flex flex-col gap-6">
       <PageHeader title={dict.admin.orders.title} subtitle={dict.admin.orders.subtitle} />
 
-      <p className="border-border bg-surface/40 text-muted rounded-2xl border px-4 py-2.5 text-sm">
+      <p className="border-border bg-card text-muted rounded-2xl border px-4 py-2.5 text-sm">
         {dict.admin.orders.paymentTimeout}
       </p>
 
       <form
         method="get"
-        className="border-border bg-surface/40 flex flex-wrap items-end gap-3 rounded-2xl border p-4"
+        className="border-border bg-card flex flex-wrap items-end gap-3 rounded-2xl border p-4"
       >
         <label className="flex flex-col gap-1.5 text-sm">
           {dict.admin.filters.status}

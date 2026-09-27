@@ -59,11 +59,11 @@ export default function GlassmorphismTrustHero({
   const hasPanel = Boolean(headline || meter || stats.length);
 
   return (
-    <section className="border-border bg-surface/40 relative isolate w-full overflow-hidden rounded-3xl border">
+    <section className="border-border bg-card relative isolate w-full overflow-hidden rounded-3xl border">
       {/* Decorative layers. The original pulled a photo from a third-party
           bucket; the dot screen and the two ink washes are ours and cost no
           network request. */}
-      <div className="halftone absolute inset-0 -z-10" aria-hidden="true" />
+      <div className="mesh mesh-soft text-accent absolute inset-0 -z-10" aria-hidden="true" />
       <div
         aria-hidden="true"
         className="bg-brand-gold/20 absolute -top-32 -z-10 size-96 rounded-full blur-3xl inset-s-[-6rem]"

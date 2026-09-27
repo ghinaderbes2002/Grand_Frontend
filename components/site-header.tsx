@@ -5,7 +5,8 @@ import { Logo } from "@/components/brand/logo";
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { SiteMenu } from "@/components/site-menu";
 import { SiteNav } from "@/components/site-nav";
-import { Button, buttonClass } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { buttonClass } from "@/components/ui/button";
 import { listCategories } from "@/lib/api/catalog";
 import { PERMISSIONS, canAny } from "@/lib/auth/permissions";
 import { getSessionOrNull } from "@/lib/auth/session";
@@ -69,10 +70,30 @@ export async function SiteHeader({
   ];
 
   return (
-    <header className="border-border bg-background/80 sticky top-0 z-30 border-b backdrop-blur">
-      <div className="mx-auto flex w-full max-w-6xl items-center gap-3 px-4 py-3">
-        <Link href={`/${locale}`}>
-          <Logo name={dict.common.appName} markClassName="size-8" responsive />
+    <>
+    {/* The brand strip: navy, one line, gone on a phone. It scrolls away with
+        the page; only the bar below it is sticky. */}
+    <div className="bg-navy hidden text-white sm:block">
+      <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-2 text-xs">
+        <span className="flex items-center gap-2 text-white/75">
+          <span aria-hidden="true" className="bg-brand size-1.5 rounded-full" />
+          {dict.home.badge}
+        </span>
+        <a
+          href={`tel:${dict.footer.phone.replace(/\s+/g, "")}`}
+          className="text-white/75 transition hover:text-white"
+        >
+          <span dir="ltr">{dict.footer.phone}</span>
+        </a>
+      </div>
+    </div>
+
+    {/* Near-opaque: at /80 the red band showed through as a muddy maroon
+        whenever it scrolled under the bar. */}
+    <header className="border-border bg-background/95 sticky top-0 z-30 border-b backdrop-blur-xl">
+      <div className="mx-auto flex w-full max-w-6xl items-center gap-3 px-4 py-2.5">
+        <Link href={`/${locale}`} className="shrink-0 transition hover:opacity-85">
+          <Logo title={dict.common.appName} className="h-10 w-auto sm:h-12" />
         </Link>
 
         {/* The main nav, centred. Every entry is a route that exists — no
@@ -85,6 +106,7 @@ export async function SiteHeader({
 
         <div className="flex-1 md:hidden" />
 
+        <ThemeToggle />
         <LocaleSwitcher />
 
         {session ? (
@@ -125,8 +147,11 @@ export async function SiteHeader({
             <NavLink href={`/${locale}/login`} hideOnMobile>
               {dict.nav.login}
             </NavLink>
-            <Link href={`/${locale}/register`} className="hidden md:inline">
-              <Button size="sm">{dict.nav.register}</Button>
+            <Link
+              href={`/${locale}/register`}
+              className={buttonClass({ variant: "brand", size: "sm", className: "max-md:hidden" })}
+            >
+              {dict.nav.register}
             </Link>
           </>
         )}
@@ -150,7 +175,7 @@ export async function SiteHeader({
               </Link>
               <Link
                 href={`/${locale}/register`}
-                className={buttonClass({ className: "w-full" })}
+                className={buttonClass({ variant: "brand", className: "w-full" })}
               >
                 {dict.nav.register}
               </Link>
@@ -159,6 +184,7 @@ export async function SiteHeader({
         </SiteMenu>
       </div>
     </header>
+    </>
   );
 }
 

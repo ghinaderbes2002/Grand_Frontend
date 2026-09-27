@@ -1,72 +1,106 @@
+import {
+  ARCS,
+  ARC_NAVY,
+  ARC_RED,
+  LOGO_VIEWBOX,
+  MARK_VIEWBOX,
+  REG_R,
+  REG_RING,
+  WORD_GRAND,
+  WORD_GROUP,
+} from "@/components/brand/logo-paths";
+
 /**
- * The brand mark: two sheets of stock, fanned.
+ * How the logo is inked.
  *
- * Paper is what a printing supplier actually moves, and the fanned pair is
- * already the motif in the hero backdrop — the mark and the page now say the
- * same thing. It replaced an ink drop, which read as a generic liquid at small
- * sizes and as a map pin at very small ones.
- *
- * Solid, in a single inherited colour: the identity carries no brand hue, so
- * the mark takes the colour of whatever it sits in. Depth comes from opacity
- * rather than a second colour, which keeps it working in one ink — a favicon,
- * a stamp, an embroidered shirt.
- *
- * `viewBox` is 32×32 and every point sits on that grid, so the same geometry
- * serves the favicon, the header and the share card without redrawing. Kept in
- * sync by hand with `app/icon.svg` and the two `ImageResponse` routes, which
- * cannot import from a component.
+ * - `color` — the brand book's two-colour version. The navy half follows
+ *   `--logo-secondary`, which turns white on the dark theme: navy on a
+ *   near-black page is invisible, and the book's own reversed version keeps
+ *   the red and whitens the navy.
+ * - `reversed` — red kept, navy whitened: the two-colour logo on a navy field,
+ *   whatever the theme.
+ * - `white` — solid white, for the navy and red fields the book places it on.
+ * - `mono` — one colour, inherited from `currentColor`.
  */
+export type LogoTone = "color" | "reversed" | "white" | "mono";
 
-/** The front sheet, with its top corner turned back. */
-const SHEET = "M12 7h6l5 5v13a2 2 0 0 1-2 2H12a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2Z";
-/** The turned corner itself, sitting over the sheet. */
-const FOLD = "M18 7l5 5h-4a1 1 0 0 1-1-1Z";
+function inks(tone: LogoTone) {
+  if (tone === "reversed") return { primary: "var(--brand-red)", secondary: "#ffffff" };
+  if (tone === "white") return { primary: "#ffffff", secondary: "#ffffff" };
+  if (tone === "mono") return { primary: "currentColor", secondary: "currentColor" };
+  return { primary: "var(--logo-primary)", secondary: "var(--logo-secondary)" };
+}
 
-export function LogoMark({ className = "size-8" }: { className?: string }) {
+/**
+ * The full Grand Group lock-up: arcs, GRAND, GROUP and the ®.
+ *
+ * Sized by height (`h-10 w-auto`); the width follows from the viewBox. It is an
+ * image with a name rather than decoration, so a screen reader announces the
+ * brand wherever the lock-up stands alone as a link.
+ */
+export function Logo({
+  tone = "color",
+  className = "h-10 w-auto",
+  title = "Grand Group",
+}: {
+  tone?: LogoTone;
+  className?: string;
+  title?: string;
+}) {
+  const { primary, secondary } = inks(tone);
+
   return (
-    <svg viewBox="0 0 32 32" className={className} aria-hidden="true">
-      <g fill="currentColor">
-        {/* The sheet behind, tipped out of line so the pair reads as a stack
-            rather than as one rectangle. */}
-        <rect
-          x="6"
-          y="6"
-          width="13"
-          height="20"
-          rx="2"
-          opacity="0.38"
-          transform="rotate(-14 12.5 16)"
-        />
-        <path d={SHEET} />
-        <path d={FOLD} opacity="0.45" />
+    <svg viewBox={LOGO_VIEWBOX} className={className} role="img" aria-label={title}>
+      <g fillRule="evenodd">
+        <path fill={primary} d={ARC_RED} />
+        <path fill={secondary} d={ARC_NAVY} />
+        <path fill={primary} d={WORD_GRAND} />
+        <path fill={secondary} d={WORD_GROUP} />
       </g>
+      <circle
+        cx={REG_RING.cx}
+        cy={REG_RING.cy}
+        r={REG_RING.r}
+        fill="none"
+        stroke={primary}
+        strokeWidth={REG_RING.strokeWidth}
+      />
+      <path fill={primary} d={REG_R} />
     </svg>
   );
 }
 
-/** Mark plus name, the lock-up used in the header and the dashboard sidebar. */
-export function Logo({
-  name,
-  className = "",
-  markClassName = "size-8",
-  /** Hides the name below `sm`, where the header is tight. */
-  responsive = false,
+/**
+ * The five arcs on their own — the brand's signature, and the motif the rest of
+ * the site is built from.
+ *
+ * `animated` sweeps each crescent in around the shared centre, outermost first
+ * (see `.arc-sweep` in globals.css); reduced motion shows them at rest.
+ */
+export function LogoMark({
+  tone = "color",
+  className = "size-8",
+  animated = false,
 }: {
-  name: string;
+  tone?: LogoTone;
   className?: string;
-  markClassName?: string;
-  responsive?: boolean;
+  animated?: boolean;
 }) {
+  const { primary, secondary } = inks(tone);
+
   return (
-    <span className={`flex items-center gap-2.5 ${className}`}>
-      <LogoMark className={markClassName} />
-      <span
-        className={`truncate font-semibold tracking-tight ${
-          responsive ? "hidden sm:inline" : ""
-        }`}
-      >
-        {name}
-      </span>
-    </span>
+    <svg viewBox={MARK_VIEWBOX} className={className} aria-hidden="true">
+      <g fillRule="evenodd">
+        {ARCS.map((arc, index) => (
+          <path
+            key={arc.d}
+            d={arc.d}
+            fill={arc.tone === "red" ? primary : secondary}
+            className={animated ? "arc-sweep" : undefined}
+            style={animated ? { animationDelay: `${120 + index * 110}ms` } : undefined}
+          />
+        ))}
+      </g>
+    </svg>
   );
 }

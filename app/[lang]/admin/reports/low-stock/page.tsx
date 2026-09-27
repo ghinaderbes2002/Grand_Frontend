@@ -45,7 +45,7 @@ export default async function LowStockPage({
 
       <form
         method="get"
-        className="border-border bg-surface/40 flex flex-wrap items-end gap-3 rounded-2xl border p-4"
+        className="border-border bg-card flex flex-wrap items-end gap-3 rounded-2xl border p-4"
       >
         <label className="flex flex-col gap-1.5 text-sm">
           {dict.admin.reports.threshold}

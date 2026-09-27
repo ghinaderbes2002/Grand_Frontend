@@ -1,12 +1,11 @@
 import { ImageResponse } from "next/og";
 
+import { ARC_NAVY, ARC_RED, BRAND, MARK_VIEWBOX } from "@/components/brand/logo-paths";
+
 /**
  * iOS ignores SVG favicons and crops whatever it gets into a rounded square,
- * so the mark is drawn on an opaque field with its own padding rather than
- * letting the home screen guess.
- *
- * The geometry is a hand-kept copy of `components/brand/logo.tsx`; a metadata
- * route cannot import a component.
+ * so the arcs are drawn on an opaque navy field with their own padding rather
+ * than letting the home screen guess.
  */
 export const size = { width: 180, height: 180 };
 export const contentType = "image/png";
@@ -21,15 +20,12 @@ export default function AppleIcon() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: "#2c5470",
+          background: BRAND.navy,
         }}
       >
-        <svg width="120" height="120" viewBox="0 0 32 32">
-<g fill="#ffffff">
-            <rect x="6" y="6" width="13" height="20" rx="2" opacity="0.38" transform="rotate(-14 12.5 16)" />
-            <path d="M12 7h6l5 5v13a2 2 0 0 1-2 2H12a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2Z" />
-            <path d="M18 7l5 5h-4a1 1 0 0 1-1-1Z" opacity="0.45" />
-          </g>
+        <svg width="132" height="116" viewBox={MARK_VIEWBOX} style={{ marginLeft: 14 }}>
+          <path fill="#ffffff" fillRule="evenodd" d={ARC_NAVY} />
+          <path fill={BRAND.red} fillRule="evenodd" d={ARC_RED} />
         </svg>
       </div>
     ),

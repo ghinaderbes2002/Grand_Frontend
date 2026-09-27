@@ -57,7 +57,7 @@ export default async function ReportsPage({
 
       <form
         method="get"
-        className="border-border bg-surface/40 flex flex-wrap items-end gap-3 rounded-2xl border p-4"
+        className="border-border bg-card flex flex-wrap items-end gap-3 rounded-2xl border p-4"
       >
         <label className="flex flex-col gap-1.5 text-sm">
           {dict.admin.reports.from}
@@ -90,13 +90,13 @@ export default async function ReportsPage({
       </form>
 
       <dl className="grid gap-4 sm:grid-cols-2">
-        <div className="border-border bg-surface/40 flex flex-col gap-1 rounded-2xl border p-5">
+        <div className="border-border bg-card flex flex-col gap-1 rounded-2xl border p-5">
           <dt className="text-muted text-sm">{dict.admin.reports.totalRevenue}</dt>
           <dd className="text-accent-strong text-2xl font-semibold">
             {formatAmount(report.totalRevenue, lang)}
           </dd>
         </div>
-        <div className="border-border bg-surface/40 flex flex-col gap-1 rounded-2xl border p-5">
+        <div className="border-border bg-card flex flex-col gap-1 rounded-2xl border p-5">
           <dt className="text-muted text-sm">{dict.admin.reports.orderCount}</dt>
           <dd className="text-2xl font-semibold">{report.orderCount}</dd>
         </div>

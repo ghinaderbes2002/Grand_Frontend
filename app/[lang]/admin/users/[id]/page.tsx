@@ -51,7 +51,7 @@ export default async function UserDetailPage({
           with no way back short of a database edit, so both forms are replaced
           by a note on your own account. */}
       {isSelf ? (
-        <p className="border-border bg-surface/40 text-muted rounded-2xl border px-4 py-2.5 text-sm">
+        <p className="border-border bg-card text-muted rounded-2xl border px-4 py-2.5 text-sm">
           {dict.admin.users.selfNotice}
         </p>
       ) : (

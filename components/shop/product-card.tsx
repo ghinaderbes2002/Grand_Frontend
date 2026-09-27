@@ -24,7 +24,7 @@ export function ProductCard({
   return (
     <Link
       href={`/${locale}/shop/${product.slug}`}
-      className="border-border bg-surface/40 hover:border-accent/50 hover:shadow-raised group flex h-full flex-col gap-3 rounded-2xl border p-3 transition duration-300 hover:-translate-y-1"
+      className="border-border bg-card hover:border-brand/40 hover:shadow-raised group relative flex h-full flex-col gap-3 overflow-hidden rounded-2xl border p-3 transition duration-300 hover:-translate-y-1"
     >
       <div className="border-border bg-surface relative aspect-square w-full overflow-hidden rounded-xl border">
         {/* Decorative: the product name sits right below it, so an alt would
@@ -40,12 +40,12 @@ export function ProductCard({
             />
           </div>
         ) : (
-          <div className="halftone absolute inset-0" aria-hidden="true" />
+          <div className="mesh mesh-soft text-accent absolute inset-0" aria-hidden="true" />
         )}
 
         {/* `inset-s-*` is logical, so the chips flip side with the locale. */}
         {categoryName ? (
-          <span className="bg-background/85 absolute top-3 inset-s-3 rounded-full px-3 py-1 text-[11px] font-medium backdrop-blur-sm">
+          <span className="bg-navy/90 absolute top-3 inset-s-3 rounded-full px-3 py-1 text-[11px] font-medium text-white backdrop-blur-sm">
             {categoryName}
           </span>
         ) : null}
@@ -64,9 +64,9 @@ export function ProductCard({
             not something only mouse users learn about. */}
         <span
           aria-hidden="true"
-          className="bg-background/25 pointer-events-none absolute inset-0 flex items-center justify-center opacity-0 backdrop-blur-[2px] transition duration-300 group-hover:opacity-100 group-focus-visible:opacity-100"
+          className="from-navy/60 pointer-events-none absolute inset-0 flex items-end justify-center bg-linear-to-t to-transparent pb-5 opacity-0 transition duration-300 group-hover:opacity-100 group-focus-visible:opacity-100"
         >
-          <span className="bg-accent text-accent-foreground rounded-full px-5 py-2.5 text-sm font-medium shadow-lg">
+          <span className="bg-brand text-brand-foreground shadow-brand translate-y-2 rounded-full px-5 py-2.5 text-sm font-medium transition duration-300 group-hover:translate-y-0">
             {dict.home.viewDetails}
           </span>
         </span>
@@ -78,7 +78,7 @@ export function ProductCard({
 
       {/* The price is the line a shopper scans for, so it gets the size and
           the weight while the label beside it stays quiet. */}
-      <span className="mt-auto px-1 pb-1 text-base font-semibold">
+      <span className="text-accent-strong mt-auto px-1 pb-1 text-lg font-bold">
         {price ? (
           price.min === price.max ? (
             formatAmount(price.min, locale)

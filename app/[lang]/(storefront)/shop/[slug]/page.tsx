@@ -135,7 +135,7 @@ export default async function ProductPage({ params }: PageProps<"/[lang]/shop/[s
             /* The cart lives on the server keyed to an account, so there is no
                guest cart to fall back on — say so instead of showing a form
                that would only bounce them to the login. */
-            <div className="border-border bg-surface/40 flex flex-col items-start gap-3 rounded-2xl border p-5">
+            <div className="border-border bg-card flex flex-col items-start gap-3 rounded-2xl border p-5">
               <p className="font-medium">{dict.shop.loginToBuy}</p>
               <p className="text-muted text-sm">{dict.shop.loginToBuyHint}</p>
               <Link
@@ -155,7 +155,7 @@ export default async function ProductPage({ params }: PageProps<"/[lang]/shop/[s
               {sellable.map((variant) => (
                 <div
                   key={variant.id}
-                  className="border-border bg-surface/40 flex flex-col gap-3 rounded-2xl border p-4"
+                  className="border-border bg-card flex flex-col gap-3 rounded-2xl border p-4"
                 >
                   <div className="flex flex-wrap items-baseline justify-between gap-2">
                     {variant.attributeValues.length > 0 ? (

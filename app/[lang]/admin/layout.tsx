@@ -24,6 +24,7 @@ import {
 import { NoAccess } from "@/components/admin/no-access";
 import { Logo } from "@/components/brand/logo";
 import { LocaleSwitcher } from "@/components/locale-switcher";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { PERMISSIONS, canAny } from "@/lib/auth/permissions";
 import { requireSession } from "@/lib/auth/session";
 import { isLocale } from "@/lib/i18n/config";
@@ -169,9 +170,10 @@ export default async function AdminLayout({ children, params }: LayoutProps<"/[l
     <div className="flex min-h-dvh w-full">
       {/* Sticky rather than fixed: it scrolls on its own without the main
           column needing a margin that would have to flip per direction. */}
-      <aside className="border-border bg-surface/40 sticky top-0 hidden h-dvh w-64 shrink-0 flex-col gap-6 overflow-y-auto border-e p-5 lg:flex">
-        <Link href={`/${lang}/admin`} className="px-1">
-          <Logo name={dict.common.appName} markClassName="size-9" />
+      <aside className="border-border bg-card sticky top-0 hidden h-dvh w-64 shrink-0 flex-col gap-6 overflow-y-auto border-e p-5 lg:flex">
+        <Link href={`/${lang}/admin`} className="flex flex-col gap-4 px-1">
+          <Logo title={dict.common.appName} className="h-12 w-auto self-start" />
+          <span aria-hidden="true" className="brand-rule h-0.5 w-full rounded-full opacity-80" />
         </Link>
 
         <div className="flex-1">
@@ -199,6 +201,7 @@ export default async function AdminLayout({ children, params }: LayoutProps<"/[l
             <p className="text-muted truncate text-sm">{dict.admin.greetingSubtitle}</p>
           </div>
           <div className="flex items-center gap-2">
+            <ThemeToggle />
             <LocaleSwitcher />
             {/* Without the sidebar there is no other way out on small screens. */}
             <span className="lg:hidden">

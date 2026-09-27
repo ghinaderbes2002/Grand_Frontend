@@ -1,27 +1,37 @@
 import { ImageResponse } from "next/og";
 
+import {
+  ARC_NAVY,
+  ARC_RED,
+  BRAND,
+  LOGO_VIEWBOX,
+  MARK_VIEWBOX,
+  REG_R,
+  WORD_GRAND,
+  WORD_GROUP,
+} from "@/components/brand/logo-paths";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 
 /**
  * The card shown when a link to the site is pasted anywhere.
  *
  * Product pages override the image with their own photo; this is the fallback
- * for the home page, the shop and everything else. Without it a shared link
- * renders as a bare grey box.
+ * for the home page, the shop and everything else. Grand's navy field, the
+ * logo reversed out of it, and the arcs in hairline bleeding off the corner —
+ * the same composition as the site's hero.
  *
  * **Latin text only, in every locale.** The renderer behind `ImageResponse`
  * (satori) ships no Arabic-capable font and throws outright on Arabic glyph
  * substitution — an Arabic string here 500s the whole route. The Arabic
  * headline is not lost: social clients read it from `og:title` and
- * `og:description`, which are plain HTML and shape correctly. So the image
- * carries the mark and the wordmark, and the metadata carries the language.
+ * `og:description`, which are plain HTML and shape correctly.
  *
  * To put Arabic *inside* the image, a TTF/OTF (satori cannot read woff2) has
  * to be committed and passed through the `fonts` option.
  */
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
-export const alt = "Printing Store";
+export const alt = "Grand Group";
 
 export default function OpengraphImage() {
   const latin = getDictionary("en");
@@ -35,42 +45,43 @@ export default function OpengraphImage() {
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
-          background: "#111315",
-          color: "#f5f6f7",
+          background: `linear-gradient(135deg, #2a3175 0%, ${BRAND.navy} 45%, #0e1238 100%)`,
+          color: "#ffffff",
           padding: 72,
           fontFamily: "sans-serif",
+          position: "relative",
         }}
       >
-        {/* A plain rule — the palette has no gradient to echo. */}
-        <div
-          style={{
-            display: "flex",
-            height: 10,
-            width: 220,
-            borderRadius: 999,
-            background: "#f5f6f7",
-          }}
-        />
+        {/* The arcs, large and faint, off the far corner. */}
+        <svg
+          width="760"
+          height="670"
+          viewBox={MARK_VIEWBOX}
+          style={{ position: "absolute", right: -170, top: -20, opacity: 0.16 }}
+        >
+          <path fill="#ffffff" fillRule="evenodd" d={ARC_NAVY} />
+          <path fill="#ffffff" fillRule="evenodd" d={ARC_RED} />
+        </svg>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 36 }}>
-          <svg width="160" height="160" viewBox="0 0 32 32">
-          <g fill="#ffffff">
-            <rect x="6" y="6" width="13" height="20" rx="2" opacity="0.38" transform="rotate(-14 12.5 16)" />
-            <path d="M12 7h6l5 5v13a2 2 0 0 1-2 2H12a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2Z" />
-            <path d="M18 7l5 5h-4a1 1 0 0 1-1-1Z" opacity="0.45" />
-          </g>
-          </svg>
-
-          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-            <div style={{ fontSize: 82, fontWeight: 700, letterSpacing: -2 }}>
-              {latin.common.appName}
-            </div>
-            <div style={{ fontSize: 36, color: "#9aa1a9" }}>{latin.home.title}</div>
-          </div>
+        {/* The stationery's tricolour. */}
+        <div style={{ display: "flex", height: 8, width: 240, borderRadius: 999, overflow: "hidden" }}>
+          <div style={{ flex: 1, background: "#ffffff", opacity: 0.35 }} />
+          <div style={{ flex: 1, background: "#ffffff" }} />
+          <div style={{ flex: 1, background: BRAND.red }} />
         </div>
 
-        <div style={{ display: "flex", fontSize: 26, color: "#6b7280" }}>
-          {latin.footer.tagline}
+        <svg width="520" height="288" viewBox={LOGO_VIEWBOX}>
+          <path fill={BRAND.red} fillRule="evenodd" d={ARC_RED} />
+          <path fill="#ffffff" fillRule="evenodd" d={ARC_NAVY} />
+          <path fill={BRAND.red} fillRule="evenodd" d={WORD_GRAND} />
+          <path fill="#ffffff" fillRule="evenodd" d={WORD_GROUP} />
+          <circle cx="919" cy="185" r="12.6" fill="none" stroke={BRAND.red} strokeWidth="2.6" />
+          <path fill={BRAND.red} d={REG_R} />
+        </svg>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <div style={{ fontSize: 46, fontWeight: 700, letterSpacing: -1 }}>{latin.home.title}</div>
+          <div style={{ fontSize: 26, color: "rgba(255,255,255,0.65)" }}>{latin.home.badge}</div>
         </div>
       </div>
     ),

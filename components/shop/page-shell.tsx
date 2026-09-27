@@ -1,5 +1,8 @@
 import Link from "next/link";
 
+import { ArcField } from "@/components/brand/arc-field";
+import { LogoMark } from "@/components/brand/logo";
+
 /**
  * The shared width and rhythm for shop-facing pages.
  *
@@ -27,16 +30,14 @@ export function PageShell({
 /**
  * The banner a storefront section opens with — the shop, the categories index.
  *
- * Colour only, no photograph: these are the pages the header points at, and
- * they open dozens of times a session, so the opening has to be cheap and
- * identical every time. The wash is built from `--footer`, the one token that
- * is dark in *both* themes, with `--accent` blooming from the far edge; the
- * copy therefore sits over the deepest part of the gradient and the white text
- * never depends on which theme is active.
+ * Grand's navy field with the logo's arcs in hairline bleeding off the far
+ * edge: the same composition as the home hero, at the height of a section
+ * masthead. Colour and line only, no photograph — these are the pages the
+ * header points at, and they open dozens of times a session, so the opening has
+ * to be cheap and identical every time.
  *
- * The title is held to one side rather than centred, and the eyebrow carries a
- * rule that runs back toward the middle of the page — the same device the
- * masthead of a printed section page uses.
+ * Built from `--footer`, the one token that is dark in *both* themes, so the
+ * white copy never depends on which theme is active.
  */
 export function PageBanner({
   eyebrow,
@@ -49,31 +50,28 @@ export function PageBanner({
   subtitle?: string;
 }) {
   return (
-    <section className="relative isolate w-full overflow-hidden">
-      <div aria-hidden="true" className="bg-footer absolute inset-0 -z-20" />
-
-      {/* Gradients do not mirror themselves, so the direction is flipped
-          explicitly: the dark end always lands under the copy. */}
+    <section className="bg-footer relative isolate w-full overflow-hidden text-white">
       <div
         aria-hidden="true"
-        className="from-footer via-footer/85 to-accent/45 rtl:bg-linear-to-l absolute inset-0 -z-10 bg-linear-to-r"
+        className="absolute inset-0 -z-20 bg-cover bg-center rtl:-scale-x-100"
+        style={{ backgroundImage: "url(/hero-backdrop.svg)" }}
+      />
+      <div aria-hidden="true" className="mesh absolute inset-0 -z-10 text-white opacity-[0.05]!" />
+      <ArcField
+        split
+        className="animate-orbit absolute top-1/2 -end-40 -z-10 w-[38rem] -translate-y-1/2 text-white/15 sm:-end-24"
       />
 
-      {/* The dot screen, at the strength it is meant to be read at: a surface,
-          not a pattern. */}
-      <div aria-hidden="true" className="halftone absolute inset-0 -z-10 text-white" />
-
-      <div className="mx-auto flex w-full max-w-6xl flex-col items-start gap-4 px-6 py-24 text-start sm:py-32">
-        <span className="animate-fade-in flex items-center gap-4 [animation-delay:100ms]">
-          {/* `.text-eyebrow` is coloured `--accent-strong`, which is near-black
-              on the light theme — over this wash it has to be white in both. */}
-          <span className="text-eyebrow text-white/70!">{eyebrow}</span>
-          <span aria-hidden="true" className="h-px w-14 bg-white/30 sm:w-24" />
+      <div className="mx-auto flex w-full max-w-6xl flex-col items-start gap-4 px-6 py-20 text-start sm:py-28">
+        <span className="animate-fade-in flex items-center gap-3 [animation-delay:100ms]">
+          <LogoMark tone="reversed" className="h-5 w-auto" />
+          <span className="text-sm font-medium text-white/70">{eyebrow}</span>
+          <span aria-hidden="true" className="h-px w-14 bg-white/25 sm:w-24" />
         </span>
 
-        {/* Fixed to white: this text is over a dark wash in both themes, so it
+        {/* Fixed to white: this text is over a dark field in both themes, so it
             cannot follow `--foreground`. */}
-        <h1 className="animate-fade-in text-display text-balance text-white [animation-delay:200ms]">
+        <h1 className="animate-fade-in text-display text-balance [animation-delay:200ms]">
           {title}
         </h1>
 
@@ -133,7 +131,7 @@ export function Panel({
 }) {
   return (
     <div
-      className={`border-border bg-surface/40 shadow-card rounded-2xl border p-5 ${className}`}
+      className={`border-border bg-card shadow-card rounded-2xl border p-5 ${className}`}
     >
       {children}
     </div>

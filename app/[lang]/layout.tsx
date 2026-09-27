@@ -1,45 +1,33 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono, Playfair_Display, Tajawal } from "next/font/google";
+import { Geist_Mono, Readex_Pro } from "next/font/google";
 import { notFound } from "next/navigation";
 
 import { getDirection, isLocale, locales } from "@/lib/i18n/config";
 import { I18nProvider } from "@/lib/i18n/context";
 import { getDictionary } from "@/lib/i18n/dictionaries";
+import { themeInitScript } from "@/lib/theme";
 import "../globals.css";
 
-const latin = Geist({ variable: "--font-latin", subsets: ["latin"] });
-const monoLatin = Geist_Mono({ variable: "--font-mono-latin", subsets: ["latin"] });
-
 /**
- * Tajawal for Arabic.
+ * Readex Pro — the brand face's stand-in.
  *
- * Geometric and open, with round counters that stay legible at small sizes —
- * the calm end of Arabic type rather than the technical one. It carries both
- * body and headings: Arabic has no serif/sans pairing convention to borrow, so
- * hierarchy here comes from weight, which is why 700 is loaded alongside the
- * text weights.
+ * The brand book sets everything in Ping AR + LT, a commercial family that has
+ * to be licensed before it can be served. Readex Pro is the closest open match:
+ * the same geometric construction, and — the property that matters most — one
+ * family drawn for both Arabic and Latin, so a bilingual line never changes
+ * voice. Variable, so every weight from 160 to 700 is one file per script.
  *
- * Four weights, not nine: an Arabic subset is heavy, and each unused weight is
- * a font file nobody asked for.
+ * Once the Ping files are licensed, swap this for `next/font/local` pointing at
+ * them and keep the `--font-brand` variable: nothing else has to change.
  */
-const arabic = Tajawal({
-  variable: "--font-arabic",
+const brand = Readex_Pro({
+  variable: "--font-brand",
   subsets: ["arabic", "latin"],
-  weight: ["300", "400", "500", "700"],
+  display: "swap",
 });
 
-/**
- * The Latin display face. English keeps the serif-against-sans pairing, which
- * is where that hierarchy convention comes from; Arabic deliberately does not
- * (see `globals.css`). Italic is included: the accented word in the hero
- * headline is set in it, and Arabic has no italic to match.
- */
-const displayLatin = Playfair_Display({
-  variable: "--font-display-latin",
-  subsets: ["latin"],
-  weight: ["500", "700"],
-  style: ["normal", "italic"],
-});
+/** SKUs, codes and order numbers — the only place a second face appears. */
+const monoLatin = Geist_Mono({ variable: "--font-mono-latin", subsets: ["latin"] });
 
 export function generateStaticParams() {
   return locales.map((lang) => ({ lang }));
@@ -81,8 +69,8 @@ export async function generateMetadata({
  */
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#faf5ee" },
-    { media: "(prefers-color-scheme: dark)", color: "#17110d" },
+    { media: "(prefers-color-scheme: light)", color: "#f6f7fb" },
+    { media: "(prefers-color-scheme: dark)", color: "#0c1030" },
   ],
 };
 
@@ -97,8 +85,14 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[la
     <html
       lang={lang}
       dir={dir}
-      className={`${latin.variable} ${monoLatin.variable} ${arabic.variable} ${displayLatin.variable} h-full antialiased`}
+      className={`${brand.variable} ${monoLatin.variable} h-full antialiased`}
+      // The theme script below sets `data-theme` before React hydrates, so the
+      // attribute legitimately differs from the server's render.
+      suppressHydrationWarning
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
       {/* Only the shell lives here. The storefront and the dashboard are
           separate route groups with their own chrome — the admin has a sidebar
           and no shop header. */}

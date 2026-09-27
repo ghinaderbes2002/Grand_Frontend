@@ -68,7 +68,7 @@ export default async function ImportBatchPage({
       </div>
 
       {batch.status === "PREVIEWED" && valid > 0 ? (
-        <div className="border-border bg-surface/40 shadow-card rounded-2xl border p-5">
+        <div className="border-border bg-card shadow-card rounded-2xl border p-5">
           <CommitImportButton batchId={batch.id} />
         </div>
       ) : null}

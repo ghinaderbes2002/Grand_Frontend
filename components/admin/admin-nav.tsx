@@ -42,16 +42,20 @@ export function AdminNav({
             key={item.href}
             href={item.href}
             aria-current={active ? "page" : undefined}
-            className={`flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm transition ${
+            className={`relative flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm transition ${
               vertical ? "" : "shrink-0 whitespace-nowrap"
             } ${
               active
-                ? "bg-accent/10 text-accent-strong font-medium"
+                ? "bg-accent text-accent-foreground shadow-card font-medium"
                 : "text-muted hover:bg-surface hover:text-foreground"
             }`}
           >
-            <span className={active ? "text-accent-strong" : ""}>{item.icon}</span>
+            <span>{item.icon}</span>
             {item.label}
+            {/* The red marker on the active entry, at the reading edge. */}
+            {active ? (
+              <span aria-hidden="true" className="bg-brand absolute inset-y-2.5 start-0 w-1 rounded-full" />
+            ) : null}
           </Link>
         );
       })}

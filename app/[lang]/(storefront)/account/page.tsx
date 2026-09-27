@@ -21,7 +21,7 @@ export default async function AccountPage({ params }: PageProps<"/[lang]/account
     <PageShell width="narrow">
       <ShopPageHeader title={dict.account.title} />
 
-      <dl className="border-border divide-border bg-surface/40 divide-y rounded-2xl border">
+      <dl className="border-border divide-border bg-card divide-y rounded-2xl border">
         <Row label={dict.account.role} value={dict.roles[session.roleKey]} />
         <Row label={dict.account.userId} value={session.id} mono />
         <div className="flex flex-col gap-2 p-4">

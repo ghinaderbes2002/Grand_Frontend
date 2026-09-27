@@ -1,17 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <!--
-    Kept in sync by hand with components/brand/logo.tsx — a metadata file
-    cannot import from a component.
-
-    Filled field rather than a bare glyph: a near-black mark on transparent
-    disappears against a dark browser chrome, which is where a favicon most
-    often sits. The sheets are drawn a little larger than in the component,
-    since the rounded field eats the outer margin.
+    Grand Group's arcs on the brand navy. Generated from
+    components/brand/logo-paths.ts; regenerate rather than hand-edit.
+    A filled field rather than a bare glyph: thin crescents on transparent
+    vanish against a dark browser chrome.
   -->
-  <rect width="32" height="32" rx="7" fill="#2c5470"/>
-  <g fill="#ffffff">
-    <rect x="6" y="7" width="12" height="18" rx="2" opacity="0.45" transform="rotate(-14 12 16)"/>
-    <path d="M13 8h5.5l4.5 4.5V24a1.8 1.8 0 0 1-1.8 1.8h-8.4A1.8 1.8 0 0 1 11 24V9.8A1.8 1.8 0 0 1 12.8 8Z"/>
-    <path d="M18.5 8l4.5 4.5h-3.6a.9.9 0 0 1-.9-.9Z" opacity="0.5"/>
+  <rect width="512" height="512" rx="112" fill="#242b66"/>
+  <g transform="translate(60 48) scale(0.8)" fill-rule="evenodd">
+    <path fill="#ffffff" d="M202.19 512.44A183.67 183.67 0 0 1 75.56 372.64L75.31 372.49A140.27 140.27 0 0 0 201.72 514.21ZM82.13 263.49A204.81 204.81 0 0 1 375.34 148.11L374.1 148.53A187.02 187.02 0 0 0 78.21 262.37ZM19.02 144.36A339.35 339.35 0 0 1 484.19 88.14L488.65 82.6A313.5 313.5 0 0 0 18.43 144.18Z"/>
+    <path fill="#e12027" d="M60.85 463.79A264.81 264.81 0 0 1 169.62 89.5L168.62 87.07A238.12 238.12 0 0 0 57.81 465.32ZM231.72 71.37A293.23 293.23 0 0 1 506.43 179.55L524.53 165.26A277.13 277.13 0 0 0 231.8 69.89Z"/>
   </g>
 </svg>

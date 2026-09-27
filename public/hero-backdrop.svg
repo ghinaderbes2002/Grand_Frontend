@@ -1,52 +1,50 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice">
   <!--
-    Hero backdrop, drawn rather than photographed.
+    Hero backdrop — Grand Group's navy field, drawn rather than photographed.
 
-    Swap it for a real photograph by dropping the file into `public/` and
-    pointing `StoreHero`'s `image` prop at it — nothing else has to change.
-    Kept as SVG so it costs no network round-trip, scales to any viewport, and
-    stays neutral with the rest of the palette.
+    The brand's navy (#242b66) deepened toward the corners, with a low red bloom
+    where the arcs sit and a grain so the gradient does not band on wide
+    screens. The animated arcs themselves are rendered by `StoreHero` on top of
+    this, so they can move; this file is only the ground they move over.
+
+    Swap it for a photograph by dropping the file into `public/` and pointing
+    `StoreHero`'s `image` prop at it — nothing else has to change.
   -->
   <defs>
-    <linearGradient id="slab" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#2b2f33" />
-      <stop offset="0.55" stop-color="#1a1d20" />
-      <stop offset="1" stop-color="#0b0c0d" />
+    <linearGradient id="field" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2a3175" />
+      <stop offset="0.5" stop-color="#1c2257" />
+      <stop offset="1" stop-color="#0e1238" />
     </linearGradient>
 
-    <radialGradient id="lift" cx="0.28" cy="0.22" r="0.8">
-      <stop offset="0" stop-color="#ffffff" stop-opacity="0.12" />
-      <stop offset="1" stop-color="#ffffff" stop-opacity="0" />
+    <radialGradient id="bloom-red" cx="0.82" cy="0.3" r="0.55">
+      <stop offset="0" stop-color="#e12027" stop-opacity="0.16" />
+      <stop offset="0.55" stop-color="#e12027" stop-opacity="0.03" />
+      <stop offset="1" stop-color="#e12027" stop-opacity="0" />
     </radialGradient>
 
-    <!-- Surface tooth. Without it the gradients band on wide screens. -->
+    <radialGradient id="bloom-light" cx="0.18" cy="0.12" r="0.7">
+      <stop offset="0" stop-color="#8f9bff" stop-opacity="0.22" />
+      <stop offset="1" stop-color="#8f9bff" stop-opacity="0" />
+    </radialGradient>
+
     <filter id="grain" x="0" y="0" width="100%" height="100%">
-      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3" seed="7" />
+      <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" seed="11" />
       <feColorMatrix type="saturate" values="0" />
     </filter>
-
-    <pattern id="grid" width="64" height="64" patternUnits="userSpaceOnUse">
-      <path d="M64 0H0V64" fill="none" stroke="#ffffff" stroke-width="1" opacity="0.05" />
-    </pattern>
   </defs>
 
-  <rect width="1600" height="900" fill="url(#slab)" />
-  <rect width="1600" height="900" fill="url(#grid)" />
-  <rect width="1600" height="900" fill="url(#lift)" />
+  <rect width="1600" height="900" fill="url(#field)" />
+  <rect width="1600" height="900" fill="url(#bloom-light)" />
+  <rect width="1600" height="900" fill="url(#bloom-red)" />
 
-  <!-- Sheets of stock, fanned. The one form a printing supplier is built on. -->
-  <g opacity="0.08" fill="none" stroke="#ffffff" stroke-width="2">
-    <rect x="980" y="120" width="420" height="560" rx="10" transform="rotate(-9 1190 400)" />
-    <rect x="1040" y="150" width="420" height="560" rx="10" transform="rotate(-3 1250 430)" />
-    <rect x="1100" y="180" width="420" height="560" rx="10" transform="rotate(4 1310 460)" />
+  <!-- Faint concentric rings: the arcs' circles, completed, as a quiet echo. -->
+  <g fill="none" stroke="#ffffff" stroke-opacity="0.05">
+    <circle cx="1310" cy="420" r="260" />
+    <circle cx="1310" cy="420" r="380" />
+    <circle cx="1310" cy="420" r="520" />
+    <circle cx="1310" cy="420" r="680" />
   </g>
 
-  <!-- A sweep across the lower third, to seat the copy. -->
-  <path
-    d="M-40 700 C 300 610, 520 800, 860 720 C 1180 645, 1380 780, 1660 700 L1660 940 L-40 940 Z"
-    fill="#000000"
-    opacity="0.30"
-  />
-
-  <rect width="1600" height="900" filter="url(#grain)" opacity="0.06" />
+  <rect width="1600" height="900" filter="url(#grain)" opacity="0.07" />
 </svg>

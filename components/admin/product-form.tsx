@@ -72,7 +72,7 @@ export function ProductForm({
       <FormError state={state} />
       <FormSuccess state={state} message={dict.admin.actions.saved} />
 
-      <div className="border-border bg-surface/40 rounded-lg border p-3 text-sm">
+      <div className="border-border bg-card rounded-lg border p-3 text-sm">
         <p className="font-medium">
           {dict.admin.products.type}:{" "}
           {type === "VARIABLE"

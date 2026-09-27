@@ -50,7 +50,7 @@ export function Card({
 }) {
   return (
     <div
-      className={`border-border bg-surface/40 shadow-card rounded-2xl border p-5 ${className}`}
+      className={`border-border bg-card shadow-card rounded-2xl border p-5 ${className}`}
     >
       {children}
     </div>

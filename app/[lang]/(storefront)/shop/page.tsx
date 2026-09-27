@@ -183,7 +183,7 @@ export default async function ShopPage({
             <input type="hidden" name="brandId" value={filters.brandId} />
           ) : null}
 
-          <div className="border-border bg-surface/40 flex flex-wrap items-center gap-2 rounded-full border p-2">
+          <div className="border-border bg-card flex flex-wrap items-center gap-2 rounded-full border p-2">
             <span className="flex min-w-48 flex-1 items-center gap-2 px-3">
               <SearchIcon className="text-muted size-4 shrink-0" />
               <label htmlFor="shop-q" className="sr-only">

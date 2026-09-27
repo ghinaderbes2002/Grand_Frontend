@@ -1,13 +1,17 @@
 import Link from "next/link";
 
-import { LogoMark } from "@/components/brand/logo";
+import { ArcField } from "@/components/brand/arc-field";
+import { Logo } from "@/components/brand/logo";
 import { ORDERING_ENABLED } from "@/lib/shop/ordering";
 import type { Locale } from "@/lib/i18n/config";
 import type { Dictionary } from "@/lib/i18n/dictionaries";
 
 /**
- * Storefront footer — the one deliberately dark surface on the page, in both
- * themes. It is what closes the site.
+ * Storefront footer — Grand's navy, in both themes. It is what closes the site.
+ *
+ * Dressed like the brand book's letterhead: the stationery's tricolour along
+ * the top edge and the logo's arcs drawn in hairline at a scale far larger
+ * than the page, bleeding off the corner.
  *
  * Four columns: the brand, two link lists and the contact details. Every link
  * points at a route that exists; a footer padded with dead "About"/"Careers"
@@ -72,17 +76,17 @@ export function SiteFooter({ locale, dict }: { locale: Locale; dict: Dictionary 
   const telHref = `tel:${dict.footer.phone.replace(/\s+/g, "")}`;
 
   return (
-    // A diagonal run rather than a flat fill, so the panel has depth across its
-    // width instead of reading as one slab.
-    <footer className="text-footer-foreground mt-20 bg-linear-to-br from-[#16233a] via-[#1b2733] to-[#24405a]">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-12 px-4 py-16">
+    <footer className="bg-footer text-footer-foreground relative isolate mt-20 overflow-hidden">
+      <span aria-hidden="true" className="brand-rule absolute inset-x-0 top-0 h-1" />
+      {/* One ink and barely there: it sits behind the link columns, so it
+          must never compete with the text over it. */}
+      <ArcField className="absolute -end-48 -bottom-64 -z-10 w-[46rem] text-white/[0.045] rtl:-scale-x-100" />
+
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-12 px-4 pt-20 pb-10">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.6fr_1fr_1fr_1.2fr]">
           <div className="flex flex-col gap-4">
-            <Link href={`/${locale}`} className="flex items-center gap-2.5">
-              <LogoMark className="size-8" />
-              <span className="text-lg font-semibold tracking-tight">
-                {dict.common.appName}
-              </span>
+            <Link href={`/${locale}`} className="w-fit transition hover:opacity-85">
+              <Logo tone="reversed" title={dict.common.appName} className="h-16 w-auto" />
             </Link>
             <p className="text-footer-foreground/65 max-w-xs text-sm leading-relaxed">
               {dict.footer.tagline}
@@ -112,13 +116,13 @@ export function SiteFooter({ locale, dict }: { locale: Locale; dict: Dictionary 
 
           {columns.map((column) => (
             <nav key={column.title} className="flex flex-col gap-4">
-              <h2 className="text-footer-accent text-sm font-semibold">{column.title}</h2>
+              <FooterHeading>{column.title}</FooterHeading>
               <ul className="flex flex-col gap-2.5">
                 {column.links.map((link) => (
                   <li key={link.href}>
                     <Link
                       href={link.href}
-                      className="text-footer-foreground/65 hover:text-footer-foreground text-sm transition"
+                      className="text-footer-foreground/65 hover:text-footer-foreground inline-flex text-sm transition hover:translate-x-0.5 rtl:hover:-translate-x-0.5"
                     >
                       {link.label}
                     </Link>
@@ -129,9 +133,7 @@ export function SiteFooter({ locale, dict }: { locale: Locale; dict: Dictionary 
           ))}
 
           <div className="flex flex-col gap-4">
-            <h2 className="text-footer-accent text-sm font-semibold">
-              {dict.footer.contact}
-            </h2>
+            <FooterHeading>{dict.footer.contact}</FooterHeading>
             <ul className="flex flex-col gap-3 text-sm">
               <li className="text-footer-foreground/65 flex items-start gap-3">
                 <PinIcon className="text-footer-accent mt-0.5 size-4 shrink-0" />
@@ -169,6 +171,16 @@ export function SiteFooter({ locale, dict }: { locale: Locale; dict: Dictionary 
         </div>
       </div>
     </footer>
+  );
+}
+
+/** A column heading, led by the short red rule the brand uses as a marker. */
+function FooterHeading({ children }: { children: React.ReactNode }) {
+  return (
+    <h2 className="flex items-center gap-2.5 text-sm font-semibold text-white">
+      <span aria-hidden="true" className="bg-brand h-0.5 w-5 rounded-full" />
+      {children}
+    </h2>
   );
 }
 

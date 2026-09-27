@@ -48,7 +48,7 @@ export default async function FaqPage({ params }: PageProps<"/[lang]/faq">) {
       <ul className="flex flex-col gap-3">
         {dict.faq.items.map((item) => (
           <li key={item.q} className="reveal">
-            <details className="border-border bg-surface/40 group rounded-2xl border px-5 py-4 transition">
+            <details className="border-border bg-card group rounded-2xl border px-5 py-4 transition">
               <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-start font-medium">
                 {item.q}
                 {/* Rotates to a minus when open — the state has to be visible

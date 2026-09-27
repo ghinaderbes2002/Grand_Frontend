@@ -32,7 +32,7 @@ export function CategoryRow({
   return (
     <Link
       href={href}
-      className={`border-border bg-surface/40 hover:shadow-raised group flex flex-col overflow-hidden rounded-3xl border transition duration-300 hover:-translate-y-1 md:flex-row ${
+      className={`border-border bg-card hover:shadow-raised group flex flex-col overflow-hidden rounded-3xl border transition duration-300 hover:-translate-y-1 md:flex-row ${
         flipped ? "md:flex-row-reverse" : ""
       }`}
     >
@@ -49,7 +49,7 @@ export function CategoryRow({
             />
           </div>
         ) : (
-          <div className="halftone absolute inset-0" aria-hidden="true" />
+          <div className="mesh mesh-soft text-accent absolute inset-0" aria-hidden="true" />
         )}
       </div>
 

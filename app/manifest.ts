@@ -21,8 +21,8 @@ export default function manifest(): MetadataRoute.Manifest {
     dir: getDirection(defaultLocale),
     start_url: `/${defaultLocale}`,
     display: "standalone",
-    background_color: "#111315",
-    theme_color: "#111315",
+    background_color: "#f6f7fb",
+    theme_color: "#242b66",
     icons: [
       { src: "/icon.svg", sizes: "any", type: "image/svg+xml" },
       { src: "/apple-icon", sizes: "180x180", type: "image/png" },

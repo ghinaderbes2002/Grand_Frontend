@@ -1,6 +1,6 @@
 {
   "common": {
-    "appName": "Printing Store",
+    "appName": "Grand Group",
     "loading": "Loading…",
     "save": "Save",
     "cancel": "Cancel",
@@ -11,7 +11,8 @@
     "somethingWentWrong": "Something went wrong",
     "language": "Language",
     "arabic": "العربية",
-    "english": "English"
+    "english": "English",
+    "toggleTheme": "Toggle light / dark theme"
   },
   "nav": {
     "home": "Home",
@@ -140,7 +141,7 @@
     "customer": "Customer"
   },
   "footer": {
-    "tagline": "Printing supplies for professionals — wholesale and retail.",
+    "tagline": "Grand Group — over 25 years equipping print and signage workshops across Syria.",
     "shop": "Quick links",
     "account": "My account",
     "help": "Useful information",
@@ -148,11 +149,12 @@
     "rights": "All rights reserved.",
     "address": "Damascus, Syria",
     "phone": "+963 000 000 000",
-    "email": "info@example.com"
+    "email": "info@example.com",
+    "brandLine": "Enquiries & contact"
   },
   "home": {
-    "title": "Every printing supply in one place",
-    "subtitle": "Inks, paper, spare parts and accessories — retail and wholesale pricing, with your order tracked every step of the way.",
+    "title": "Your partner in print and advertising",
+    "subtitle": "Printers, laser machines, inks and signage materials — everything your workshop needs from a single supplier, at wholesale and retail prices, with every order tracked.",
     "browse": "Browse the shop",
     "categories": "Shop by category",
     "newArrivals": "New arrivals",
@@ -170,10 +172,10 @@
     "featured": "Featured",
     "featuredTitle": "Featured products",
     "featuredSubtitle": "A selection from the catalog, refreshed as stock changes.",
-    "badge": "Printing supplies distributor",
-    "titleLead": "Every",
-    "titleAccent": "printing supply",
-    "titleTail": "in one place",
+    "badge": "25+ years in advertising and print",
+    "titleLead": "Your partner in",
+    "titleAccent": "print",
+    "titleTail": "and advertising",
     "productsInCatalog": "products in the catalog",
     "brandsWeStock": "Brands we stock",
     "categoriesCount": "Categories",
@@ -187,6 +189,37 @@
       "pricingBody": "Wholesale customers see their own price list automatically once signed in.",
       "trackingTitle": "Order tracking",
       "trackingBody": "From checkout to delivery, the order status and tracking number stay in front of you."
+    },
+    "stats": {
+      "yearsValue": "25+",
+      "yearsLabel": "years of experience",
+      "branchesValue": "8",
+      "branchesLabel": "cities across Syria",
+      "tradeValue": "Wholesale & retail",
+      "tradeLabel": "for every size of shop"
+    },
+    "reach": {
+      "eyebrow": "Our reach",
+      "title": "Where to find Grand",
+      "body": "From Damascus to Qamishli, our branches and agents cover the length of Syria — so the material, the machine and the spare part reach your workshop wherever it is.",
+      "years": "25",
+      "yearsCaption": "years in advertising and print in Syria",
+      "cities": [
+        "Damascus",
+        "Aleppo",
+        "Homs",
+        "Hama",
+        "Tartus",
+        "Latakia",
+        "Deir ez-Zor",
+        "Qamishli"
+      ]
+    },
+    "cta": {
+      "title": "Looking for advertising solutions?",
+      "body": "Get in touch or browse the catalog — our team will help you pick the right machine and material for the job.",
+      "primary": "Browse the shop",
+      "secondary": "Contact us"
     }
   },
   "admin": {
