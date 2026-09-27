@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import { Geist_Mono, Readex_Pro } from "next/font/google";
+import { Geist_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import { notFound } from "next/navigation";
 
 import { getDirection, isLocale, locales } from "@/lib/i18n/config";
@@ -9,21 +10,23 @@ import { themeInitScript } from "@/lib/theme";
 import "../globals.css";
 
 /**
- * Readex Pro — the brand face's stand-in.
+ * Ping AR + LT — the brand face, as the brand book specifies.
  *
- * The brand book sets everything in Ping AR + LT, a commercial family that has
- * to be licensed before it can be served. Readex Pro is the closest open match:
- * the same geometric construction, and — the property that matters most — one
- * family drawn for both Arabic and Latin, so a bilingual line never changes
- * voice. Variable, so every weight from 160 to 700 is one file per script.
- *
- * Once the Ping files are licensed, swap this for `next/font/local` pointing at
- * them and keep the `--font-brand` variable: nothing else has to change.
+ * One family drawn for both Arabic and Latin, so a bilingual line never
+ * changes voice. Self-hosted from the brand kit (converted OTF → WOFF2); five
+ * weights cover the whole type scale, from the lede's light to the display's
+ * black. Arabic's `650` display weight resolves to the Bold file.
  */
-const brand = Readex_Pro({
+const brand = localFont({
   variable: "--font-brand",
-  subsets: ["arabic", "latin"],
   display: "swap",
+  src: [
+    { path: "../fonts/PingARLT-Light.woff2", weight: "300", style: "normal" },
+    { path: "../fonts/PingARLT-Regular.woff2", weight: "400", style: "normal" },
+    { path: "../fonts/PingARLT-Medium.woff2", weight: "500", style: "normal" },
+    { path: "../fonts/PingARLT-Bold.woff2", weight: "700", style: "normal" },
+    { path: "../fonts/PingARLT-Black.woff2", weight: "900", style: "normal" },
+  ],
 });
 
 /** SKUs, codes and order numbers — the only place a second face appears. */
@@ -70,7 +73,7 @@ export async function generateMetadata({
 export const viewport: Viewport = {
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#f6f7fb" },
-    { media: "(prefers-color-scheme: dark)", color: "#0c1030" },
+    { media: "(prefers-color-scheme: dark)", color: "#050e33" },
   ],
 };
 

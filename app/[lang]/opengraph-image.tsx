@@ -6,7 +6,7 @@ import {
   BRAND,
   LOGO_VIEWBOX,
   MARK_VIEWBOX,
-  REG_R,
+  REG,
   WORD_GRAND,
   WORD_GROUP,
 } from "@/components/brand/logo-paths";
@@ -45,7 +45,7 @@ export default function OpengraphImage() {
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
-          background: `linear-gradient(135deg, #2a3175 0%, ${BRAND.navy} 45%, #0e1238 100%)`,
+          background: `linear-gradient(135deg, #0d2c8c 0%, ${BRAND.navy} 45%, #04123f 100%)`,
           color: "#ffffff",
           padding: 72,
           fontFamily: "sans-serif",
@@ -70,13 +70,12 @@ export default function OpengraphImage() {
           <div style={{ flex: 1, background: BRAND.red }} />
         </div>
 
-        <svg width="520" height="288" viewBox={LOGO_VIEWBOX}>
+        <svg width="520" height="285" viewBox={LOGO_VIEWBOX}>
           <path fill={BRAND.red} fillRule="evenodd" d={ARC_RED} />
           <path fill="#ffffff" fillRule="evenodd" d={ARC_NAVY} />
-          <path fill={BRAND.red} fillRule="evenodd" d={WORD_GRAND} />
-          <path fill="#ffffff" fillRule="evenodd" d={WORD_GROUP} />
-          <circle cx="919" cy="185" r="12.6" fill="none" stroke={BRAND.red} strokeWidth="2.6" />
-          <path fill={BRAND.red} d={REG_R} />
+          <path fill={BRAND.red} d={WORD_GRAND} />
+          <path fill="#ffffff" d={WORD_GROUP} />
+          <path fill={BRAND.red} d={REG} />
         </svg>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>

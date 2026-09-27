@@ -66,6 +66,7 @@ export async function SiteHeader({
       children: categoryChildren,
       allLabel: dict.shop.allCategories,
     },
+    { href: `/${locale}/about`, label: dict.nav.about },
     { href: `/${locale}/faq`, label: dict.nav.faq },
   ];
 

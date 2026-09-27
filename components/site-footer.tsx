@@ -36,6 +36,7 @@ export function SiteFooter({ locale, dict }: { locale: Locale; dict: Dictionary 
         { href: `/${locale}`, label: dict.nav.home },
         { href: `/${locale}/shop`, label: dict.shop.title },
         { href: `/${locale}/categories`, label: dict.nav.categories },
+        { href: `/${locale}/about`, label: dict.nav.about },
       ],
     },
     {

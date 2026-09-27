@@ -4,8 +4,7 @@ import {
   ARC_RED,
   LOGO_VIEWBOX,
   MARK_VIEWBOX,
-  REG_R,
-  REG_RING,
+  REG,
   WORD_GRAND,
   WORD_GROUP,
 } from "@/components/brand/logo-paths";
@@ -51,21 +50,13 @@ export function Logo({
 
   return (
     <svg viewBox={LOGO_VIEWBOX} className={className} role="img" aria-label={title}>
-      <g fillRule="evenodd">
-        <path fill={primary} d={ARC_RED} />
-        <path fill={secondary} d={ARC_NAVY} />
-        <path fill={primary} d={WORD_GRAND} />
-        <path fill={secondary} d={WORD_GROUP} />
-      </g>
-      <circle
-        cx={REG_RING.cx}
-        cy={REG_RING.cy}
-        r={REG_RING.r}
-        fill="none"
-        stroke={primary}
-        strokeWidth={REG_RING.strokeWidth}
-      />
-      <path fill={primary} d={REG_R} />
+      {/* The crescents are drawn even-odd in the source file; the letters are
+          non-zero, which is what keeps their counters open. */}
+      <path fill={primary} fillRule="evenodd" d={ARC_RED} />
+      <path fill={secondary} fillRule="evenodd" d={ARC_NAVY} />
+      <path fill={primary} d={WORD_GRAND} />
+      <path fill={secondary} d={WORD_GROUP} />
+      <path fill={primary} d={REG} />
     </svg>
   );
 }

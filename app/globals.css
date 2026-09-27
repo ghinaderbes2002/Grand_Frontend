@@ -3,7 +3,7 @@
 /*
  * Design tokens — Grand Group.
  *
- * Built on the brand book's two inks: navy #242b66 and red #e12027, on white.
+ * Built on the brand book's two inks: navy #071f6b and red #e12027, on white.
  * Navy carries the structure (text, primary controls, the dark bands), red is
  * the spark — the one call to action per screen, the highlight, the arc. Red is
  * rationed on purpose: spread across every control it would stop meaning
@@ -16,23 +16,23 @@
 :root {
   /* The brand book's inks, verbatim. Only the logo and the brand bands use
      these directly; everything else goes through a role token below. */
-  --brand-navy: #242b66;
+  --brand-navy: #071f6b;
   --brand-red: #e12027;
 
   /* A white with the faintest navy cast, so the page and the brand share one
      temperature. Cards sit on it in pure white. */
   --background: #f6f7fb;
   --card: #ffffff;
-  --foreground: #121638;
-  --muted: #5a6087;
-  --border: #e2e5f1;
+  --foreground: #0b1640;
+  --muted: #55628c;
+  --border: #e1e6f2;
   /* One step off the page: section bands, panels, table headers, inputs. */
-  --surface: #eceef7;
+  --surface: #ebeff8;
 
-  /* Navy: 11.9:1 under white text, and the same as a glyph on the page. */
-  --accent: #242b66;
+  /* Navy: 14:1 under white text, and the same as a glyph on the page. */
+  --accent: #071f6b;
   --accent-foreground: #ffffff;
-  --accent-strong: #242b66;
+  --accent-strong: #071f6b;
 
   /* Red, as a fill: white on it clears 4.6:1. `--brand-text` is the darker
      cut for red *as text* on a light surface, where the fill value is too
@@ -49,7 +49,7 @@
   --warning: #a15c07;
 
   /* The deep navy that closes the page and backs the hero, in both themes. */
-  --footer: #161a45;
+  --footer: #061750;
   --footer-foreground: #eef0fb;
   --footer-accent: #ff5a61;
 
@@ -58,8 +58,8 @@
   --logo-secondary: var(--brand-navy);
 
   /* Elevation, tinted navy — a neutral grey shadow over a cool page goes muddy. */
-  --shadow-card: 0 1px 2px 0 rgb(18 22 56 / 0.04), 0 2px 6px -1px rgb(18 22 56 / 0.06);
-  --shadow-raised: 0 6px 12px -4px rgb(18 22 56 / 0.08), 0 20px 40px -12px rgb(18 22 56 / 0.18);
+  --shadow-card: 0 1px 2px 0 rgb(7 20 70 / 0.04), 0 2px 6px -1px rgb(7 20 70 / 0.06);
+  --shadow-raised: 0 6px 12px -4px rgb(7 20 70 / 0.08), 0 20px 40px -12px rgb(7 20 70 / 0.18);
   --shadow-brand: 0 10px 30px -10px rgb(225 32 39 / 0.55);
 }
 
@@ -75,18 +75,18 @@
 :root[data-theme="dark"] {
   /* The brand's navy, layered: page, then card, then surface, each a
      clear step lighter, so panels read as objects rather than as holes. */
-  --background: #0c1030;
-  --card: #141a47;
-  --foreground: #f3f4fc;
-  --muted: #a9aed6;
-  --border: #283071;
-  --surface: #1a2156;
+  --background: #050e33;
+  --card: #0b1a4d;
+  --foreground: #f2f5fd;
+  --muted: #a4b0d8;
+  --border: #1d3176;
+  --surface: #10235e;
 
   /* Navy disappears on navy, so the accent turns white — the brand book's
      own reversed treatment. Primary controls become white pills with navy
      text; no colour is invented that the identity does not have. */
   --accent: #ffffff;
-  --accent-foreground: #1d2463;
+  --accent-foreground: #071f6b;
   --accent-strong: #ffffff;
 
   --brand: #e5262e;
@@ -98,7 +98,7 @@
   --success: #6fcf97;
   --warning: #f0b34a;
 
-  --footer: #080b25;
+  --footer: #030b28;
   --footer-foreground: #eef0fb;
   --footer-accent: #ff6b71;
 
@@ -113,18 +113,18 @@
   :root:not([data-theme="light"]) {
     /* The brand's navy, layered: page, then card, then surface, each a
        clear step lighter, so panels read as objects rather than as holes. */
-    --background: #0c1030;
-    --card: #141a47;
-    --foreground: #f3f4fc;
-    --muted: #a9aed6;
-    --border: #283071;
-    --surface: #1a2156;
+    --background: #050e33;
+    --card: #0b1a4d;
+    --foreground: #f2f5fd;
+    --muted: #a4b0d8;
+    --border: #1d3176;
+    --surface: #10235e;
 
     /* Navy disappears on navy, so the accent turns white — the brand book's
        own reversed treatment. Primary controls become white pills with navy
        text; no colour is invented that the identity does not have. */
     --accent: #ffffff;
-    --accent-foreground: #1d2463;
+    --accent-foreground: #071f6b;
     --accent-strong: #ffffff;
 
     --brand: #e5262e;
@@ -136,7 +136,7 @@
     --success: #6fcf97;
     --warning: #f0b34a;
 
-    --footer: #080b25;
+    --footer: #030b28;
     --footer-foreground: #eef0fb;
     --footer-accent: #ff6b71;
 
@@ -341,7 +341,7 @@ html[lang="ar"] .text-title {
 
 .arc-sweep {
   transform-box: view-box;
-  transform-origin: 270px 300px;
+  transform-origin: 760px 560px;
   animation: arc-sweep 1.3s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 

@@ -22,7 +22,7 @@ export default function manifest(): MetadataRoute.Manifest {
     start_url: `/${defaultLocale}`,
     display: "standalone",
     background_color: "#f6f7fb",
-    theme_color: "#242b66",
+    theme_color: "#071f6b",
     icons: [
       { src: "/icon.svg", sizes: "any", type: "image/svg+xml" },
       { src: "/apple-icon", sizes: "180x180", type: "image/png" },

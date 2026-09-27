@@ -25,7 +25,8 @@
     "register": "Sign up",
     "logout": "Log out",
     "faq": "FAQ",
-    "menu": "Menu"
+    "menu": "Menu",
+    "about": "About us"
   },
   "errors": {
     "emailRequired": "Email is required",
@@ -135,7 +136,15 @@
     "permissions": "Permissions",
     "noPermissions": "No extra permissions",
     "userId": "User ID",
-    "logoutAll": "Log out of all devices"
+    "logoutAll": "Log out of all devices",
+    "subtitle": "Your account details and shortcuts.",
+    "email": "Email",
+    "quickLinks": "Shortcuts",
+    "goAdmin": "Dashboard",
+    "goAdminBody": "Manage products, categories and stock.",
+    "goShop": "Browse the shop",
+    "goShopBody": "Every product, at your account's prices.",
+    "session": "Session"
   },
   "roles": {
     "super_admin": "Super admin",
@@ -734,27 +743,31 @@
   },
   "faq": {
     "title": "Frequently asked questions",
-    "subtitle": "What you need to know about ordering, delivery and your account.",
+    "subtitle": "What you need to know about our products, prices and branches.",
     "items": [
       {
-        "q": "Do I need an account to order?",
-        "a": "Browsing and prices are open to everyone. Adding to the cart and checking out need an account, because the cart lives on the server against your login — that is what keeps your pricing and your orders with you across devices."
+        "q": "How do I ask about a product or its price?",
+        "a": "Prices are shown on every product page. For anything about specifications, quantities or availability, contact us by phone or WhatsApp (at the bottom of the page) and mention the product name for a faster reply."
       },
       {
-        "q": "How do I track my order?",
-        "a": "The \"My orders\" page shows each order status step by step — payment, confirmation, processing, shipping. Once it ships, the carrier and tracking number appear there too."
+        "q": "Where are Grand's branches?",
+        "a": "Our branches and agents cover Syria: Damascus, Aleppo, Homs, Hama, Tartus, Latakia, Deir ez-Zor and Qamishli. Get in touch to find the one nearest you."
+      },
+      {
+        "q": "How do I find the right product quickly?",
+        "a": "On the Products page, search by name, or pick a category and a brand, then open Filters to narrow by price, size, colour and other specifications."
       },
       {
         "q": "Do you offer wholesale pricing?",
-        "a": "Yes. If your account is set to a wholesale price list, you see your own prices automatically once signed in — no code, no extra step."
+        "a": "Yes. If your account is set to a wholesale price list, you see your own prices automatically once signed in — no code, no extra step. Contact us to have wholesale pricing enabled on your account."
       },
       {
-        "q": "Why do some products have a minimum order quantity?",
-        "a": "Some stock is sold in fixed units (reams of paper, ink cartridges). The minimum is shown on the product page under the quantity field, and an order below it is rejected."
+        "q": "Why create an account?",
+        "a": "Browsing and prices are open to everyone. An account shows you your own prices if you are a wholesale customer, and makes it easier for us to help you when you get in touch."
       },
       {
-        "q": "Can I cancel my order?",
-        "a": "You can cancel it yourself while it has not shipped. Open the order and the cancel button appears when its status still allows it; after shipping, contact us instead."
+        "q": "Are the prices shown up to date?",
+        "a": "Prices are updated directly by the store's team, so what you see is the current price. For large quantities or projects, contact us for a quote."
       },
       {
         "q": "Which currency do you use?",
@@ -762,10 +775,165 @@
       },
       {
         "q": "A product says \"out of stock\" — what does that mean?",
-        "a": "That particular option has run out in the warehouse. The button is disabled so you do not reach checkout only to be refused. Try another option of the same product, or check back later."
+        "a": "That product, or that option of it, has run out for now. Contact us to find out when it will be back or for a suitable alternative."
       }
     ],
     "cta": "Still need help?",
     "ctaAction": "Contact us"
+  },
+  "about": {
+    "title": "About us",
+    "subtitle": "Complete solutions for advertising, print and exterior cladding — from raw material to machine.",
+    "introEyebrow": "Who we are",
+    "introTitle": "One partner for sign and print workshops",
+    "introBody": [
+      "Grand Group provides complete solutions for the advertising, printing and exterior-cladding sector, supplying a wide range of raw materials, printing machines and production supplies for individuals, companies and factories.",
+      "We carry a full range of Alucobond panels, plastic, foam and polycarbonate sheets, flex rolls, every kind of vinyl and heat-transfer vinyl for garments, alongside printing machines, inks, professional print media and cutting machines (CNC, laser, cutter) — with a focus on high quality, product range and competitive prices."
+    ],
+    "sinceLabel": "Since",
+    "sinceYear": "1996",
+    "sinceCaption": "A known and trusted name in the Syrian market",
+    "visionEyebrow": "Our vision",
+    "vision": "To be the first reference for advertising and exterior-cladding materials in Syria — by widening our reach, introducing new products and technologies, and providing complete solutions that meet the needs of the market.",
+    "goalsEyebrow": "Our goals",
+    "goalsTitle": "Where we are heading",
+    "goals": [
+      {
+        "title": "Reach and expansion",
+        "body": "An operational presence in every Syrian governorate, so our products and services arrive everywhere efficiently and to a high standard."
+      },
+      {
+        "title": "Technology and innovation",
+        "body": "Bringing the latest global technologies and products to the local market, raising the standards of advertising work."
+      },
+      {
+        "title": "Developing the sector",
+        "body": "Reshaping the advertising landscape by improving market practices and raising the quality and innovation of what we offer our customers and partners."
+      },
+      {
+        "title": "Global partnerships",
+        "body": "Building cooperation with leading international companies, as an authorised agent and a strategic partner adding real value to the Syrian market."
+      }
+    ],
+    "strengthsEyebrow": "Our strengths",
+    "strengthsTitle": "Why Grand?",
+    "strengths": [
+      "A wide range of products and raw materials.",
+      "Coverage across most Syrian governorates.",
+      "High quality at competitive prices.",
+      "A known and trusted name in the Syrian market since 1996.",
+      "Complete, varied solutions for advertising materials, from A to Z."
+    ],
+    "sectorsEyebrow": "Our sectors",
+    "sectorsTitle": "Five sectors under one roof",
+    "sectors": [
+      {
+        "title": "Machines",
+        "body": "Printing, cutting and fabrication machines for every stage of sign production, with a complete range of spare parts and accessories.",
+        "tags": [
+          "CO2 & fiber laser",
+          "CNC",
+          "Cutters",
+          "Solvent & Eco-Solvent printing",
+          "UV printing",
+          "Sublimation",
+          "DTF",
+          "3D printing",
+          "Channel-letter bending",
+          "Welding"
+        ]
+      },
+      {
+        "title": "Advertising materials",
+        "body": "The raw materials used to make signage, print and exterior facade cladding.",
+        "tags": [
+          "Alucobond",
+          "Plexiglass",
+          "Foam",
+          "Polycarbonate",
+          "Flex",
+          "Vinyl",
+          "Inks",
+          "Wallpaper"
+        ]
+      },
+      {
+        "title": "Textile printing materials",
+        "body": "The latest technologies and core materials for printing on fabric and garments, for print quality and colour fastness.",
+        "tags": [
+          "Sublimation",
+          "DTF",
+          "TPU",
+          "Embroidery films"
+        ]
+      },
+      {
+        "title": "Display & promotion",
+        "body": "Promotional display systems, stands and brand-presence solutions for exhibitions, events and points of sale.",
+        "tags": [
+          "Roll-up",
+          "Pop-up",
+          "Sail stand",
+          "Brochure stand",
+          "Mobile & wall stands"
+        ]
+      },
+      {
+        "title": "Accessories",
+        "body": "The precise materials, tools and fittings craftspeople need, to the highest standards of accuracy and quality.",
+        "tags": [
+          "Silicone & adhesives",
+          "LED supplies",
+          "Standoffs",
+          "Cutting tools",
+          "Power supplies",
+          "Stamps"
+        ]
+      }
+    ],
+    "brandsEyebrow": "Agencies & brands",
+    "brandsTitle": "We represent trusted global brands",
+    "brands": [
+      {
+        "name": "UniBond",
+        "note": "Saudi Alucobond"
+      },
+      {
+        "name": "Dermax",
+        "note": "Saudi silicone"
+      },
+      {
+        "name": "HP",
+        "note": "Vinyl"
+      },
+      {
+        "name": "Sumipex / Cosmo",
+        "note": "Plastics"
+      },
+      {
+        "name": "Kemica",
+        "note": "Italian applique adhesive"
+      },
+      {
+        "name": "Audley / Challenger",
+        "note": "Printing machines"
+      },
+      {
+        "name": "Teneth",
+        "note": "Cutting plotters"
+      },
+      {
+        "name": "Grand Laser",
+        "note": "Laser machines"
+      },
+      {
+        "name": "MaiGao",
+        "note": "3D printers"
+      },
+      {
+        "name": "Kao Chimigraf",
+        "note": "Spanish inks"
+      }
+    ]
   }
 }

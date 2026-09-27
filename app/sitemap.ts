@@ -23,11 +23,10 @@ export const dynamic = "force-dynamic";
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = (process.env.SITE_URL ?? "http://localhost:3001").replace(/\/$/, "");
 
-  const entries: MetadataRoute.Sitemap = locales.map((locale) => ({
-    url: `${base}/${locale}/shop`,
-    changeFrequency: "daily",
-    priority: 0.8,
-  }));
+  const entries: MetadataRoute.Sitemap = locales.flatMap((locale) => [
+    { url: `${base}/${locale}/shop`, changeFrequency: "daily" as const, priority: 0.8 },
+    { url: `${base}/${locale}/about`, changeFrequency: "monthly" as const, priority: 0.6 },
+  ]);
 
   const slugs: string[] = [];
   let cursor: string | undefined;
