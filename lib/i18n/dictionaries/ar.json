@@ -697,7 +697,9 @@
     "loginToBuy": "سجّل دخولك لإضافة المنتج إلى السلة",
     "loginToBuyHint": "السلة مرتبطة بحسابك، لتبقى أسعارك وطلباتك محفوظة.",
     "productDetails": "تفاصيل المنتج",
-    "browseCategories": "الأصناف"
+    "browseCategories": "الأصناف",
+    "subcategories": "الأصناف الفرعية",
+    "allInCategory": "الكل"
   },
   "cart": {
     "title": "السلة",

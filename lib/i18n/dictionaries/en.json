@@ -697,7 +697,9 @@
     "loginToBuy": "Log in to add to cart",
     "loginToBuyHint": "The cart is tied to your account, so your pricing and orders stay with you.",
     "productDetails": "Product details",
-    "browseCategories": "Categories"
+    "browseCategories": "Categories",
+    "subcategories": "Subcategories",
+    "allInCategory": "All"
   },
   "cart": {
     "title": "Cart",

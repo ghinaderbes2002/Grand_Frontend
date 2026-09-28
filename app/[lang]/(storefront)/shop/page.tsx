@@ -16,6 +16,7 @@ import {
 } from "@/lib/api/catalog";
 import { listMedia } from "@/lib/api/media";
 import { listProducts } from "@/lib/api/products";
+import { descendantIds, pathToRoot } from "@/lib/catalog/category-tree";
 import type { Attribute, CategoryAttribute } from "@/lib/api/types";
 import {
   ATTR_QUERY_PREFIX,
@@ -69,11 +70,22 @@ export default async function ShopPage({
     limit: 24,
   };
 
-  const [page, categories, brands] = await Promise.all([
-    listProducts(filters),
-    listCategories(),
-    listBrands(),
-  ]);
+  const [categories, brands] = await Promise.all([listCategories(), listBrands()]);
+
+  // A category's products include those of every category below it. The API
+  // filters on the exact category only, so a top-level pick like "textile
+  // printing" came back empty while its subcategories held the products. When
+  // the pick has subcategories, each one is listed and the results merged;
+  // cursor paging does not span several listings, so that view shows up to
+  // 100 per category in one page. (`includeDescendants` on `GET /products` is
+  // on the list of asks for the backend — it would replace this.)
+  const scope = filters.categoryId
+    ? [filters.categoryId, ...descendantIds(categories, filters.categoryId)]
+    : [];
+  const page =
+    scope.length > 1
+      ? await listAcrossCategories(filters, scope)
+      : await listProducts(filters);
 
   // One media call per product: the listing response carries no images and the
   // media endpoint takes a single entity. They run in parallel and the page
@@ -106,6 +118,20 @@ export default async function ShopPage({
 
   const categoryNames = new Map(categories.map((c) => [c.id, c.name]));
   const rootCategories = categories.filter((c) => c.parentId === null && c.isActive);
+
+  // The pick seen from the top: the chain from its top-level category down to
+  // it. The first row lights the top level; below it, every category on the
+  // chain that has children gets a row of its own, lit on the next step down —
+  // so a three-level tree reads as three rows, drilled one at a time.
+  const chain = filters.categoryId ? pathToRoot(categories, filters.categoryId) : [];
+  const activeRoot = chain[0];
+  const subRows = chain
+    .map((parentId, depth) => ({
+      parentId,
+      active: chain[depth + 1],
+      children: categories.filter((c) => c.parentId === parentId && c.isActive),
+    }))
+    .filter((row) => row.children.length > 0);
   const activeBrands = brands.filter((brand) => brand.isActive);
 
   // Carry the active filters into the next-page link alongside the cursor.
@@ -251,13 +277,31 @@ export default async function ShopPage({
           label={dict.admin.products.category}
           allLabel={dict.shop.allCategories}
           allHref={facetHref("categoryId")}
-          active={filters.categoryId}
+          active={activeRoot}
           items={rootCategories.map((category) => ({
             id: category.id,
             name: category.name,
             href: facetHref("categoryId", category.id),
           }))}
         />
+
+        {/* Once a top-level category is picked, its subcategories narrow it
+            further; "all" goes back to the whole category. */}
+        {subRows.map((row) => (
+          <FacetRow
+            key={row.parentId}
+            label={`${dict.shop.subcategories} — ${categoryNames.get(row.parentId) ?? ""}`}
+            allLabel={dict.shop.allInCategory}
+            allHref={facetHref("categoryId", row.parentId)}
+            active={row.active}
+            tone="sub"
+            items={row.children.map((category) => ({
+              id: category.id,
+              name: category.name,
+              href: facetHref("categoryId", category.id),
+            }))}
+          />
+        ))}
 
         <FacetRow
           label={dict.admin.products.brand}
@@ -312,6 +356,29 @@ export default async function ShopPage({
   );
 }
 
+/**
+ * Lists several categories and merges them into one page, with no product
+ * twice. A listing that fails is left out rather than failing the
+ * page.
+ */
+async function listAcrossCategories(
+  filters: Parameters<typeof listProducts>[0] & object,
+  categoryIds: string[],
+) {
+  const pages = await Promise.all(
+    categoryIds.map((categoryId) =>
+      listProducts({ ...filters, categoryId, cursor: undefined, limit: 100 }).catch(() => ({
+        items: [],
+        nextCursor: null,
+      })),
+    ),
+  );
+
+  // The category's own products first, then each subcategory's in tree order.
+  const byId = new Map(pages.flatMap((page) => page.items).map((product) => [product.id, product]));
+  return { items: [...byId.values()], nextCursor: null };
+}
+
 /** A scrollable row of facet pills, with "all" as the resting state. */
 function FacetRow({
   label,
@@ -319,21 +386,26 @@ function FacetRow({
   allHref,
   active,
   items,
+  tone = "main",
 }: {
   label: string;
   allLabel: string;
   allHref: string;
   active?: string;
   items: Array<{ id: string; name: string; href: string }>;
+  /** `sub` is the subcategory row: smaller, and lit in red so the two levels read apart. */
+  tone?: "main" | "sub";
 }) {
   if (items.length === 0) return null;
 
+  const activeClass =
+    tone === "sub"
+      ? "border-brand bg-brand text-brand-foreground"
+      : "border-accent bg-accent text-accent-foreground";
   const pill = (isActive: boolean) =>
-    `inline-flex shrink-0 rounded-full border px-4 py-2 text-sm transition ${
-      isActive
-        ? "border-accent bg-accent text-accent-foreground"
-        : "border-border hover:border-accent hover:text-accent-strong"
-    }`;
+    `inline-flex shrink-0 rounded-full border transition ${
+      tone === "sub" ? "px-3.5 py-1.5 text-xs font-medium" : "px-4 py-2 text-sm"
+    } ${isActive ? activeClass : "border-border hover:border-accent hover:text-accent-strong"}`;
 
   return (
     <nav aria-label={label} className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
